@@ -255,7 +255,8 @@ python main.py roundtrip samples/sample_ontology.ttl --save-export
 
 For more examples, see [docs/QUICK_TEST_GUIDE.md](docs/QUICK_TEST_GUIDE.md).
 
-## Strict Semantics and FOAF Considerations
+## Limitations
+**Conversions are not 1:1**: for more details, see `docs/MAPPING_LIMIRATIONS.md`.
 
 This tool adheres to strict semantics by default, ensuring predictable conversion aligned with RDF/OWL declarations:
 
@@ -275,9 +276,6 @@ FOAF and similar vocabularies sometimes rely on property signatures that are not
 An optional "loose inference" mode is planned as a future feature to heuristically attach properties when signatures are missing. It is intentionally disabled by default to maintain predictable, standards‑aligned behavior.
 
 For more details, see `docs/ERROR_HANDLING_SUMMARY.md`.
-
-## Limitations
-**Conversions are not 1:1**: for more details, see `docs/MAPPING_LIMIRATIONS.md`.
 
 
 ## 📚 Documentation

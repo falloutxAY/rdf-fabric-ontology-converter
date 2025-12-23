@@ -10,15 +10,10 @@ Please refer to the `LICENSE` file for the full terms governing use, distributio
 
 ## ✨ Features
 
-- 🔄 **Bidirectional conversion**: TTL → Fabric and Fabric → TTL
-- 📤 Create and update ontologies in Microsoft Fabric
-- 📥 Export ontologies from Fabric back to TTL format
+- 🔄 **Bidirectional conversion**: RDF TTL → Fabric and Fabric → RDF TTL
 - 🔍 List, get, and delete ontologies
 - 🔁 Round-trip testing with semantic comparison
 - 🎯 Automatic XSD to Fabric type mapping
-- 🔐 Interactive and service principal authentication
-- 🔄 Retry logic for transient API errors (429, 503)
-- 📊 Progress bars for long-running operations
 - ✅ Comprehensive test suite (65 tests) 
 
 ## 📋 Table of Contents
@@ -303,6 +298,8 @@ For more details, see `docs/ERROR_HANDLING_SUMMARY.md`.
 
 - How can I quickly debug conversion issues?
   - Increase logging to `DEBUG` in `src/config.json`, run `roundtrip` with `--save-export`, and use `compare --verbose`. Also see `docs/TROUBLESHOOTING.md` and `docs/ERROR_HANDLING_SUMMARY.md`.
+
+  For more details, see `docs/MAPPING_LIMIRATIONS.md`.
 
 ## 📚 Documentation
 

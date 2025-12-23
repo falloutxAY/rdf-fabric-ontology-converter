@@ -6,10 +6,7 @@ Convertors from RDF/OWL (TTL) to Microsoft Fabric Ontology necessarily simplify 
 
 - Semantics vs structure:
   - RDF/OWL uses description logic and inference (e.g., RDFS/OWL entailments). Many semantics are implicit and only materialize under reasoning.
-  - Fabric Ontology encodes explicit classes, properties, and relationships for downstream data use; it generally does not perform OWL reasoning.
-- Open‑world vs practical constraints:
-  - RDF/OWL assumes the open‑world: absence of information is not false.
-  - Fabric Ontology tends to favor explicit, closed‑world‑like models for operational clarity.
+  - Fabric Ontology encodes explicit classes, properties, and relationships for downstream data use; it does not fully support RDF/OWL constructs.
 - Expressivity vs implementability:
   - RDF/OWL supports complex class expressions and property axioms.
   - Fabric Ontology APIs typically provide a constrained type system and relationship model without full OWL semantics.
@@ -140,13 +137,6 @@ To improve preservation:
 - "Unsupported OWL construct … skipping restriction"
   - Cause: `owl:Restriction` or advanced axioms not implemented.
   - Fix: Flatten to explicit properties/relationships with signatures; avoid complex OWL in converted segments.
-
-## Future directions (planned/considered)
-
-- Optional heuristic ("loose inference") mode with clear warnings and off‑by‑default behavior.
-- Extended datatype coverage and mapping strategies.
-- Improved handling of selected OWL constructs where feasible (e.g., limited restrictions).
-- SHACL awareness for validation guidance (not direct semantics mapping).
 
 ## References and further reading
 

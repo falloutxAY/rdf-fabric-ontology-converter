@@ -4,7 +4,7 @@ Convert RDF TTL (Turtle) ontology files to Microsoft Fabric Ontology format and 
 
 ## Disclaimer
 
-This repository and its tooling were created as part of learning and experimenting with AI‑assisted software development. There may be mistakes or omissions, and the outputs may not be complete or correct for all ontologies.
+This repository was created as part of my personal learning and experimenting with AI‑assisted software development (Actually AI did 99.9% of the work). There may be mistakes or omissions, and the outputs may not be complete or correct for all ontologies.
 
 Please refer to the `LICENSE` file for the full terms governing use, distribution, and limitations.
 

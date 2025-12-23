@@ -276,30 +276,9 @@ An optional "loose inference" mode is planned as a future feature to heuristical
 
 For more details, see `docs/ERROR_HANDLING_SUMMARY.md`.
 
-## FAQ
+## Limitations
+**Conversions are not 1:1**: for more details, see `docs/MAPPING_LIMIRATIONS.md`.
 
-- Properties are skipped in conversion — why?
-  - The tool requires explicit `rdfs:domain` and `rdfs:range` that resolve to classes declared in the same TTL (including members of any `owl:unionOf`). If a property references undeclared classes or lacks resolvable domain/range, it is skipped with a warning. See the CLI output and logs for details.
-
-- How is `owl:unionOf` handled?
-  - For `rdfs:domain`/`rdfs:range`, union members are resolved. The converter emits a distinct relationship type for each domain–range pair implied by the unions. For union-of datatypes, the mapping is conservative (often to `String`) to maintain compatibility.
-
-- Why does FOAF round‑trip differ under strict semantics?
-  - FOAF properties may not include explicit signatures in a single TTL file or may rely on external class definitions. To preserve FOAF properties:
-    - Add explicit `rdfs:domain` and `rdfs:range` for properties you need.
-    - Declare referenced FOAF classes locally or merge required vocabularies.
-    - Avoid unsupported OWL constructs (e.g., certain `owl:Restriction` patterns) unless you extend converter support.
-
-- I see "lost datatype/object properties" warnings in round‑trip — how do I fix this?
-  - Provide explicit property signatures and ensure all referenced classes exist in the TTL. Verify XSD datatype coverage and re-run `compare` with `--verbose` to inspect differences.
-
-- Can I enable heuristic (loose) inference for missing signatures?
-  - A future "loose inference" mode may be introduced, but it is intentionally disabled by default to keep behavior predictable and standards‑aligned.
-
-- How can I quickly debug conversion issues?
-  - Increase logging to `DEBUG` in `src/config.json`, run `roundtrip` with `--save-export`, and use `compare --verbose`. Also see `docs/TROUBLESHOOTING.md` and `docs/ERROR_HANDLING_SUMMARY.md`.
-
-  For more details, see `docs/MAPPING_LIMIRATIONS.md`.
 
 ## 📚 Documentation
 

@@ -39,7 +39,7 @@ Convert RDF TTL (Turtle) ontology files to Microsoft Fabric Ontology format and 
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/rdf-fabric-ontology-converter.git
+git clone https://github.com/falloutxAY/rdf-fabric-ontology-converter.git
 cd rdf-fabric-ontology-converter
 ```
 
@@ -61,63 +61,63 @@ pip install -r requirements.txt
 
 4. Configure your settings:
 ```bash
-# Copy the sample configuration
-cp config.sample.json config.json
+# Copy the sample configuration into src (config.json is git-ignored)
+cp config.sample.json src/config.json
 
-# Edit config.json with your Fabric workspace details
+# Edit src/config.json with your Fabric workspace details
 ```
 
 ## 🚀 Quick Start
 
 ```bash
 # Convert a TTL file to Fabric format
-python main.py convert samples/sample_ontology.ttl
+python src/main.py convert samples/sample_ontology.ttl --config src/config.json
 
 # Upload an ontology to Fabric
-python main.py upload samples/sample_ontology.ttl --name "MyOntology"
+python src/main.py upload samples/sample_ontology.ttl --name "MyOntology" --config src/config.json
 
 # List all ontologies in your workspace
-python main.py list
+python src/main.py list --config src/config.json
 
 # Run tests
-python run_tests.py all
+python tests/run_tests.py all
 ```
 
 ## 📖 Usage
 
 ### Convert TTL to JSON
 ```bash
-python main.py convert <ttl_file> [--output <output.json>]
+python src/main.py convert <ttl_file> [--output <output.json>] --config src/config.json
 ```
 
 ### Upload Ontology
 ```bash
-python main.py upload <ttl_file> [--name <ontology_name>] [--update]
+python src/main.py upload <ttl_file> [--name <ontology_name>] [--update] --config src/config.json
 ```
 
 ### List Ontologies
 ```bash
-python main.py list
+python src/main.py list --config src/config.json
 ```
 
 ### Get Ontology Details
 ```bash
-python main.py get <ontology_id>
+python src/main.py get <ontology_id> --config src/config.json
 ```
 
 ### Delete Ontology
 ```bash
-python main.py delete <ontology_id>
+python src/main.py delete <ontology_id> --config src/config.json
 ```
 
 ### Test Connection
 ```bash
-python main.py test
+python src/main.py test --config src/config.json
 ```
 
 ## ⚙️ Configuration
 
-Create `config.json` from `config.sample.json`:
+Create `src/config.json` from `config.sample.json` (config.json is git-ignored):
 
 ```json
 {
@@ -125,11 +125,16 @@ Create `config.json` from `config.sample.json`:
     "workspace_id": "YOUR_WORKSPACE_ID",
     "tenant_id": "YOUR_TENANT_ID",
     "client_id": "04b07795-8ddb-461a-bbee-02f9e1bf7b46",
-    "use_interactive_auth": true
+    "use_interactive_auth": true,
+    "api_base_url": "https://api.fabric.microsoft.com/v1"
   },
   "ontology": {
     "default_namespace": "usertypes",
     "id_prefix": 1000000000000
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "logs/app.log"
   }
 }
 ```
@@ -142,16 +147,16 @@ Run the comprehensive test suite:
 
 ```bash
 # Run all tests
-python run_tests.py all
+python tests/run_tests.py all
 
 # Run unit tests only
-python run_tests.py core
+python tests/run_tests.py core
 
 # Run sample file tests
-python run_tests.py samples
+python tests/run_tests.py samples
 
 # Run with coverage
-python -m pytest --cov=src --cov-report=html
+python -m pytest tests/ --cov=src --cov-report=html
 ```
 
 **Test Results:** ✅ 
@@ -179,10 +184,12 @@ rdf-fabric-ontology-converter/
 │   └── sample_fibo_ontology.ttl  # Financial ontology
 ├── docs/                         # Documentation
 │   ├── CONFIGURATION.md          # Configuration guide
-│   ├── TESTING.md                # Testing guide
-│   ├── API_REFERENCE.md          # API documentation
-│   └── TROUBLESHOOTING.md        # Common issues
+│   ├── TESTING.md                # Combined testing guide
+│   ├── TROUBLESHOOTING.md        # Common issues
+│   ├── ERROR_HANDLING_SUMMARY.md # Error handling reference
+│   └── QUICK_TEST_GUIDE.md       # Quick test instructions
 ├── config.sample.json            # Sample configuration
+├── src/config.json               # Your local config (git-ignored)
 ├── requirements.txt              # Python dependencies
 ├── .gitignore                    # Git ignore rules
 ├── LICENSE                       # MIT License
@@ -206,15 +213,15 @@ python main.py upload samples/foaf_ontology.ttl --name "FOAF"
 python main.py convert samples/sample_iot_ontology.ttl --output iot_definition.json
 ```
 
-For more examples, see [docs/EXAMPLES.md](docs/EXAMPLES.md).
+For more examples, see [docs/QUICK_TEST_GUIDE.md](docs/QUICK_TEST_GUIDE.md).
 
 ## 📚 Documentation
 
 - **[Configuration Guide](docs/CONFIGURATION.md)** - Detailed setup instructions
 - **[Testing Guide](docs/TESTING.md)** - How to run and write tests
-- **[API Reference](docs/API_REFERENCE.md)** - Function and class documentation
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
-- **[Contributing](docs/CONTRIBUTING.md)** - How to contribute
+- **[Quick Test Guide](docs/QUICK_TEST_GUIDE.md)** - Fast test commands
+- **[Error Handling Summary](docs/ERROR_HANDLING_SUMMARY.md)** - Common failures and resolutions
 
 ## 🤝 Contributing
 
@@ -245,8 +252,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📧 Support
 
 For issues and questions:
-- 🐛 [Report a bug](https://github.com/yourusername/rdf-fabric-ontology-converter/issues)
-- 💡 [Request a feature](https://github.com/yourusername/rdf-fabric-ontology-converter/issues)
+- 🐛 [Report a bug](https://github.com/falloutxAY/rdf-fabric-ontology-converter/issues)
+- 💡 [Request a feature](https://github.com/falloutxAY/rdf-fabric-ontology-converter/issues)
 - 📖 [Read the docs](docs/)
 
 ## 🔗 Related Projects

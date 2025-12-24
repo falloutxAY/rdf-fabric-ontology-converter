@@ -15,7 +15,7 @@ Create `config.json` in the project root:
     "ontology_id": "",
     "api_base_url": "https://api.fabric.microsoft.com/v1",
     "tenant_id": "YOUR_TENANT_ID",
-    "client_id": "04b07795-8ddb-461a-bbee-02f9e1bf7b46",
+    "client_id": "",
     "client_secret": "",
     "use_interactive_auth": true
   },
@@ -103,15 +103,11 @@ This uses the Azure CLI public client and opens a browser for login.
 
 ### Tenant ID
 
-Option 1 - Azure Portal:
-1. Go to [Azure Portal](https://portal.azure.com)
-2. Navigate to Azure Active Directory
-3. Find "Tenant ID" in the Overview
+1. Go to [Microsoft Fabric](https://app.fabric.microsoft.com)
+2. Navigate to your workspace
+3. Click your profile photo (top right).
+4. See Tenant details
 
-Option 2 - PowerShell:
-```powershell
-Connect-AzAccount
-Get-AzContext | Select-Object -ExpandProperty Tenant
 ```
 
 ## Environment Variables

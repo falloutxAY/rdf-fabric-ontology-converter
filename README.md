@@ -115,6 +115,11 @@ python -m pytest -q
 
 ## Usage
 
+```powershell
+# Understand the commands and options available
+python src\main.py -h
+```
+
 ### Validate TTL File (Pre-flight Check)
 ```powershell
 # Check if a TTL file can be imported seamlessly

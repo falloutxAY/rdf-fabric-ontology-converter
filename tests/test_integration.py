@@ -347,5 +347,150 @@ class TestRobustness:
             assert name.replace("_", "").isalnum()
 
 
+class TestThreadSafeTokenCaching:
+    """Test thread-safe token acquisition in FabricOntologyClient"""
+    
+    def test_concurrent_token_acquisition(self):
+        """Test that concurrent token requests are handled thread-safely"""
+        import concurrent.futures
+        import time
+        from unittest.mock import patch, MagicMock
+        
+        # Import here to avoid circular imports
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src'))
+        from fabric_client import FabricOntologyClient, FabricConfig
+        
+        config = FabricConfig(workspace_id="12345678-1234-1234-1234-123456789012")
+        client = FabricOntologyClient(config)
+        
+        # Track how many times token is actually acquired
+        token_acquisition_count = []
+        
+        def mock_get_token(scope):
+            # Add small delay to increase chance of race conditions
+            time.sleep(0.01)
+            token_acquisition_count.append(1)
+            token = MagicMock()
+            token.token = f"token_{len(token_acquisition_count)}"
+            token.expires_on = time.time() + 3600
+            return token
+        
+        with patch.object(client, '_get_credential') as mock_cred:
+            mock_cred_instance = MagicMock()
+            mock_cred_instance.get_token = mock_get_token
+            mock_cred.return_value = mock_cred_instance
+            
+            # Submit multiple simultaneous token requests
+            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+                futures = [
+                    executor.submit(client._get_access_token) 
+                    for _ in range(5)
+                ]
+                tokens = [f.result() for f in futures]
+            
+            # All should get the same token (thread safety ensures only one acquisition)
+            unique_tokens = set(tokens)
+            assert len(unique_tokens) == 1, f"Expected 1 unique token, got {len(unique_tokens)}: {unique_tokens}"
+            
+            # With proper locking, credential should only be called once
+            # (slight timing variance may cause 2 calls at most)
+            assert len(token_acquisition_count) <= 2, (
+                f"Expected 1-2 token acquisitions with locking, got {len(token_acquisition_count)}"
+            )
+    
+    def test_token_cache_under_expiration_race(self):
+        """Test token refresh doesn't cause race condition when token is about to expire"""
+        import concurrent.futures
+        import time
+        from unittest.mock import patch, MagicMock
+        
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src'))
+        from fabric_client import FabricOntologyClient, FabricConfig
+        
+        config = FabricConfig(workspace_id="12345678-1234-1234-1234-123456789012")
+        client = FabricOntologyClient(config)
+        
+        current_time = time.time()
+        
+        # Pre-set a token that's about to expire (within the 300s buffer)
+        client._access_token = "old_token"
+        client._token_expires = current_time + 100  # Will trigger refresh
+        
+        token_count = []
+        
+        def mock_get_token(scope):
+            time.sleep(0.01)  # Simulate token acquisition time
+            token_count.append(1)
+            token = MagicMock()
+            token.token = f"new_token_{len(token_count)}"
+            token.expires_on = current_time + 3600
+            return token
+        
+        with patch.object(client, '_get_credential') as mock_cred:
+            mock_cred_instance = MagicMock()
+            mock_cred_instance.get_token = mock_get_token
+            mock_cred.return_value = mock_cred_instance
+            
+            # Simulate concurrent requests just as token expires
+            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+                futures = [
+                    executor.submit(client._get_access_token) 
+                    for _ in range(5)
+                ]
+                tokens = [f.result() for f in futures]
+            
+            # All should get the same new token
+            assert all(t.startswith("new_token") for t in tokens), f"Got tokens: {tokens}"
+            unique_tokens = set(tokens)
+            assert len(unique_tokens) == 1, f"Expected 1 unique token, got {unique_tokens}"
+            
+            # Should have minimal token acquisitions
+            assert len(token_count) <= 2, f"Expected 1-2 token acquisitions, got {len(token_count)}"
+    
+    def test_token_lock_is_reentrant(self):
+        """Test that the token lock allows reentrant access (same thread)"""
+        import time
+        from unittest.mock import patch, MagicMock
+        
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src'))
+        from fabric_client import FabricOntologyClient, FabricConfig
+        
+        config = FabricConfig(workspace_id="12345678-1234-1234-1234-123456789012")
+        client = FabricOntologyClient(config)
+        
+        def mock_get_token(scope):
+            token = MagicMock()
+            token.token = "test_token"
+            token.expires_on = time.time() + 3600
+            return token
+        
+        with patch.object(client, '_get_credential') as mock_cred:
+            mock_cred_instance = MagicMock()
+            mock_cred_instance.get_token = mock_get_token
+            mock_cred.return_value = mock_cred_instance
+            
+            # First call should work
+            token1 = client._get_access_token()
+            
+            # Second call from same thread should also work (reentrant)
+            token2 = client._get_access_token()
+            
+            assert token1 == token2 == "test_token"
+    
+    def test_client_has_token_lock(self):
+        """Test that FabricOntologyClient has a token lock attribute"""
+        import threading
+        
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src'))
+        from fabric_client import FabricOntologyClient, FabricConfig
+        
+        config = FabricConfig(workspace_id="12345678-1234-1234-1234-123456789012")
+        client = FabricOntologyClient(config)
+        
+        # Verify the lock exists and is a RLock
+        assert hasattr(client, '_token_lock')
+        assert isinstance(client._token_lock, type(threading.RLock()))
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])

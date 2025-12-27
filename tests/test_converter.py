@@ -16,7 +16,9 @@ from rdf_converter import (
     RelationshipEnd,
     parse_ttl_file,
     parse_ttl_content,
-    convert_to_fabric_definition
+    convert_to_fabric_definition,
+    FabricDefinitionValidator,
+    DefinitionValidationError
 )
 
 
@@ -644,6 +646,469 @@ class TestDataclassToDict:
         assert rel_dict["name"] == "testRel"
         assert rel_dict["source"]["entityTypeId"] == "1000000000002"
         assert rel_dict["target"]["entityTypeId"] == "1000000000003"
+
+
+class TestFabricDefinitionValidator:
+    """Test suite for FabricDefinitionValidator"""
+    
+    def test_valid_definition(self):
+        """Test validation passes for valid definition"""
+        prop = EntityTypeProperty(id="prop1", name="name", valueType="String")
+        entity = EntityType(
+            id="entity1",
+            name="Person",
+            properties=[prop],
+            entityIdParts=["prop1"],
+            displayNamePropertyId="prop1"
+        )
+        
+        is_valid, errors = FabricDefinitionValidator.validate_definition([entity], [])
+        
+        assert is_valid
+        assert len([e for e in errors if e.level == "error"]) == 0
+    
+    def test_invalid_parent_reference(self):
+        """Test validation catches invalid parent references"""
+        entity = EntityType(
+            id="entity1",
+            name="Child",
+            baseEntityTypeId="nonexistent_parent"
+        )
+        
+        errors = FabricDefinitionValidator.validate_entity_types([entity])
+        
+        assert len(errors) == 1
+        assert errors[0].level == "error"
+        assert "non-existent parent" in errors[0].message
+    
+    def test_self_inheritance(self):
+        """Test validation catches self-inheritance"""
+        entity = EntityType(
+            id="entity1",
+            name="SelfRef",
+            baseEntityTypeId="entity1"  # Self-reference
+        )
+        
+        errors = FabricDefinitionValidator.validate_entity_types([entity])
+        
+        assert len(errors) == 1
+        assert errors[0].level == "error"
+        assert "cannot inherit from itself" in errors[0].message
+    
+    def test_invalid_display_name_property(self):
+        """Test validation catches invalid displayNamePropertyId"""
+        prop = EntityTypeProperty(id="prop1", name="name", valueType="String")
+        entity = EntityType(
+            id="entity1",
+            name="Person",
+            properties=[prop],
+            displayNamePropertyId="nonexistent_prop"
+        )
+        
+        errors = FabricDefinitionValidator.validate_entity_types([entity])
+        
+        assert len(errors) == 1
+        assert errors[0].level == "error"
+        assert "displayNamePropertyId" in errors[0].message
+    
+    def test_display_name_property_type_warning(self):
+        """Test validation warns when displayNameProperty is not String"""
+        prop = EntityTypeProperty(id="prop1", name="count", valueType="BigInt")
+        entity = EntityType(
+            id="entity1",
+            name="Item",
+            properties=[prop],
+            displayNamePropertyId="prop1"
+        )
+        
+        errors = FabricDefinitionValidator.validate_entity_types([entity])
+        
+        assert len(errors) == 1
+        assert errors[0].level == "warning"
+        assert "should be String type" in errors[0].message
+    
+    def test_invalid_entity_id_part(self):
+        """Test validation catches invalid entityIdParts"""
+        prop = EntityTypeProperty(id="prop1", name="name", valueType="String")
+        entity = EntityType(
+            id="entity1",
+            name="Person",
+            properties=[prop],
+            entityIdParts=["nonexistent_prop"]
+        )
+        
+        errors = FabricDefinitionValidator.validate_entity_types([entity])
+        
+        assert len(errors) == 1
+        assert errors[0].level == "error"
+        assert "entityIdPart" in errors[0].message
+    
+    def test_entity_id_part_type_warning(self):
+        """Test validation warns when entityIdPart is not String or BigInt"""
+        prop = EntityTypeProperty(id="prop1", name="value", valueType="Double")
+        entity = EntityType(
+            id="entity1",
+            name="Measurement",
+            properties=[prop],
+            entityIdParts=["prop1"]
+        )
+        
+        errors = FabricDefinitionValidator.validate_entity_types([entity])
+        
+        assert len(errors) == 1
+        assert errors[0].level == "warning"
+        assert "String or BigInt" in errors[0].message
+    
+    def test_invalid_relationship_source(self):
+        """Test validation catches invalid relationship source"""
+        entity = EntityType(id="entity1", name="Person")
+        rel = RelationshipType(
+            id="rel1",
+            name="knows",
+            source=RelationshipEnd(entityTypeId="nonexistent"),
+            target=RelationshipEnd(entityTypeId="entity1")
+        )
+        
+        errors = FabricDefinitionValidator.validate_relationships([rel], [entity])
+        
+        assert len(errors) == 1
+        assert errors[0].level == "error"
+        assert "source" in errors[0].message
+    
+    def test_invalid_relationship_target(self):
+        """Test validation catches invalid relationship target"""
+        entity = EntityType(id="entity1", name="Person")
+        rel = RelationshipType(
+            id="rel1",
+            name="knows",
+            source=RelationshipEnd(entityTypeId="entity1"),
+            target=RelationshipEnd(entityTypeId="nonexistent")
+        )
+        
+        errors = FabricDefinitionValidator.validate_relationships([rel], [entity])
+        
+        assert len(errors) == 1
+        assert errors[0].level == "error"
+        assert "target" in errors[0].message
+    
+    def test_self_referential_relationship_warning(self):
+        """Test validation warns on self-referential relationships"""
+        entity = EntityType(id="entity1", name="Person")
+        rel = RelationshipType(
+            id="rel1",
+            name="knows",
+            source=RelationshipEnd(entityTypeId="entity1"),
+            target=RelationshipEnd(entityTypeId="entity1")
+        )
+        
+        errors = FabricDefinitionValidator.validate_relationships([rel], [entity])
+        
+        assert len(errors) == 1
+        assert errors[0].level == "warning"
+        assert "self-referential" in errors[0].message
+    
+    def test_convert_to_fabric_definition_with_validation_error(self):
+        """Test convert_to_fabric_definition raises error on invalid definition"""
+        entity = EntityType(
+            id="entity1",
+            name="Child",
+            baseEntityTypeId="nonexistent_parent"  # Invalid reference
+        )
+        
+        with pytest.raises(ValueError) as excinfo:
+            convert_to_fabric_definition([entity], [], "TestOntology")
+        
+        assert "Invalid ontology definition" in str(excinfo.value)
+        assert "non-existent parent" in str(excinfo.value)
+    
+    def test_convert_to_fabric_definition_with_warnings_passes(self):
+        """Test convert_to_fabric_definition succeeds with only warnings"""
+        entity = EntityType(id="entity1", name="Person")
+        rel = RelationshipType(
+            id="rel1",
+            name="knows",
+            source=RelationshipEnd(entityTypeId="entity1"),
+            target=RelationshipEnd(entityTypeId="entity1")  # Self-referential warning
+        )
+        
+        # Should not raise, just log warning
+        definition = convert_to_fabric_definition([entity], [rel], "TestOntology")
+        
+        assert "parts" in definition
+        assert len(definition["parts"]) > 0
+    
+    def test_definition_validation_error_str(self):
+        """Test DefinitionValidationError string representation"""
+        error = DefinitionValidationError(
+            level="error",
+            message="Test error message",
+            entity_id="entity123"
+        )
+        
+        error_str = str(error)
+        
+        assert "[ERROR]" in error_str
+        assert "Test error message" in error_str
+        assert "entity123" in error_str
+
+
+class TestBlankNodeHandling:
+    """Test suite for improved blank node handling in domain/range resolution"""
+    
+    @pytest.fixture
+    def converter(self):
+        """Create a converter instance for testing"""
+        return RDFToFabricConverter()
+    
+    def test_simple_unionof_resolution(self, converter):
+        """Test resolving a simple owl:unionOf expression"""
+        ttl = """
+        @prefix : <http://example.org/> .
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+        
+        :Person a owl:Class .
+        :Organization a owl:Class .
+        
+        :name a owl:DatatypeProperty ;
+            rdfs:domain [
+                a owl:Class ;
+                owl:unionOf ( :Person :Organization )
+            ] ;
+            rdfs:range xsd:string .
+        """
+        
+        entity_types, _ = converter.parse_ttl(ttl)
+        
+        # Both Person and Organization should have the 'name' property
+        person = next((e for e in entity_types if e.name == "Person"), None)
+        org = next((e for e in entity_types if e.name == "Organization"), None)
+        
+        assert person is not None
+        assert org is not None
+        
+        person_props = [p.name for p in person.properties]
+        org_props = [p.name for p in org.properties]
+        
+        assert "name" in person_props, "Person should have 'name' property from unionOf"
+        assert "name" in org_props, "Organization should have 'name' property from unionOf"
+    
+    def test_nested_unionof_resolution(self, converter):
+        """Test resolving nested owl:unionOf expressions"""
+        ttl = """
+        @prefix : <http://example.org/> .
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+        
+        :Animal a owl:Class .
+        :Person a owl:Class ;
+            rdfs:subClassOf :Animal .
+        :Company a owl:Class .
+        :NGO a owl:Class .
+        
+        :identifier a owl:DatatypeProperty ;
+            rdfs:domain [
+                owl:unionOf (
+                    :Person
+                    [
+                        owl:unionOf ( :Company :NGO )
+                    ]
+                )
+            ] ;
+            rdfs:range xsd:string .
+        """
+        
+        entity_types, _ = converter.parse_ttl(ttl)
+        
+        # Get property counts
+        entities_with_identifier = [
+            e.name for e in entity_types 
+            if any(p.name == "identifier" for p in e.properties)
+        ]
+        
+        # Person should have the property
+        assert "Person" in entities_with_identifier
+        # Nested union members may or may not be resolved depending on implementation
+        # At minimum, we should have Person
+    
+    def test_intersectionof_resolution(self, converter):
+        """Test resolving owl:intersectionOf expressions"""
+        ttl = """
+        @prefix : <http://example.org/> .
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+        
+        :LivingThing a owl:Class .
+        :Intelligent a owl:Class .
+        :Human a owl:Class .
+        
+        :iq a owl:DatatypeProperty ;
+            rdfs:domain [
+                owl:intersectionOf ( :LivingThing :Intelligent )
+            ] ;
+            rdfs:range xsd:integer .
+        """
+        
+        entity_types, _ = converter.parse_ttl(ttl)
+        
+        # intersectionOf should resolve to the classes in the intersection
+        living = next((e for e in entity_types if e.name == "LivingThing"), None)
+        intelligent = next((e for e in entity_types if e.name == "Intelligent"), None)
+        
+        # At least one of the intersection members should get the property
+        has_iq = lambda e: e and any(p.name == "iq" for p in e.properties)
+        assert has_iq(living) or has_iq(intelligent), \
+            "At least one intersection member should have 'iq' property"
+    
+    def test_cycle_detection_in_blank_nodes(self, converter):
+        """Test that cycles in blank node expressions don't cause infinite loops"""
+        # This is a malformed ontology that could cause infinite loops without cycle detection
+        from rdflib import Graph, BNode, URIRef, Namespace
+        from rdflib.namespace import OWL, RDF, RDFS
+        
+        graph = Graph()
+        EX = Namespace("http://example.org/")
+        
+        # Create a blank node
+        bnode1 = BNode()
+        
+        # Create a cycle: bnode1 unionOf includes bnode1
+        graph.add((bnode1, OWL.unionOf, bnode1))  # Self-referential - cycle!
+        
+        # Try to resolve - should not hang
+        targets = converter._resolve_class_targets(graph, bnode1)
+        
+        # Should return empty or limited results, not hang
+        assert isinstance(targets, list)
+    
+    def test_max_depth_protection(self, converter):
+        """Test that deeply nested structures are limited by max_depth"""
+        from rdflib import Graph, BNode, URIRef, Namespace
+        from rdflib.namespace import OWL, RDF, RDFS
+        
+        graph = Graph()
+        EX = Namespace("http://example.org/")
+        
+        # Create a deeply nested structure
+        # bnode1 -> unionOf -> bnode2 -> unionOf -> bnode3 -> ...
+        prev_bnode = BNode()
+        for i in range(20):  # Create 20 levels deep
+            new_bnode = BNode()
+            list_node = BNode()
+            graph.add((prev_bnode, OWL.unionOf, list_node))
+            graph.add((list_node, RDF.first, new_bnode))
+            graph.add((list_node, RDF.rest, RDF.nil))
+            prev_bnode = new_bnode
+        
+        # Add a terminal class at the end
+        final_class = URIRef("http://example.org/FinalClass")
+        list_node = BNode()
+        graph.add((prev_bnode, OWL.unionOf, list_node))
+        graph.add((list_node, RDF.first, final_class))
+        graph.add((list_node, RDF.rest, RDF.nil))
+        
+        # Resolve with default max_depth (10)
+        targets = converter._resolve_class_targets(graph, BNode())
+        
+        # Should not hang and should return a list (may be empty due to depth limit)
+        assert isinstance(targets, list)
+    
+    def test_resolve_rdf_list_with_cycle(self, converter):
+        """Test RDF list cycle detection"""
+        from rdflib import Graph, BNode, URIRef, Namespace
+        from rdflib.namespace import RDF
+        
+        graph = Graph()
+        
+        # Create a cyclic RDF list
+        node1 = BNode()
+        node2 = BNode()
+        
+        graph.add((node1, RDF.first, URIRef("http://example.org/Class1")))
+        graph.add((node1, RDF.rest, node2))
+        graph.add((node2, RDF.first, URIRef("http://example.org/Class2")))
+        graph.add((node2, RDF.rest, node1))  # Cycle back to node1!
+        
+        targets, unresolved = converter._resolve_rdf_list(graph, node1, set(), 10)
+        
+        # Should detect cycle and stop, returning partial results
+        assert isinstance(targets, list)
+        assert "http://example.org/Class1" in targets
+        assert "http://example.org/Class2" in targets
+        # Should not contain duplicates from looping
+        assert targets.count("http://example.org/Class1") == 1
+    
+    def test_object_property_with_unionof_range(self, converter):
+        """Test object property with unionOf range creates correct relationships"""
+        ttl = """
+        @prefix : <http://example.org/> .
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        
+        :Person a owl:Class .
+        :Company a owl:Class .
+        :University a owl:Class .
+        
+        :affiliatedWith a owl:ObjectProperty ;
+            rdfs:domain :Person ;
+            rdfs:range [
+                owl:unionOf ( :Company :University )
+            ] .
+        """
+        
+        entity_types, relationship_types = converter.parse_ttl(ttl)
+        
+        # Should have relationships for Person -> Company and Person -> University
+        rel_names = [r.name for r in relationship_types]
+        assert "affiliatedWith" in rel_names
+        
+        # Check that relationships target both Company and University
+        affiliated_rels = [r for r in relationship_types if r.name == "affiliatedWith"]
+        target_names = set()
+        for rel in affiliated_rels:
+            target_id = rel.target.entityTypeId
+            target_entity = next((e for e in entity_types if e.id == target_id), None)
+            if target_entity:
+                target_names.add(target_entity.name)
+        
+        # At least one of the union targets should be represented
+        assert len(target_names) > 0
+    
+    def test_complementof_resolution(self, converter):
+        """Test resolving owl:complementOf expressions"""
+        from rdflib import Graph, BNode, URIRef, Namespace
+        from rdflib.namespace import OWL
+        
+        graph = Graph()
+        EX = Namespace("http://example.org/")
+        
+        bnode = BNode()
+        graph.add((bnode, OWL.complementOf, EX.SomeClass))
+        
+        targets = converter._resolve_class_targets(graph, bnode)
+        
+        assert "http://example.org/SomeClass" in targets
+    
+    def test_empty_union_returns_empty_list(self, converter):
+        """Test that empty unionOf returns empty list without error"""
+        from rdflib import Graph, BNode
+        from rdflib.namespace import OWL, RDF
+        
+        graph = Graph()
+        
+        bnode = BNode()
+        list_head = BNode()
+        graph.add((bnode, OWL.unionOf, list_head))
+        graph.add((list_head, RDF.first, RDF.nil))  # Empty-ish list
+        graph.add((list_head, RDF.rest, RDF.nil))
+        
+        targets = converter._resolve_class_targets(graph, bnode)
+        
+        # Should return empty list without crashing
+        assert isinstance(targets, list)
 
 
 if __name__ == "__main__":

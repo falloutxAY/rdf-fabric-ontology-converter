@@ -18,6 +18,7 @@ import json
 import logging
 import sys
 import os
+import tempfile
 from pathlib import Path
 from typing import Optional
 
@@ -30,36 +31,78 @@ from preflight_validator import (
 )
 
 
-# Setup logging
+# Setup logging with fallback locations
 def setup_logging(level: str = "INFO", log_file: Optional[str] = None):
-    """Setup logging configuration."""
+    """
+    Setup logging configuration with fallback locations.
+    
+    If the primary log file location fails (permission denied, disk full, etc.),
+    attempts to write to fallback locations in order:
+    1. Requested location
+    2. System temp directory
+    3. User home directory
+    4. Console-only (final fallback)
+    
+    Args:
+        level: Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+        log_file: Optional log file path. If None, logs to console only.
+    """
     log_level = getattr(logging, level.upper(), logging.INFO)
     
     handlers = [logging.StreamHandler(sys.stdout)]
+    actual_log_file = None
     
     if log_file:
-        try:
-            # Ensure directory exists
-            log_dir = os.path.dirname(log_file)
-            if log_dir and not os.path.exists(log_dir):
-                os.makedirs(log_dir, exist_ok=True)
-            
-            handlers.append(logging.FileHandler(log_file, encoding='utf-8'))
-        except PermissionError:
-            print(f"Warning: Permission denied creating log file: {log_file}")
-            print("Logging to console only")
-        except OSError as e:
-            print(f"Warning: Failed to create log file {log_file}: {e}")
-            print("Logging to console only")
-        except Exception as e:
-            print(f"Warning: Unexpected error setting up log file: {e}")
-            print("Logging to console only")
+        # Define fallback locations
+        log_filename = os.path.basename(log_file) or "rdf_converter.log"
+        fallback_locations = [
+            log_file,  # Primary location
+            os.path.join(tempfile.gettempdir(), log_filename),  # System temp
+            os.path.join(Path.home(), log_filename),  # User home
+        ]
+        
+        file_handler = None
+        for fallback_path in fallback_locations:
+            try:
+                # Ensure directory exists
+                log_dir = os.path.dirname(fallback_path)
+                if log_dir and not os.path.exists(log_dir):
+                    os.makedirs(log_dir, exist_ok=True)
+                
+                # Try to create/open the file
+                file_handler = logging.FileHandler(fallback_path, encoding='utf-8')
+                handlers.append(file_handler)
+                actual_log_file = fallback_path
+                
+                if fallback_path != log_file:
+                    print(f"Note: Using fallback log file: {fallback_path}")
+                break
+                
+            except PermissionError as e:
+                print(f"  Could not create log at {fallback_path}: Permission denied")
+                continue
+            except OSError as e:
+                print(f"  Could not create log at {fallback_path}: {e}")
+                continue
+            except Exception as e:
+                print(f"  Unexpected error creating log at {fallback_path}: {e}")
+                continue
+        
+        if not file_handler:
+            print(f"Warning: Could not write log file to any location")
+            print(f"  Requested: {log_file}")
+            print(f"  Attempted fallbacks: {', '.join(fallback_locations[1:])}")
+            print(f"  Logging to console only")
     
     logging.basicConfig(
         level=log_level,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         handlers=handlers,
     )
+    
+    logger = logging.getLogger(__name__)
+    if actual_log_file:
+        logger.info(f"Logging to: {actual_log_file}")
 
 
 def load_config(config_path: str) -> dict:
@@ -201,16 +244,18 @@ def cmd_upload(args):
         print("=" * 60 + "\n")
     
     id_prefix = config_data.get('ontology', {}).get('id_prefix', 1000000000000)
+    force_memory = getattr(args, 'force_memory', False)
     
     try:
-        definition, extracted_name = parse_ttl_content(ttl_content, id_prefix)
+        definition, extracted_name = parse_ttl_content(ttl_content, id_prefix, force_large_file=force_memory)
     except ValueError as e:
         logger.error(f"Invalid TTL content: {e}")
         print(f"Error: Invalid RDF/TTL content: {e}")
         sys.exit(1)
-    except MemoryError:
-        logger.error("Insufficient memory to parse TTL file")
-        print(f"Error: Insufficient memory to parse TTL file. File may be too large.")
+    except MemoryError as e:
+        logger.error(f"Insufficient memory to parse TTL file: {e}")
+        print(f"\nError: {e}")
+        print("\nTip: Use --force-memory to bypass memory safety checks (use with caution).")
         sys.exit(1)
     except Exception as e:
         logger.error(f"Failed to parse TTL file: {e}", exc_info=True)
@@ -530,13 +575,16 @@ def cmd_convert(args):
         print(f"Error reading TTL file: {e}")
         sys.exit(1)
     
+    force_memory = getattr(args, 'force_memory', False)
+    
     try:
-        definition, ontology_name = parse_ttl_content(ttl_content)
+        definition, ontology_name = parse_ttl_content(ttl_content, force_large_file=force_memory)
     except ValueError as e:
         print(f"Error: Invalid RDF/TTL content: {e}")
         sys.exit(1)
-    except MemoryError:
-        print(f"Error: Insufficient memory to parse TTL file. File may be too large.")
+    except MemoryError as e:
+        print(f"\nError: {e}")
+        print("\nTip: Use --force-memory to bypass memory safety checks (use with caution).")
         sys.exit(1)
     except Exception as e:
         print(f"Error parsing TTL file: {e}")
@@ -878,6 +926,8 @@ Examples:
                                help='Skip pre-flight validation check')
     upload_parser.add_argument('--force', '-f', action='store_true',
                                help='Proceed with import even if validation issues are found')
+    upload_parser.add_argument('--force-memory', action='store_true',
+                               help='Skip memory safety checks for very large files (use with caution)')
     upload_parser.add_argument('--save-validation-report', action='store_true',
                                help='Save validation report even if import is cancelled')
     upload_parser.set_defaults(func=cmd_upload)
@@ -914,6 +964,8 @@ Examples:
     convert_parser = subparsers.add_parser('convert', help='Convert TTL to Fabric format without uploading')
     convert_parser.add_argument('ttl_file', help='Path to the TTL file to convert')
     convert_parser.add_argument('--output', '-o', help='Output JSON file path')
+    convert_parser.add_argument('--force-memory', action='store_true',
+                               help='Skip memory safety checks for very large files (use with caution)')
     convert_parser.set_defaults(func=cmd_convert)
     
     # Export command

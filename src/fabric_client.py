@@ -8,6 +8,7 @@ Ontology API for creating, updating, and managing ontologies.
 import json
 import time
 import logging
+import threading
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
 
@@ -152,6 +153,7 @@ class FabricOntologyClient:
         self._credential = None
         self._access_token = None
         self._token_expires = 0
+        self._token_lock = threading.RLock()  # Thread-safe token caching
     
     def _get_credential(self):
         """Get the appropriate credential based on configuration."""
@@ -188,38 +190,55 @@ class FabricOntologyClient:
         return self._credential
     
     def _get_access_token(self) -> str:
-        """Get a valid access token, refreshing if necessary."""
-        current_time = time.time()
+        """Get a valid access token, refreshing if necessary (thread-safe).
         
-        if self._access_token and current_time < self._token_expires - 300:
+        Uses a reentrant lock to ensure thread-safe token acquisition.
+        Multiple threads requesting tokens concurrently will:
+        1. All wait for the lock if token needs refresh
+        2. Only one thread acquires the new token
+        3. Subsequent threads use the cached token
+        
+        Returns:
+            str: Valid access token
+            
+        Raises:
+            FabricAPIError: If authentication fails
+        """
+        with self._token_lock:
+            current_time = time.time()
+            
+            # Check if cached token is still valid (with 5-minute buffer)
+            if self._access_token and current_time < self._token_expires - 300:
+                logger.debug("Using cached access token")
+                return self._access_token
+            
+            logger.info("Acquiring access token...")
+            
+            try:
+                credential = self._get_credential()
+                token = credential.get_token(self.FABRIC_SCOPE)
+            except Exception as e:
+                logger.error(f"Authentication failed: {e}")
+                raise FabricAPIError(
+                    status_code=401,
+                    error_code='AuthenticationFailed',
+                    message=f"Failed to acquire access token: {str(e)}. "
+                           f"Please check your credentials and authentication settings."
+                )
+            
+            if not token or not token.token:
+                raise FabricAPIError(
+                    status_code=401,
+                    error_code='AuthenticationFailed',
+                    message="Received empty token from credential provider"
+                )
+            
+            # Atomic state update (within lock)
+            self._access_token = token.token
+            self._token_expires = token.expires_on
+            
+            logger.info("Access token acquired successfully")
             return self._access_token
-        
-        logger.info("Acquiring access token...")
-        
-        try:
-            credential = self._get_credential()
-            token = credential.get_token(self.FABRIC_SCOPE)
-        except Exception as e:
-            logger.error(f"Authentication failed: {e}")
-            raise FabricAPIError(
-                status_code=401,
-                error_code='AuthenticationFailed',
-                message=f"Failed to acquire access token: {str(e)}. "
-                       f"Please check your credentials and authentication settings."
-            )
-        
-        if not token or not token.token:
-            raise FabricAPIError(
-                status_code=401,
-                error_code='AuthenticationFailed',
-                message="Received empty token from credential provider"
-            )
-        
-        self._access_token = token.token
-        self._token_expires = token.expires_on
-        
-        logger.info("Access token acquired successfully")
-        return self._access_token
     
     def _get_headers(self) -> Dict[str, str]:
         """Get HTTP headers with authorization."""
@@ -227,6 +246,65 @@ class FabricOntologyClient:
             "Authorization": f"Bearer {self._get_access_token()}",
             "Content-Type": "application/json",
         }
+
+    def _make_request(
+        self,
+        method: str,
+        url: str,
+        operation_name: str,
+        timeout: int = 30,
+        **kwargs
+    ) -> requests.Response:
+        """
+        Make HTTP request with consistent error handling.
+        
+        Centralizes request logic to ensure all API calls have uniform:
+        - Timeout handling
+        - Connection error handling
+        - Logging format
+        - Error message structure
+        
+        Args:
+            method: HTTP method (GET, POST, PATCH, DELETE)
+            url: URL to request
+            operation_name: Description of operation (for logging)
+            timeout: Request timeout in seconds (default: 30)
+            **kwargs: Additional arguments to pass to requests
+            
+        Returns:
+            Response object
+            
+        Raises:
+            FabricAPIError: On any request failure with consistent error codes
+        """
+        try:
+            logger.debug(f"{operation_name}: {method} {url}")
+            response = requests.request(method, url, timeout=timeout, **kwargs)
+            return response
+        
+        except requests.exceptions.Timeout:
+            logger.error(f"{operation_name}: Request timeout after {timeout}s")
+            raise FabricAPIError(
+                status_code=408,
+                error_code='RequestTimeout',
+                message=f'{operation_name} timed out after {timeout} seconds'
+            )
+        
+        except requests.exceptions.ConnectionError as e:
+            logger.error(f"{operation_name}: Connection error: {e}")
+            raise FabricAPIError(
+                status_code=503,
+                error_code='ConnectionError',
+                message=f'{operation_name} failed to connect to Fabric API: {e}'
+            )
+        
+        except requests.exceptions.RequestException as e:
+            logger.error(f"{operation_name}: Request error: {e}")
+            raise FabricAPIError(
+                status_code=500,
+                error_code='RequestError',
+                message=f'{operation_name} request failed: {e}'
+            )
 
     @staticmethod
     def _sanitize_display_name(name: str) -> str:
@@ -367,29 +445,10 @@ class FabricOntologyClient:
         
         logger.info(f"Listing ontologies in workspace {self.config.workspace_id}")
         
-        try:
-            response = requests.get(url, headers=self._get_headers(), timeout=30)
-        except requests.exceptions.Timeout:
-            logger.error(f"Request timeout listing ontologies")
-            raise FabricAPIError(
-                status_code=408,
-                error_code='RequestTimeout',
-                message='Request timed out after 30 seconds'
-            )
-        except requests.exceptions.ConnectionError as e:
-            logger.error(f"Connection error: {e}")
-            raise FabricAPIError(
-                status_code=503,
-                error_code='ConnectionError',
-                message=f'Failed to connect to Fabric API: {e}'
-            )
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Request error: {e}")
-            raise FabricAPIError(
-                status_code=500,
-                error_code='RequestError',
-                message=f'Request failed: {e}'
-            )
+        response = self._make_request(
+            'GET', url, 'List ontologies',
+            headers=self._get_headers()
+        )
         
         result = self._handle_response(response)
         ontologies = result.get('value', [])
@@ -416,15 +475,11 @@ class FabricOntologyClient:
         url = f"{self.config.api_base_url}/workspaces/{self.config.workspace_id}/ontologies/{ontology_id}"
         
         logger.info(f"Getting ontology: {ontology_id}")
-        try:
-            response = requests.get(url, headers=self._get_headers(), timeout=30)
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Request failed getting ontology: {e}")
-            raise FabricAPIError(
-                status_code=503,
-                error_code='RequestError',
-                message=f'Request failed: {e}'
-            )
+        
+        response = self._make_request(
+            'GET', url, f'Get ontology {ontology_id}',
+            headers=self._get_headers()
+        )
         
         return self._handle_response(response)
     
@@ -447,15 +502,11 @@ class FabricOntologyClient:
         url = f"{self.config.api_base_url}/workspaces/{self.config.workspace_id}/ontologies/{ontology_id}/getDefinition"
         
         logger.info(f"Getting ontology definition for {ontology_id}")
-        try:
-            response = requests.post(url, headers=self._get_headers(), timeout=30)
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Request failed getting ontology definition: {e}")
-            raise FabricAPIError(
-                status_code=503,
-                error_code='RequestError',
-                message=f'Request failed: {e}'
-            )
+        
+        response = self._make_request(
+            'POST', url, f'Get ontology definition {ontology_id}',
+            headers=self._get_headers()
+        )
         
         result = self._handle_response(response)
         
@@ -506,15 +557,12 @@ class FabricOntologyClient:
         logger.info(f"Creating ontology '{safe_name}'")
         logger.debug(f"Payload size: {len(json.dumps(payload))} bytes")
         
-        try:
-            response = requests.post(url, headers=self._get_headers(), json=payload, timeout=60)
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Request failed creating ontology: {e}")
-            raise FabricAPIError(
-                status_code=503,
-                error_code='RequestError',
-                message=f'Request failed: {e}'
-            )
+        response = self._make_request(
+            'POST', url, f'Create ontology {safe_name}',
+            timeout=60,
+            headers=self._get_headers(),
+            json=payload
+        )
         
         result = self._handle_response(response)
         
@@ -564,15 +612,12 @@ class FabricOntologyClient:
         logger.info(f"Updating ontology definition for {ontology_id}")
         logger.debug(f"Payload size: {len(json.dumps(payload))} bytes")
         
-        try:
-            response = requests.post(url, headers=self._get_headers(), json=payload, timeout=60)
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Request failed updating ontology definition: {e}")
-            raise FabricAPIError(
-                status_code=503,
-                error_code='RequestError',
-                message=f'Request failed: {e}'
-            )
+        response = self._make_request(
+            'POST', url, f'Update ontology definition {ontology_id}',
+            timeout=60,
+            headers=self._get_headers(),
+            json=payload
+        )
         
         result = self._handle_response(response)
         
@@ -615,15 +660,11 @@ class FabricOntologyClient:
         
         logger.info(f"Updating ontology {ontology_id}")
         
-        try:
-            response = requests.patch(url, headers=self._get_headers(), json=payload, timeout=30)
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Request failed updating ontology: {e}")
-            raise FabricAPIError(
-                status_code=503,
-                error_code='RequestError',
-                message=f'Request failed: {e}'
-            )
+        response = self._make_request(
+            'PATCH', url, f'Update ontology {ontology_id}',
+            headers=self._get_headers(),
+            json=payload
+        )
         
         return self._handle_response(response)
     
@@ -644,15 +685,10 @@ class FabricOntologyClient:
         
         logger.info(f"Deleting ontology {ontology_id}")
         
-        try:
-            response = requests.delete(url, headers=self._get_headers(), timeout=30)
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Request failed deleting ontology: {e}")
-            raise FabricAPIError(
-                status_code=503,
-                error_code='RequestError',
-                message=f'Request failed: {e}'
-            )
+        response = self._make_request(
+            'DELETE', url, f'Delete ontology {ontology_id}',
+            headers=self._get_headers()
+        )
         
         if response.status_code not in (200, 204):
             self._handle_response(response)

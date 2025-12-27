@@ -9,12 +9,159 @@ import json
 import base64
 import hashlib
 import logging
-from typing import Dict, List, Any, Optional, Tuple
+import os
+import sys
+from typing import Dict, List, Any, Optional, Tuple, Set
 from dataclasses import dataclass, field, asdict
 from rdflib import Graph, Namespace, RDF, RDFS, OWL, XSD, URIRef, Literal, BNode
 from tqdm import tqdm
 
+try:
+    import psutil
+    PSUTIL_AVAILABLE = True
+except ImportError:
+    PSUTIL_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
+
+
+class MemoryManager:
+    """
+    Manage memory usage during RDF parsing to prevent out-of-memory crashes.
+    
+    Provides pre-flight memory checks before loading large ontology files
+    to fail gracefully with helpful error messages instead of crashing.
+    """
+    
+    # Safety thresholds
+    MIN_AVAILABLE_MB = 256  # Always need at least 256MB free
+    MAX_SAFE_FILE_MB = 500  # Default max file size without explicit override
+    MEMORY_MULTIPLIER = 3.5  # RDFlib typically uses ~3-4x file size in memory
+    LOAD_FACTOR = 0.7  # Only use 70% of available memory as safe threshold
+    
+    @staticmethod
+    def get_available_memory_mb() -> float:
+        """
+        Get available system memory in MB.
+        
+        Returns:
+            Available memory in MB, or MIN_AVAILABLE_MB if detection fails.
+        """
+        if not PSUTIL_AVAILABLE:
+            logger.warning("psutil not available - cannot check memory. Install with: pip install psutil")
+            return float('inf')  # Assume unlimited if we can't check
+        
+        try:
+            mem_info = psutil.virtual_memory()
+            available_mb = mem_info.available / (1024 * 1024)
+            return available_mb
+        except Exception as e:
+            logger.warning(f"Could not determine available memory: {e}")
+            return MemoryManager.MIN_AVAILABLE_MB
+    
+    @staticmethod
+    def get_memory_usage_mb() -> float:
+        """
+        Get current process memory usage in MB.
+        
+        Returns:
+            Current memory usage in MB.
+        """
+        if not PSUTIL_AVAILABLE:
+            return 0.0
+        
+        try:
+            process = psutil.Process()
+            return process.memory_info().rss / (1024 * 1024)
+        except Exception:
+            return 0.0
+    
+    @classmethod
+    def check_memory_available(cls, file_size_mb: float, force: bool = False) -> Tuple[bool, str]:
+        """
+        Check if enough memory is available to parse a file.
+        
+        Args:
+            file_size_mb: Size of the file in MB.
+            force: If True, skip safety checks and allow large files.
+            
+        Returns:
+            Tuple of (can_proceed: bool, message: str)
+        """
+        # Estimate memory required (RDFlib uses ~3-4x file size)
+        estimated_usage_mb = file_size_mb * cls.MEMORY_MULTIPLIER
+        
+        # Check against hard limit unless forced
+        if not force and file_size_mb > cls.MAX_SAFE_FILE_MB:
+            return False, (
+                f"File size ({file_size_mb:.1f}MB) exceeds safe limit ({cls.MAX_SAFE_FILE_MB}MB). "
+                f"Estimated memory required: ~{estimated_usage_mb:.0f}MB. "
+                f"To process anyway, use --force flag or split into smaller files."
+            )
+        
+        # Check available system memory
+        available_mb = cls.get_available_memory_mb()
+        
+        if available_mb == float('inf'):
+            # Can't check memory, proceed with warning
+            return True, f"Memory check unavailable. Proceeding with {file_size_mb:.1f}MB file."
+        
+        # Check minimum available memory
+        if available_mb < cls.MIN_AVAILABLE_MB:
+            return False, (
+                f"Insufficient free memory. "
+                f"Available: {available_mb:.0f}MB, "
+                f"Minimum required: {cls.MIN_AVAILABLE_MB}MB. "
+                f"Close other applications or increase available memory."
+            )
+        
+        # Check if estimated usage exceeds safe threshold
+        safe_threshold_mb = available_mb * cls.LOAD_FACTOR
+        
+        if estimated_usage_mb > safe_threshold_mb:
+            if force:
+                return True, (
+                    f"WARNING: File may exceed safe memory limits. "
+                    f"File: {file_size_mb:.1f}MB, "
+                    f"Estimated usage: ~{estimated_usage_mb:.0f}MB, "
+                    f"Safe threshold: {safe_threshold_mb:.0f}MB. "
+                    f"Proceeding due to --force flag."
+                )
+            return False, (
+                f"Ontology may be too large for available memory. "
+                f"File size: {file_size_mb:.1f}MB, "
+                f"Estimated parsing memory: ~{estimated_usage_mb:.0f}MB, "
+                f"Safe threshold: {safe_threshold_mb:.0f}MB "
+                f"(Available: {available_mb:.0f}MB). "
+                f"Recommendation: Split into smaller files, increase available memory, or use --force to proceed anyway."
+            )
+        
+        return True, (
+            f"Memory OK: File {file_size_mb:.1f}MB, "
+            f"estimated usage ~{estimated_usage_mb:.0f}MB of {available_mb:.0f}MB available"
+        )
+    
+    @classmethod
+    def log_memory_status(cls, context: str = "") -> None:
+        """
+        Log current memory status for debugging.
+        
+        Args:
+            context: Optional context string to include in log message.
+        """
+        if not PSUTIL_AVAILABLE:
+            return
+        
+        try:
+            process_mb = cls.get_memory_usage_mb()
+            available_mb = cls.get_available_memory_mb()
+            prefix = f"[{context}] " if context else ""
+            logger.debug(
+                f"{prefix}Memory status: Process using {process_mb:.0f}MB, "
+                f"System available: {available_mb:.0f}MB"
+            )
+        except Exception as e:
+            logger.debug(f"Could not log memory status: {e}")
 
 
 # XSD type to Fabric value type mapping
@@ -122,6 +269,228 @@ class RelationshipType:
         }
 
 
+@dataclass
+class DefinitionValidationError:
+    """Represents a validation error in the ontology definition."""
+    level: str  # "error" or "warning"
+    message: str
+    entity_id: Optional[str] = None
+    
+    def __str__(self) -> str:
+        suffix = f" (entity: {self.entity_id})" if self.entity_id else ""
+        return f"[{self.level.upper()}] {self.message}{suffix}"
+
+
+class FabricDefinitionValidator:
+    """
+    Validates Fabric ontology definitions before upload.
+    
+    Catches invalid references and configuration issues before
+    sending to the Fabric API, providing clearer error messages.
+    """
+    
+    @staticmethod
+    def validate_entity_types(entity_types: List[EntityType]) -> List[DefinitionValidationError]:
+        """
+        Validate entity type definitions.
+        
+        Checks:
+        - Parent entity references exist
+        - No self-inheritance
+        - displayNamePropertyId references valid property
+        - displayNameProperty is String type
+        - entityIdParts reference valid properties
+        - entityIdParts are String or BigInt type
+        
+        Args:
+            entity_types: List of entity types to validate
+            
+        Returns:
+            List of validation errors (may include warnings)
+        """
+        errors: List[DefinitionValidationError] = []
+        
+        # Build ID set for validation
+        id_set = {e.id for e in entity_types}
+        prop_ids_by_entity = {
+            e.id: {p.id for p in e.properties} 
+            for e in entity_types
+        }
+        
+        for entity in entity_types:
+            # 1. Validate parent reference
+            if entity.baseEntityTypeId:
+                if entity.baseEntityTypeId not in id_set:
+                    errors.append(DefinitionValidationError(
+                        level="error",
+                        message=(
+                            f"Entity '{entity.name}' references non-existent parent "
+                            f"'{entity.baseEntityTypeId}'"
+                        ),
+                        entity_id=entity.id
+                    ))
+                elif entity.baseEntityTypeId == entity.id:
+                    # Self-reference
+                    errors.append(DefinitionValidationError(
+                        level="error",
+                        message=f"Entity '{entity.name}' cannot inherit from itself",
+                        entity_id=entity.id
+                    ))
+            
+            # 2. Validate displayNamePropertyId exists
+            if entity.displayNamePropertyId:
+                prop_ids = prop_ids_by_entity.get(entity.id, set())
+                if entity.displayNamePropertyId not in prop_ids:
+                    errors.append(DefinitionValidationError(
+                        level="error",
+                        message=(
+                            f"Entity '{entity.name}' displayNamePropertyId "
+                            f"'{entity.displayNamePropertyId}' not found in properties"
+                        ),
+                        entity_id=entity.id
+                    ))
+                else:
+                    # Validate it's a String property (Fabric requirement)
+                    prop = next(
+                        (p for p in entity.properties 
+                         if p.id == entity.displayNamePropertyId),
+                        None
+                    )
+                    if prop and prop.valueType != "String":
+                        errors.append(DefinitionValidationError(
+                            level="warning",
+                            message=(
+                                f"Entity '{entity.name}' displayNameProperty "
+                                f"should be String type, got '{prop.valueType}'"
+                            ),
+                            entity_id=entity.id
+                        ))
+            
+            # 3. Validate entityIdParts
+            if entity.entityIdParts:
+                prop_ids = prop_ids_by_entity.get(entity.id, set())
+                for part_id in entity.entityIdParts:
+                    if part_id not in prop_ids:
+                        errors.append(DefinitionValidationError(
+                            level="error",
+                            message=(
+                                f"Entity '{entity.name}' entityIdPart "
+                                f"'{part_id}' not found in properties"
+                            ),
+                            entity_id=entity.id
+                        ))
+                    else:
+                        # Validate type is String or BigInt (Fabric requirement)
+                        prop = next(
+                            (p for p in entity.properties if p.id == part_id),
+                            None
+                        )
+                        if prop and prop.valueType not in ("String", "BigInt"):
+                            errors.append(DefinitionValidationError(
+                                level="warning",
+                                message=(
+                                    f"Entity '{entity.name}' entityIdPart '{part_id}' should be "
+                                    f"String or BigInt, got '{prop.valueType}'"
+                                ),
+                                entity_id=entity.id
+                            ))
+        
+        return errors
+    
+    @staticmethod
+    def validate_relationships(
+        relationship_types: List[RelationshipType],
+        entity_types: List[EntityType]
+    ) -> List[DefinitionValidationError]:
+        """
+        Validate relationship definitions.
+        
+        Checks:
+        - Source entity exists
+        - Target entity exists
+        - Warns on self-referential relationships
+        
+        Args:
+            relationship_types: List of relationships to validate
+            entity_types: List of entity types for reference checking
+            
+        Returns:
+            List of validation errors (may include warnings)
+        """
+        errors: List[DefinitionValidationError] = []
+        
+        entity_ids = {e.id for e in entity_types}
+        
+        for rel in relationship_types:
+            source_id = rel.source.entityTypeId
+            target_id = rel.target.entityTypeId
+            
+            # Validate source exists
+            if source_id not in entity_ids:
+                errors.append(DefinitionValidationError(
+                    level="error",
+                    message=(
+                        f"Relationship '{rel.name}' source '{source_id}' "
+                        f"references non-existent entity type"
+                    ),
+                    entity_id=rel.id
+                ))
+            
+            # Validate target exists
+            if target_id not in entity_ids:
+                errors.append(DefinitionValidationError(
+                    level="error",
+                    message=(
+                        f"Relationship '{rel.name}' target '{target_id}' "
+                        f"references non-existent entity type"
+                    ),
+                    entity_id=rel.id
+                ))
+            
+            # Warn on self-relationships (unusual but allowed)
+            if source_id == target_id and source_id in entity_ids:
+                errors.append(DefinitionValidationError(
+                    level="warning",
+                    message=(
+                        f"Relationship '{rel.name}' is self-referential "
+                        f"(source and target are same entity)"
+                    ),
+                    entity_id=rel.id
+                ))
+        
+        return errors
+    
+    @classmethod
+    def validate_definition(
+        cls,
+        entity_types: List[EntityType],
+        relationship_types: List[RelationshipType]
+    ) -> Tuple[bool, List[DefinitionValidationError]]:
+        """
+        Validate complete ontology definition.
+        
+        Args:
+            entity_types: List of entity types
+            relationship_types: List of relationship types
+            
+        Returns:
+            Tuple of (is_valid: bool, errors: List[DefinitionValidationError])
+            is_valid is True only if there are no "error" level issues
+        """
+        all_errors: List[DefinitionValidationError] = []
+        
+        # Run all validations
+        all_errors.extend(cls.validate_entity_types(entity_types))
+        all_errors.extend(cls.validate_relationships(relationship_types, entity_types))
+        
+        # Separate errors from warnings
+        critical_errors = [e for e in all_errors if e.level == "error"]
+        
+        is_valid = len(critical_errors) == 0
+        
+        return is_valid, all_errors
+
+
 class RDFToFabricConverter:
     """
     Converts RDF TTL ontologies to Microsoft Fabric Ontology format.
@@ -143,28 +512,189 @@ class RDFToFabricConverter:
         self.uri_to_id: Dict[str, str] = {}
         self.property_to_domain: Dict[str, str] = {}
 
-    def _resolve_class_targets(self, graph: Graph, node: Any) -> List[str]:
-        """Resolve domain/range targets to class URIs.
+    def _resolve_class_targets(
+        self, 
+        graph: Graph, 
+        node: Any, 
+        visited: Optional[Set[Any]] = None,
+        max_depth: int = 10
+    ) -> List[str]:
+        """Resolve domain/range targets to class URIs with cycle detection.
 
         Supports:
         - Direct URIRef
         - Blank node with owl:unionOf pointing to RDF list of class URIs
+        - Nested blank nodes (with cycle detection)
+        - owl:intersectionOf (extracts first class)
+        - owl:complementOf (extracts the complemented class)
+        
+        Args:
+            graph: The RDF graph to query
+            node: The node to resolve (URIRef or BNode)
+            visited: Set of already-visited nodes for cycle detection
+            max_depth: Maximum recursion depth to prevent infinite loops
+            
+        Returns:
+            List of resolved class URI strings
         """
+        # Initialize visited set on first call
+        if visited is None:
+            visited = set()
+        
         targets: List[str] = []
+        
+        # Cycle detection - skip if we've seen this node
+        if node in visited:
+            logger.debug(f"Cycle detected in class resolution, skipping node: {node}")
+            return targets
+        
+        # Depth limit check
+        if max_depth <= 0:
+            logger.warning(f"Maximum recursion depth reached in class resolution for node: {node}")
+            return targets
+        
+        # Track this node as visited (only for BNodes which can cause cycles)
+        if isinstance(node, BNode):
+            visited = visited | {node}  # Create new set to avoid mutation
+        
         if isinstance(node, URIRef):
             targets.append(str(node))
+            
         elif isinstance(node, BNode):
-            # unionOf list
+            unresolved_count = 0
+            
+            # Handle owl:unionOf
             for union in graph.objects(node, OWL.unionOf):
-                # union is an RDF collection (list)
-                # Walk the list via rdf:first / rdf:rest
-                current = union
-                while current and current != RDF.nil:
-                    first = next(graph.objects(current, RDF.first), None)
-                    if isinstance(first, URIRef):
-                        targets.append(str(first))
-                    current = next(graph.objects(current, RDF.rest), None)
+                union_targets, unresolved = self._resolve_rdf_list(
+                    graph, union, visited, max_depth - 1
+                )
+                targets.extend(union_targets)
+                unresolved_count += unresolved
+            
+            # Handle owl:intersectionOf (extract classes from intersection)
+            for intersection in graph.objects(node, OWL.intersectionOf):
+                intersection_targets, unresolved = self._resolve_rdf_list(
+                    graph, intersection, visited, max_depth - 1
+                )
+                targets.extend(intersection_targets)
+                unresolved_count += unresolved
+            
+            # Handle owl:complementOf
+            for complement in graph.objects(node, OWL.complementOf):
+                complement_targets = self._resolve_class_targets(
+                    graph, complement, visited, max_depth - 1
+                )
+                targets.extend(complement_targets)
+                if not complement_targets and complement is not None:
+                    unresolved_count += 1
+            
+            # Handle owl:oneOf (enumeration of individuals - extract class references)
+            for oneof in graph.objects(node, OWL.oneOf):
+                oneof_targets, unresolved = self._resolve_rdf_list(
+                    graph, oneof, visited, max_depth - 1
+                )
+                targets.extend(oneof_targets)
+                unresolved_count += unresolved
+            
+            # If no OWL constructs matched, check if it's a typed class
+            if not targets:
+                # Check if the blank node represents a class restriction or typed element
+                for rdf_type in graph.objects(node, RDF.type):
+                    if isinstance(rdf_type, URIRef):
+                        type_str = str(rdf_type)
+                        # Check for OWL restriction (common pattern)
+                        if type_str in (str(OWL.Restriction), str(OWL.Class)):
+                            # Try to get onProperty or other class indicators
+                            for on_class in graph.objects(node, OWL.onClass):
+                                on_class_targets = self._resolve_class_targets(
+                                    graph, on_class, visited, max_depth - 1
+                                )
+                                targets.extend(on_class_targets)
+                            # Also check someValuesFrom
+                            for svf in graph.objects(node, OWL.someValuesFrom):
+                                svf_targets = self._resolve_class_targets(
+                                    graph, svf, visited, max_depth - 1
+                                )
+                                targets.extend(svf_targets)
+            
+            # Log if we had unresolved items and no valid targets
+            if unresolved_count > 0:
+                if targets:
+                    logger.debug(
+                        f"Resolved {len(targets)} class targets, "
+                        f"skipped {unresolved_count} unsupported constructs"
+                    )
+                else:
+                    logger.warning(
+                        f"Blank node class expression contains {unresolved_count} "
+                        f"unresolved items and no valid URI targets"
+                    )
+        
+        elif node is not None:
+            # Handle unexpected node types
+            logger.debug(f"Unexpected node type in class resolution: {type(node).__name__}")
+        
         return targets
+    
+    def _resolve_rdf_list(
+        self, 
+        graph: Graph, 
+        list_node: Any,
+        visited: Set[Any],
+        max_depth: int
+    ) -> Tuple[List[str], int]:
+        """Resolve an RDF list (rdf:first/rdf:rest) to class URIs.
+        
+        Args:
+            graph: The RDF graph to query
+            list_node: The head of the RDF list
+            visited: Set of already-visited nodes for cycle detection
+            max_depth: Maximum recursion depth
+            
+        Returns:
+            Tuple of (resolved_targets, unresolved_count)
+        """
+        targets: List[str] = []
+        unresolved_count = 0
+        
+        current = list_node
+        list_visited = set()  # Track visited list nodes to detect malformed lists
+        
+        while current and current != RDF.nil:
+            # Detect cycles in the list itself
+            if current in list_visited:
+                logger.warning(f"Cycle detected in RDF list at node: {current}")
+                break
+            list_visited.add(current)
+            
+            first = next(graph.objects(current, RDF.first), None)
+            
+            if first is not None:
+                if isinstance(first, URIRef):
+                    targets.append(str(first))
+                elif isinstance(first, BNode):
+                    # Recursively resolve nested blank nodes
+                    nested_targets = self._resolve_class_targets(
+                        graph, first, visited, max_depth
+                    )
+                    if nested_targets:
+                        targets.extend(nested_targets)
+                    else:
+                        # Could not resolve the nested blank node
+                        unresolved_count += 1
+                        logger.debug(
+                            f"Unresolved nested blank node in list: {first}"
+                        )
+                else:
+                    # Unexpected type (Literal, etc.)
+                    logger.debug(
+                        f"Non-URI, non-BNode in list: {first} (type: {type(first).__name__})"
+                    )
+                    unresolved_count += 1
+            
+            current = next(graph.objects(current, RDF.rest), None)
+        
+        return targets, unresolved_count
         
     def _generate_id(self) -> str:
         """Generate a unique ID for entities and properties."""
@@ -217,15 +747,91 @@ class RDFToFabricConverter:
         range_str = str(range_uri)
         return XSD_TO_FABRIC_TYPE.get(range_str, "String")
     
-    def parse_ttl(self, ttl_content: str) -> Tuple[List[EntityType], List[RelationshipType]]:
+    def _resolve_datatype_union(
+        self, 
+        graph: Graph, 
+        union_node: BNode
+    ) -> Tuple[str, str]:
+        """
+        Resolve datatype union to most restrictive compatible Fabric type.
+        
+        Analyzes a blank node representing a datatype union and selects
+        the most restrictive type that can safely represent all union members.
+        
+        Type preference order (most to least restrictive):
+        Boolean > BigInt > Double > DateTime > String
+        
+        Args:
+            graph: The RDF graph to query
+            union_node: Blank node containing the datatype union
+            
+        Returns:
+            Tuple of (fabric_type: str, notes: str) where:
+                - fabric_type: The resolved Fabric type ("String", "BigInt", etc.)
+                - notes: Description of the resolution for logging
+        """
+        types_found: Set[str] = set()
+        
+        # Traverse union to find all XSD types
+        for union in graph.objects(union_node, OWL.unionOf):
+            # Use existing RDF list resolution
+            targets, _ = self._resolve_rdf_list(graph, union, set(), max_depth=10)
+            for target in targets:
+                if target in XSD_TO_FABRIC_TYPE:
+                    types_found.add(target)
+                elif str(target).startswith(str(XSD)):
+                    # Handle other XSD types not in our mapping
+                    types_found.add(target)
+        
+        # Also check for direct type references (non-union case)
+        if not types_found:
+            for rdf_type in graph.objects(union_node, RDF.type):
+                type_str = str(rdf_type)
+                if type_str in XSD_TO_FABRIC_TYPE:
+                    types_found.add(type_str)
+        
+        if not types_found:
+            logger.warning(f"Could not resolve any XSD types in datatype union: {union_node}")
+            return "String", "union: no types found, defaulted to String"
+        
+        # Determine most restrictive type using hierarchy
+        # Order: Boolean (most specific) -> Integer types -> Float types -> DateTime -> String (most general)
+        type_hierarchy = [
+            ([str(XSD.boolean)], "Boolean"),
+            ([str(XSD.integer), str(XSD.int), str(XSD.long), str(XSD.short), str(XSD.byte), 
+              str(XSD.nonNegativeInteger), str(XSD.positiveInteger), str(XSD.unsignedInt),
+              str(XSD.unsignedLong), str(XSD.unsignedShort), str(XSD.unsignedByte)], "BigInt"),
+            ([str(XSD.double), str(XSD.float), str(XSD.decimal)], "Double"),
+            ([str(XSD.dateTime), str(XSD.date), str(XSD.dateTimeStamp)], "DateTime"),
+            ([str(XSD.string), str(XSD.anyURI), str(XSD.normalizedString), str(XSD.token),
+              str(XSD.language), str(XSD.Name), str(XSD.NCName), str(XSD.NMTOKEN)], "String"),
+        ]
+        
+        # Find the most restrictive type that covers all union members
+        for xsd_types, fabric_type in type_hierarchy:
+            if any(t in types_found for t in xsd_types):
+                type_str = str(types_found) if len(types_found) > 1 else next(iter(types_found))
+                logger.info(f"Resolved datatype union to {fabric_type} from types: {type_str}")
+                return fabric_type, f"union: selected {fabric_type} from {type_str}"
+        
+        # Fallback to String for unknown XSD types
+        logger.warning(f"Datatype union contains unsupported XSD types: {types_found}, defaulting to String")
+        return "String", f"union: unsupported types {types_found}, defaulted to String"
+    
+    def parse_ttl(self, ttl_content: str, force_large_file: bool = False) -> Tuple[List[EntityType], List[RelationshipType]]:
         """
         Parse RDF TTL content and extract entity and relationship types.
         
         Args:
             ttl_content: The TTL content as a string
+            force_large_file: If True, skip memory safety checks for large files
             
         Returns:
             Tuple of (entity_types, relationship_types)
+            
+        Raises:
+            ValueError: If TTL content is empty or has invalid syntax
+            MemoryError: If insufficient memory is available to parse the file
         """
         logger.info("Parsing TTL content...")
         
@@ -234,24 +840,46 @@ class RDFToFabricConverter:
         
         # Check size before parsing
         content_size_mb = len(ttl_content.encode('utf-8')) / (1024 * 1024)
+        logger.info(f"TTL content size: {content_size_mb:.2f} MB")
+        
+        # Pre-flight memory check to prevent crashes
+        can_proceed, memory_message = MemoryManager.check_memory_available(
+            content_size_mb, 
+            force=force_large_file
+        )
+        
+        if not can_proceed:
+            logger.error(f"Memory check failed: {memory_message}")
+            raise MemoryError(memory_message)
+        
+        logger.info(f"Memory check: {memory_message}")
+        
         if content_size_mb > 100:
             logger.warning(
                 f"Large TTL content detected ({content_size_mb:.1f} MB). "
-                "This may consume significant memory."
+                "Parsing may take several minutes."
             )
+        
+        # Log memory before parsing
+        MemoryManager.log_memory_status("Before parsing")
         
         # Parse the TTL
         graph = Graph()
         try:
             graph.parse(data=ttl_content, format='turtle')
-        except MemoryError:
+        except MemoryError as e:
+            MemoryManager.log_memory_status("After MemoryError")
             raise MemoryError(
-                f"Insufficient memory to parse TTL content ({content_size_mb:.1f} MB). "
-                "Try splitting the ontology into smaller files."
+                f"Insufficient memory while parsing TTL content ({content_size_mb:.1f} MB). "
+                f"Try splitting the ontology into smaller files or increasing available memory. "
+                f"Original error: {e}"
             )
         except Exception as e:
             logger.error(f"Failed to parse TTL content: {e}")
             raise ValueError(f"Invalid RDF/TTL syntax: {e}")
+        
+        # Log memory after parsing
+        MemoryManager.log_memory_status("After parsing")
         
         triple_count = len(graph)
         if triple_count == 0:
@@ -395,16 +1023,19 @@ class RDFToFabricConverter:
             for d in raw_domains:
                 domains.extend(self._resolve_class_targets(graph, d))
             
-            # Get range (value type)
+            # Get range (value type) with datatype union support
             ranges = list(graph.objects(prop_uri, RDFS.range))
-            range_uri = None
+            value_type = "String"  # Default
+            union_notes = ""
+            
             if ranges:
                 if isinstance(ranges[0], URIRef):
-                    range_uri = ranges[0]
+                    value_type = self._get_xsd_type(ranges[0])
                 elif isinstance(ranges[0], BNode):
-                    # Datatype unionOf – conservatively default to String
-                    range_uri = XSD.string
-            value_type = self._get_xsd_type(range_uri)
+                    # Resolve datatype union to most restrictive compatible type
+                    value_type, union_notes = self._resolve_datatype_union(graph, ranges[0])
+                    if union_notes:
+                        logger.debug(f"Property {name}: {union_notes}")
             
             prop = EntityTypeProperty(
                 id=prop_id,
@@ -620,7 +1251,8 @@ def _topological_sort_entities(entity_types: List[EntityType]) -> List[EntityTyp
 def convert_to_fabric_definition(
     entity_types: List[EntityType],
     relationship_types: List[RelationshipType],
-    ontology_name: str = "ImportedOntology"
+    ontology_name: str = "ImportedOntology",
+    skip_validation: bool = False
 ) -> Dict[str, Any]:
     """
     Convert parsed entity and relationship types to Fabric Ontology definition format.
@@ -629,10 +1261,42 @@ def convert_to_fabric_definition(
         entity_types: List of entity types
         relationship_types: List of relationship types
         ontology_name: Name for the ontology
+        skip_validation: If True, skip definition validation (not recommended)
         
     Returns:
         Dictionary representing the Fabric Ontology definition
+        
+    Raises:
+        ValueError: If validation fails with critical errors
     """
+    # Validate definition before creating (unless explicitly skipped)
+    if not skip_validation:
+        is_valid, validation_errors = FabricDefinitionValidator.validate_definition(
+            entity_types, relationship_types
+        )
+        
+        # Log all validation issues
+        for error in validation_errors:
+            if error.level == "warning":
+                logger.warning(str(error))
+            else:
+                logger.error(str(error))
+        
+        # Fail on critical errors
+        if not is_valid:
+            critical_errors = [e for e in validation_errors if e.level == "error"]
+            error_msg = "Invalid ontology definition:\n" + "\n".join(
+                f"  - {e.message}" for e in critical_errors
+            )
+            raise ValueError(error_msg)
+        
+        if validation_errors:
+            warning_count = sum(1 for e in validation_errors if e.level == "warning")
+            if warning_count > 0:
+                logger.info(f"Definition validation passed with {warning_count} warning(s)")
+        else:
+            logger.debug("Definition validation passed with no issues")
+    
     parts = []
     
     # Add .platform file
@@ -679,23 +1343,128 @@ def convert_to_fabric_definition(
     return {"parts": parts}
 
 
-def parse_ttl_file(file_path: str, id_prefix: int = 1000000000000) -> Tuple[Dict[str, Any], str]:
+class InputValidator:
+    """
+    Centralized input validation for RDF converter public methods.
+    
+    Provides consistent validation with clear error messages for:
+    - TTL content validation
+    - File path validation  
+    - Parameter type and value checking
+    """
+    
+    @staticmethod
+    def validate_ttl_content(content: Any) -> str:
+        """
+        Validate TTL content parameter.
+        
+        Args:
+            content: Content to validate (should be non-empty string)
+            
+        Returns:
+            Validated content string
+            
+        Raises:
+            ValueError: If content is None or empty
+            TypeError: If content is not a string
+        """
+        if content is None:
+            raise ValueError("TTL content cannot be None")
+        
+        if not isinstance(content, str):
+            raise TypeError(f"TTL content must be string, got {type(content).__name__}")
+        
+        if not content.strip():
+            raise ValueError("TTL content cannot be empty or whitespace-only")
+        
+        return content
+    
+    @staticmethod
+    def validate_file_path(path: Any) -> str:
+        """
+        Validate file path parameter.
+        
+        Args:
+            path: Path to validate (should be non-empty string pointing to readable file)
+            
+        Returns:
+            Validated path string
+            
+        Raises:
+            TypeError: If path is not a string
+            ValueError: If path is empty
+            FileNotFoundError: If file doesn't exist
+            PermissionError: If file is not readable
+        """
+        if not isinstance(path, str):
+            raise TypeError(f"File path must be string, got {type(path).__name__}")
+        
+        if not path.strip():
+            raise ValueError("File path cannot be empty")
+        
+        path = path.strip()
+        
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"File not found: {path}")
+        
+        if not os.path.isfile(path):
+            raise ValueError(f"Path is not a file: {path}")
+        
+        if not os.access(path, os.R_OK):
+            raise PermissionError(f"File is not readable: {path}")
+        
+        return path
+    
+    @staticmethod
+    def validate_id_prefix(prefix: Any) -> int:
+        """
+        Validate ID prefix parameter.
+        
+        Args:
+            prefix: Prefix to validate (should be non-negative integer)
+            
+        Returns:
+            Validated prefix integer
+            
+        Raises:
+            TypeError: If prefix is not an integer
+            ValueError: If prefix is negative
+        """
+        if not isinstance(prefix, int):
+            raise TypeError(f"ID prefix must be integer, got {type(prefix).__name__}")
+        
+        if prefix < 0:
+            raise ValueError(f"ID prefix must be non-negative, got {prefix}")
+        
+        return prefix
+
+
+def parse_ttl_file(file_path: str, id_prefix: int = 1000000000000, force_large_file: bool = False) -> Tuple[Dict[str, Any], str]:
     """
     Parse a TTL file and return the Fabric Ontology definition.
     
     Args:
         file_path: Path to the TTL file
         id_prefix: Base prefix for generating unique IDs
+        force_large_file: If True, skip memory safety checks for large files
         
     Returns:
         Tuple of (Fabric Ontology definition dict, extracted ontology name)
+        
+    Raises:
+        FileNotFoundError: If the file doesn't exist
+        PermissionError: If the file is not readable
+        MemoryError: If insufficient memory is available
+        ValueError: If the file content is invalid
+        TypeError: If parameters have wrong type
     """
+    # Validate inputs upfront
+    file_path = InputValidator.validate_file_path(file_path)
+    id_prefix = InputValidator.validate_id_prefix(id_prefix)
+    
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             ttl_content = f.read()
-    except FileNotFoundError:
-        logger.error(f"TTL file not found: {file_path}")
-        raise FileNotFoundError(f"TTL file not found: {file_path}")
     except UnicodeDecodeError as e:
         logger.error(f"Encoding error reading {file_path}: {e}")
         # Try with different encoding
@@ -712,34 +1481,32 @@ def parse_ttl_file(file_path: str, id_prefix: int = 1000000000000) -> Tuple[Dict
         logger.error(f"Error reading file {file_path}: {e}")
         raise IOError(f"Error reading file: {e}")
     
-    return parse_ttl_content(ttl_content, id_prefix)
+    return parse_ttl_content(ttl_content, id_prefix, force_large_file=force_large_file)
 
 
-def parse_ttl_content(ttl_content: str, id_prefix: int = 1000000000000) -> Tuple[Dict[str, Any], str]:
+def parse_ttl_content(ttl_content: str, id_prefix: int = 1000000000000, force_large_file: bool = False) -> Tuple[Dict[str, Any], str]:
     """
     Parse TTL content and return the Fabric Ontology definition.
     
     Args:
         ttl_content: TTL content as string
         id_prefix: Base prefix for generating unique IDs
+        force_large_file: If True, skip memory safety checks for large files
         
     Returns:
         Tuple of (Fabric Ontology definition dict, extracted ontology name)
+        
+    Raises:
+        ValueError: If content is empty or invalid
+        TypeError: If parameters have wrong type
+        MemoryError: If insufficient memory is available
     """
-    if ttl_content is None:
-        raise ValueError("ttl_content cannot be None")
-    
-    if not isinstance(ttl_content, str):
-        raise TypeError(f"ttl_content must be string, got {type(ttl_content)}")
-    
-    if not ttl_content.strip():
-        raise ValueError("ttl_content cannot be empty")
-    
-    if id_prefix < 0:
-        raise ValueError(f"id_prefix must be non-negative, got {id_prefix}")
+    # Validate inputs upfront
+    ttl_content = InputValidator.validate_ttl_content(ttl_content)
+    id_prefix = InputValidator.validate_id_prefix(id_prefix)
     
     converter = RDFToFabricConverter(id_prefix=id_prefix)
-    entity_types, relationship_types = converter.parse_ttl(ttl_content)
+    entity_types, relationship_types = converter.parse_ttl(ttl_content, force_large_file=force_large_file)
     
     # Try to extract ontology name from the TTL
     graph = Graph()

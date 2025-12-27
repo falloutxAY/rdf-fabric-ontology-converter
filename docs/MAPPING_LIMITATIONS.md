@@ -1,196 +1,113 @@
-# RDF/OWL → Microsoft Fabric Ontology: Mapping Challenges and Non‑1:1 Scenarios
+# RDF/OWL → Fabric Ontology: Mapping Limitations
 
-Convertors from RDF/OWL (TTL) to Microsoft Fabric Ontology necessarily simplify certain constructs. RDF/OWL is highly expressive and designed for open‑world, inference‑driven knowledge representation, while Fabric Ontology targets business‑friendly models optimized for data products and analytics. This document explains why conversions are not 1:1, what information can be lost or transformed, and how to mitigate.
+RDF/OWL is highly expressive with inference-driven semantics, while Fabric Ontology targets business-friendly models for data products. Conversions are **not 1:1** — complex OWL constructs are simplified or skipped.
 
-## Pre-flight Validation (NEW)
+## Pre-flight Validation
 
-Before importing a TTL file, you can now run a **pre-flight validation** to check if the ontology can be imported seamlessly or if there are RDF/OWL constructs that cannot be fully represented in Fabric:
+Validate TTL files before import to identify compatibility issues:
 
 ```powershell
-# Quick validation check
-python src/main.py validate samples/foaf_ontology.ttl
-
-# Detailed human-readable report
+# Quick validation
 python src/main.py validate samples/foaf_ontology.ttl --verbose
 
-# Save detailed JSON report
-python src/main.py validate samples/foaf_ontology.ttl --output validation_report.json
+# Save detailed report
+python src/main.py validate samples/foaf_ontology.ttl --output report.json
 ```
 
-### Validation is integrated into upload
-
-When you run `upload`, a pre-flight validation runs automatically:
-- If issues are detected, you'll be asked whether to proceed
-- If you proceed, an **import log** is created documenting what could not be fully converted
-- Use `--skip-validation` to bypass the check, or `--force` to skip the prompt
-
+**Upload with validation** (automatic):
 ```powershell
-# Normal upload (with validation prompt)
 python src/main.py upload my_ontology.ttl --name "MyOntology"
+# Creates import_log_<name>_<timestamp>.json in logs/ if issues detected
 
-# Skip validation entirely
-python src/main.py upload my_ontology.ttl --skip-validation
-
-# Proceed without prompting even if issues found
-python src/main.py upload my_ontology.ttl --force
+# Skip validation: --skip-validation or --force
 ```
 
-### Import Logs
+## What's Lost or Transformed
 
-When you import an ontology with validation issues, an import log is automatically generated in the `logs/` directory:
-- `import_log_<ontology_name>_<timestamp>.json`
+| OWL/RDF Construct | Fabric Conversion | Impact |
+|-------------------|-------------------|--------|
+| **Property restrictions** (`owl:Restriction`, cardinality) | Skipped | Constraints not enforced |
+| **Property characteristics** (transitive, symmetric, functional) | Not preserved | Semantic behavior lost |
+| **Complex class expressions** (`owl:intersectionOf`, `owl:complementOf`) | Flattened | Exact semantics simplified |
+| **Class axioms** (`owl:equivalentClass`, `owl:disjointWith`) | Skipped | Identity/disjointness lost |
+| **Property chains** (`owl:propertyChainAxiom`) | Not materialized | Inferable relationships missing |
+| **Imports** (`owl:imports`) | Must be merged | External dependencies unresolved |
+| **Implicit signatures** (no `rdfs:domain`/`rdfs:range`) | Skipped | Properties without explicit types ignored |
+| **Exotic datatypes** | Map to String | Type precision reduced |
+| **Individuals** (`owl:sameAs`) | Out of scope | Instance data not converted |
+| **SHACL constraints** | Not preserved | Validation rules lost |
 
-This log documents:
-- All RDF/OWL constructs that could not be converted
-- Severity of each issue (error, warning, info)
-- Recommendations for improving compatibility
+## Converter Behavior
 
-## What changes between RDF/OWL and Fabric Ontology?
+**What's supported:**
+- Declared classes → Entity types
+- Datatype properties → Attributes (when domain resolves)
+- Object properties → Relationships (for each domain-range pair)
+- `owl:unionOf`, `owl:intersectionOf`, `owl:complementOf`, `owl:oneOf` (classes extracted)
+- Common XSD types: string, boolean, integer, decimal, date, dateTime, anyURI, dateTimeStamp, time
+- Cycle detection and depth limiting (max 10) for nested blank nodes
 
-- Semantics vs structure:
-  - RDF/OWL uses description logic and inference (e.g., RDFS/OWL entailments). Many semantics are implicit and only materialize under reasoning.
-  - Fabric Ontology encodes explicit classes, properties, and relationships for downstream data use; it does not fully support RDF/OWL constructs.
-- Expressivity vs implementability:
-  - RDF/OWL supports complex class expressions and property axioms.
-  - Fabric Ontology APIs typically provide a constrained type system and relationship model without full OWL semantics.
+**Strict semantics:**
+- Properties **require** explicit `rdfs:domain` and `rdfs:range` pointing to declared classes
+- No heuristics for missing signatures
 
-## Common sources of non‑1:1 mapping (potential loss)
+## Common Warnings & Fixes
 
-1. Complex class expressions
-   - `owl:intersectionOf`, `owl:complementOf`, `owl:oneOf` (enumerations), nested expressions, and blank‑node encodings.
-   - Outcome: Often flattened or skipped; exact semantics may be lost.
+| Warning | Fix |
+|---------|-----|
+| "Skipping property due to unresolved domain/range" | Add explicit `rdfs:domain`/`rdfs:range` and declare all referenced classes locally |
+| "Unresolved class target" | Declare the class in your TTL or merge the external vocabulary |
+| "Unknown XSD datatype, defaulting to String" | Use supported XSD types or accept String fallback |
+| "Unsupported OWL construct" | Flatten restrictions to explicit properties with signatures |
 
-2. Property restrictions
-   - `owl:Restriction` (e.g., `someValuesFrom`, `allValuesFrom`, `hasValue`, min/max/exact cardinality, qualified cardinality).
-   - Outcome: Usually not represented; cardinality semantics and constraints are lost.
+## Working with External Vocabularies (e.g., FOAF)
 
-3. Property characteristics
-   - Functional/inverse‑functional, symmetric, transitive, reflexive/irreflexive, asymmetric.
-   - Outcome: These are semantic constraints; typically not preserved.
+Many vocabularies like FOAF have properties without explicit domain/range or depend on external definitions. **Result:** Skipped properties and round-trip differences.
 
-4. Property chains and advanced axioms
-   - `owl:propertyChainAxiom`, `owl:equivalentProperty`, `owl:disjointProperty`.
-   - Outcome: Not represented; inferable relationships are not materialized.
+**To preserve properties:**
+1. **Declare classes locally:**
+   ```turtle
+   foaf:Person a owl:Class .
+   foaf:Agent a owl:Class .
+   foaf:Document a owl:Class .
+   ```
 
-5. Class axioms
-   - `owl:equivalentClass`, `owl:disjointWith`.
-   - Outcome: Not carried over; identity/disjointness semantics are lost.
+2. **Add explicit signatures:**
+   ```turtle
+   foaf:name rdfs:domain foaf:Person ; rdfs:range xsd:string .
+   foaf:homepage rdfs:domain foaf:Agent ; rdfs:range xsd:anyURI .
+   foaf:knows rdfs:domain foaf:Person ; rdfs:range foaf:Person .
+   ```
 
-6. Imports and external dependencies
-   - `owl:imports` pull in external vocabularies/signatures.
-   - Outcome: Unless merged beforehand, dependent semantics are missing in a single TTL file.
+3. **Use `owl:unionOf` for multiple domains/ranges:**
+   ```turtle
+   foaf:name rdfs:domain [ owl:unionOf (foaf:Person foaf:Organization) ] .
+   ```
 
-7. Implicit signatures
-   - Properties without explicit `rdfs:domain`/`rdfs:range` or pointing to classes not declared locally.
-   - Outcome: Converter skips such properties to maintain predictable, explicit models.
+## Best Practices
 
-8. Datatypes and shapes
-   - Exotic XSD datatypes, RDF lists, reification, SHACL constraints and validation rules.
-   - Outcome: Unsupported datatypes may be mapped to string; shapes and validation are not preserved.
+✅ **Provide explicit signatures** — Always declare `rdfs:domain` and `rdfs:range` for properties  
+✅ **Declare all referenced classes** — Don't rely on external ontologies unless merged  
+✅ **Use supported XSD types** — string, boolean, integer, decimal, date, dateTime, anyURI  
+✅ **Avoid complex OWL** — Restrictions, property chains, and cardinality constraints aren't preserved  
+✅ **Validate iteratively** — Use `roundtrip --save-export` and `compare --verbose`  
+✅ **Enable debug logging** — Set `logging.level` to `DEBUG` in `src/config.json`
 
-9. Individuals and annotations
-   - Named individuals, `owl:sameAs`, annotation properties (labels, comments) vs operational semantics.
-   - Outcome: Individuals may be out‑of‑scope; annotations may be partially preserved or ignored depending on tooling.
+## Round-Trip Differences
 
-## Current converter behavior (summary)
+TTL → Fabric → TTL conversions may differ due to:
+- **Semantic compression** — OWL axioms and inference not fully representable
+- **Normalization** — Unions expanded into multiple explicit relationships
+- **Conservative skipping** — Properties without explicit signatures omitted
+- **Datatype fallback** — Unsupported types mapped to String
 
-- Classes and properties:
-  - Declared classes are imported.
-  - Datatype properties map to Fabric attributes when their `rdfs:domain` resolves to declared classes.
-  - Object properties become Fabric relationships for each resolvable domain–range pair.
-- `owl:unionOf` support:
-  - Domain and range unions are resolved; each pair yields a distinct relationship type.
-- Datatype mapping:
-  - Common XSDs are mapped (e.g., string, boolean, integer, decimal, date, dateTime, anyURI, dateTimeStamp, time).
-  - Unions or unfamiliar datatypes may conservatively map to `String`.
-- Strict semantics:
-  - No heuristics; properties without explicit, resolvable `rdfs:domain`/`rdfs:range` are skipped.
+## Additional Resources
 
-## FOAF and similar vocabularies
-
-Some FOAF properties lack explicit domain/range in a single file or depend on external vocabularies. In practice, this yields conversion warnings and round‑trip differences. Example classes and properties that commonly surface issues (observed during testing):
-
-- Skipped object properties due to unresolved signatures: `page`, `depicts`, `topic_interest`, `based_near`, `logo`, `made`, `maker`, `depiction`, `isPrimaryTopicOf`, `primaryTopic`.
-- Datatype properties reported as lost: `homepage`, `name` (depending on local declarations and unions).
-
-To improve preservation:
-- Add explicit `rdfs:domain` and `rdfs:range` for the needed properties.
-- Declare referenced FOAF classes locally or merge FOAF core with your domain ontology.
-- Avoid unsupported OWL restrictions unless you extend the converter.
-
-### FOAF strict‑friendly checklist (practical steps)
-
-- Identify required FOAF classes and declare them locally:
-  - Common: `foaf:Person`, `foaf:Agent`, `foaf:Organization`, `foaf:Document`, `foaf:Image`, `foaf:Project`.
-- Add explicit signatures for the properties you intend to preserve:
-  - Examples:
-    - `foaf:name` — `rdfs:domain foaf:Person` (or Agents) and `rdfs:range xsd:string`.
-    - `foaf:homepage` — `rdfs:domain foaf:Agent` and `rdfs:range xsd:anyURI`.
-    - `foaf:depicts`/`foaf:depiction` — choose domains/ranges like `foaf:Image` ↔ `foaf:Agent` (or `foaf:Person`).
-    - `foaf:based_near`, `foaf:topic_interest`, `foaf:page`, `foaf:logo`, `foaf:maker`/`foaf:made`, `foaf:primaryTopic`/`foaf:isPrimaryTopicOf` — add explicit `rdfs:domain`/`rdfs:range` and declare target classes locally (e.g., `foaf:Document`, `foaf:Project`).
-- Prefer simple constructs:
-  - Avoid `owl:Restriction` (e.g., `someValuesFrom`, cardinalities) in converted segments.
-  - If unions are needed, use `owl:unionOf` on classes and declare all members.
-- Align datatypes with supported mappings:
-  - Use common XSDs (e.g., `xsd:string`, `xsd:anyURI`, `xsd:dateTime`, `xsd:boolean`).
-- Validate and iterate:
-  - Run `roundtrip --save-export` and `compare --verbose` to inspect differences.
-  - Set logging to `DEBUG` in `src/config.json` to trace decisions.
-  - Address warnings by adding/adjusting property signatures and class declarations.
-
-## Why round‑trip TTL ↔ Fabric ↔ TTL can differ
-
-- Semantic compression: OWL axioms and reasoning effects are not fully representable in Fabric models.
-- Normalization: The converter may split union‑implied relationships into multiple explicit edges.
-- Skipping unconstrained properties: Without explicit signatures, conversion remains conservative.
-- Datatype fallback: Some datatypes are generalized to strings to ensure operability.
-
-## Mitigations and best practices
-
-- Provide explicit property signatures:
-  - Ensure `rdfs:domain`/`rdfs:range` resolve to declared classes.
-  - Use `owl:unionOf` for class unions; declare all members.
-- Merge required vocabularies:
-  - If your TTL relies on external ontologies, import and materialize needed class/property declarations into a single file.
-- Keep constructs simple:
-  - Avoid complex restrictions and chains if the target platform will not use a reasoner.
-- Validate iteratively:
-  - Use `roundtrip --save-export` and `compare --verbose` to inspect differences.
-- Log for insight:
-  - Set `logging.level` to `DEBUG` in `src/config.json` to trace decisions.
-
-## Known warnings reference
-
-- "Skipping property … due to unresolved domain/range"
-  - Cause: `rdfs:domain`/`rdfs:range` missing or point to classes not declared locally.
-  - Fix: Declare the classes; add explicit `rdfs:domain`/`rdfs:range`; use `owl:unionOf` if needed.
-
-- "Unresolved class target …"
-  - Cause: A referenced class URI is not found among declared classes in the TTL being converted.
-  - Fix: Declare the class locally or merge in the vocabulary that defines it.
-
-- "Unknown XSD datatype … defaulting to String"
-  - Cause: Datatype not covered by the converter’s mapping.
-  - Fix: Use a supported XSD datatype or extend mappings; for unions of datatypes, expect conservative `String` mapping.
-
-- "Round‑trip differences: lost datatype/object properties"
-  - Cause: Properties were skipped during conversion (missing signatures) or normalized differently (e.g., unions expanded into multiple relationships).
-  - Fix: Add explicit signatures; verify class declarations; run `compare --verbose` to pinpoint gaps.
-
-- "Unsupported OWL construct … skipping restriction"
-  - Cause: `owl:Restriction` or advanced axioms not implemented.
-  - Fix: Flatten to explicit properties/relationships with signatures; avoid complex OWL in converted segments.
-
-## References and further reading
-
-- RDF and OWL standards: W3C specifications
-- RDFLib documentation: https://github.com/RDFLib/rdflib
-- Microsoft Fabric documentation: https://learn.microsoft.com/fabric/
-- Project docs:
-  - `docs/ERROR_HANDLING_SUMMARY.md`
-  - `docs/TROUBLESHOOTING.md`
-  - `docs/TESTING.md`
+- [RDFLib documentation](https://github.com/RDFLib/rdflib)
+- [Microsoft Fabric documentation](https://learn.microsoft.com/fabric/)
+- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Common issues
+- [TESTING.md](TESTING.md) - Test suite
 
 ---
 
-This document is informational and reflects practical constraints observed during conversion. Behavior may evolve as Fabric APIs and the converter add capabilities. 
+*Behavior may evolve as Fabric APIs and converter capabilities expand.*

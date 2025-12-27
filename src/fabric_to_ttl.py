@@ -79,11 +79,21 @@ class FabricToTTLConverter:
         1. Fabric API format with base64 payloads: {"parts": [{"path": "EntityTypes/...", "payload": "..."}]}
         2. Simple format for testing: {"parts": [{"id": "...", "type": "EntityType", ...}]}
         
+        Limitations:
+        - Nested/complex payloads that fail base64 decoding are silently skipped (logged as warning)
+        - In simple format, Property parts must appear after their parent EntityType part
+        - No structural validation is performed on decoded payload content
+        - Properties without a matching parent entity are silently dropped
+        
         Args:
-            fabric_definition: The Fabric ontology definition
+            fabric_definition: The Fabric ontology definition. Can be either:
+                - Direct definition: {"parts": [...]}
+                - Wrapped definition: {"definition": {"parts": [...]}}
             
         Returns:
-            Tuple of (entity_types, relationship_types)
+            Tuple of (entity_types, relationship_types) where:
+                - entity_types: List of decoded entity type definitions
+                - relationship_types: List of decoded relationship type definitions
         """
         entity_types = []
         relationship_types = []

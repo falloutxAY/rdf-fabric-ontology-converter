@@ -129,6 +129,9 @@ You can try this for samples/foaf_ontology.ttl
 ### Convert TTL to JSON
 ```powershell
 python src/main.py convert <ttl_file> [--output <output.json>] --config src\config.json
+
+# For very large files (>500MB), bypass memory safety checks
+python src/main.py convert <ttl_file> --force-memory
 ```
 
 ### Upload Ontology
@@ -141,6 +144,9 @@ python src/main.py upload <ttl_file> --skip-validation --config src\config.json
 
 # Force upload even if validation issues are found
 python src/main.py upload <ttl_file> --force --config src\config.json
+
+# For very large files, bypass memory safety checks (use with caution)
+python src/main.py upload <ttl_file> --force-memory --config src\config.json
 ```
 
 ### Export Ontology to TTL
@@ -217,11 +223,9 @@ python src/main.py compare original.ttl exported.ttl --verbose
 
 ### Example 7: Round-Trip Verification
 ```bash
-# Test that TTL -> Fabric -> TTL preserves semantics
+# Test that TTL -> Fabric Ontology -> TTL preserves semantics
 python src/main.py roundtrip samples/sample_ontology.ttl --save-export
 ```
-
-For more examples, see [docs/QUICK_TEST_GUIDE.md](docs/QUICK_TEST_GUIDE.md).
 
 ## Limitations
 
@@ -235,31 +239,27 @@ Use the **validate** command to check if your TTL file can be imported seamlessl
 python src/main.py validate samples/foaf_ontology.ttl --verbose
 ```
 
-The tool will report:
-- ✅ **Seamless import** - No issues detected
-- ⚠️ **Issues detected** - Shows warnings about constructs that will be lost or transformed
-
 ### Strict Semantics
 
 This tool adheres to strict semantics by default:
 - Properties require explicit `rdfs:domain` and `rdfs:range` declarations
 - Referenced classes must be declared locally in the TTL file
 - Complex OWL constructs (restrictions, property characteristics) are flagged but not preserved
-- `owl:unionOf` is supported for domain/range
+- `owl:unionOf`, `owl:intersectionOf`, and `owl:complementOf` are supported for domain/range with:
+  - Recursive resolution of nested blank nodes
+  - Cycle detection to prevent infinite loops
+  - Depth limiting for protection against deeply nested structures
 
 For complete details, see:
 - **[Mapping Limitations](docs/MAPPING_LIMITATIONS.md)** - Why TTL → Fabric is not perfectly lossless
-- **[Error Handling Summary](docs/ERROR_HANDLING_SUMMARY.md)** - Common failures and resolutions
 
 
 ## Documentation
 
 - **[Configuration Guide](docs/CONFIGURATION.md)** - Detailed setup instructions
-- **[Testing Guide](docs/TESTING.md)** - How to run and write tests
+- **[Testing Guide](docs/TESTING.md)** - Comprehensive testing documentation
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
-- **[Quick Test Guide](docs/QUICK_TEST_GUIDE.md)** - Fast test commands
-- **[Error Handling Summary](docs/ERROR_HANDLING_SUMMARY.md)** - Common failures and resolutions
- - **[Mapping Challenges and Non‑1:1 Scenarios](docs/MAPPING_LIMITATIONS.md)** - Why TTL → Fabric is not perfectly lossless
+- **[Mapping Challenges and Limitations](docs/MAPPING_LIMITATIONS.md)** - Why TTL → Fabric is not perfectly lossless
 
  
 ## Testing
@@ -279,8 +279,6 @@ python tests/run_tests.py samples
 # Run with coverage
 python -m pytest tests/ --cov=src --cov-report=html
 ```
-
-**Test Results:** ✅ 
 
 For more details, see [docs/TESTING.md](docs/TESTING.md).
 
@@ -309,10 +307,9 @@ rdf-fabric-ontology-converter/
 │   └── sample_fibo_ontology.ttl  # Financial ontology
 ├── docs/                         # Documentation
 │   ├── CONFIGURATION.md          # Configuration guide
-│   ├── TESTING.md                # Combined testing guide
+│   ├── TESTING.md                # Comprehensive testing guide
 │   ├── TROUBLESHOOTING.md        # Common issues
-│   ├── ERROR_HANDLING_SUMMARY.md # Error handling reference
-│   └── QUICK_TEST_GUIDE.md       # Quick test instructions
+│   └── MAPPING_LIMITATIONS.md    # Mapping limitations
 ├── config.sample.json            # Sample configuration
 ├── src/config.json               # Your local config (git-ignored)
 ├── requirements.txt              # Python dependencies

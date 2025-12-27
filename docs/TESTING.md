@@ -77,29 +77,22 @@ python -m pytest tests/test_converter.py::TestSampleOntologies::test_foaf_ontolo
 
 ## ✨ Sample Test Output
 
-```
-test_converter.py::TestSampleOntologies::test_all_sample_ttl_files
+Run the sample file tests to see current results:
 
-Sample TTL Files Parsing Results:
-----------------------------------------------------------------------
-foaf_ontology.ttl              SUCCESS    26 parts
-sample_fibo_ontology.ttl       SUCCESS    85 parts
-sample_iot_ontology.ttl        SUCCESS    5 parts
-sample_ontology.ttl            SUCCESS    9 parts
-----------------------------------------------------------------------
-PASSED
+```powershell
+python -m pytest tests/test_converter.py::TestSampleOntologies::test_all_sample_ttl_files -v -s
 ```
 
 ## Sample TTL File Testing
 
-All sample ontology files successfully parsed:
+All sample ontology files in the `samples/` directory are tested:
 
-| File | Status | Parts | Description |
-|------|--------|-------|-------------|
-| **sample_ontology.ttl** | ✅ SUCCESS | 9 | Manufacturing domain |
-| **foaf_ontology.ttl** | ✅ SUCCESS | 26 | Friend of a Friend vocabulary |
-| **sample_iot_ontology.ttl** | ✅ SUCCESS | 5 | IoT device management |
-| **sample_fibo_ontology.ttl** | ✅ SUCCESS | 85 | Financial Industry Business Ontology |
+| File | Description |
+|------|-------------|
+| **sample_supply_chain_ontology.ttl** | Supply Chain domain |
+| **sample_foaf_ontology.ttl** | Friend of a Friend vocabulary |
+| **sample_iot_ontology.ttl** | IoT device management |
+| **sample_fibo_ontology.ttl** | Financial Industry Business Ontology |
 
 ## What the Tests Validate
 

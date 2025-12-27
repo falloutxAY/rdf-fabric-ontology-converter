@@ -4,7 +4,7 @@
         "ontology_id": "", 
         "api_base_url": "https://api.fabric.microsoft.com/v1",
         "tenant_id": "YOUR_TENANT_ID",
-        "client_id": "04b07795-8ddb-461a-bbee-02f9e1bf7b46", 
+        "client_id": "YOUR_CLIENT_ID", 
         "client_secret": "",
         "use_interactive_auth": true
     },

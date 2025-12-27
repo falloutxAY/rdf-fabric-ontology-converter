@@ -136,7 +136,8 @@ export FABRIC_TENANT_ID=your-tenant-id
 - ✅ Store secrets in Azure Key Vault or similar
 - ✅ Use managed identities when possible
 - ✅ Rotate secrets regularly
-- ⚠️ Never commit secrets to source control
+
+⚠️ Never commit secrets to source control
 
 ## Troubleshooting
 

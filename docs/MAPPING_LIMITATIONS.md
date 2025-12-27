@@ -8,10 +8,10 @@ Validate TTL files before import to identify compatibility issues:
 
 ```powershell
 # Quick validation
-python src/main.py validate samples/foaf_ontology.ttl --verbose
+python src/main.py validate samples/sample_foaf_ontology.ttl --verbose
 
 # Save detailed report
-python src/main.py validate samples/foaf_ontology.ttl --output report.json
+python src/main.py validate samples/sample_foaf_ontology.ttl --output report.json
 ```
 
 **Upload with validation** (automatic):
@@ -90,7 +90,7 @@ Many vocabularies like FOAF have properties without explicit domain/range or dep
 ✅ **Declare all referenced classes** — Don't rely on external ontologies unless merged  
 ✅ **Use supported XSD types** — string, boolean, integer, decimal, date, dateTime, anyURI  
 ✅ **Avoid complex OWL** — Restrictions, property chains, and cardinality constraints aren't preserved  
-✅ **Validate iteratively** — Use `roundtrip --save-export` and `compare --verbose`  
+✅ **Validate iteratively** — Use `upload`, `export`, and `compare --verbose` to verify round-trips  
 ✅ **Enable debug logging** — Set `logging.level` to `DEBUG` in `src/config.json`
 
 ## Round-Trip Differences

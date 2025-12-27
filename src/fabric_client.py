@@ -398,7 +398,7 @@ class FabricOntologyClient:
                         continue
                     
                     status = result.get('status', 'Unknown')
-                    percent_complete = result.get('percentComplete', 0)
+                    percent_complete = result.get('percentComplete', 0) or 0
                     
                     # Update progress bar
                     if percent_complete > last_progress:
@@ -484,8 +484,8 @@ class FabricOntologyClient:
         return self._handle_response(response)
     
     @retry(
-        stop=stop_after_attempt(5),
-        wait=wait_exponential(multiplier=2, min=2, max=60),
+        stop=stop_after_attempt(15),
+        wait=wait_exponential(multiplier=1, min=1, max=10),
         retry=retry_if_exception(_is_transient_error),
         before_sleep=before_sleep_log(logger, logging.WARNING)
     )
@@ -497,7 +497,7 @@ class FabricOntologyClient:
             ontology_id: The ontology ID
             
         Returns:
-            Ontology definition object
+            Ontology definition object with 'parts' containing entity and relationship types
         """
         url = f"{self.config.api_base_url}/workspaces/{self.config.workspace_id}/ontologies/{ontology_id}/getDefinition"
         
@@ -508,12 +508,116 @@ class FabricOntologyClient:
             headers=self._get_headers()
         )
         
+        # Check for 404 errors (newly created ontology may not be immediately available)
+        if response.status_code == 404:
+            logger.warning(f"Ontology definition not yet available (404), retrying... {ontology_id}")
+            raise TransientAPIError(404, 2, "Ontology definition not yet available")
+        
         result = self._handle_response(response)
         
         if result.get('_lro'):
-            result = self._wait_for_operation(result['location'], result['retry_after'])
+            # For LRO, wait for completion and then fetch definition from result URL
+            operation_url = result['location']
+            operation_result = self._wait_for_operation_and_get_result(operation_url, result['retry_after'])
+            
+            # Log the operation result for debugging
+            logger.debug(f"Operation result keys: {operation_result.keys() if operation_result else 'None'}")
+            
+            # The definition should be in the operation result
+            if 'definition' in operation_result:
+                return operation_result['definition']
+            elif 'parts' in operation_result:
+                return operation_result
+            else:
+                logger.warning(f"No definition found in operation result for {ontology_id}. Keys: {list(operation_result.keys()) if operation_result else 'None'}")
+                return {'parts': []}
         
         return result
+    
+    def _wait_for_operation_and_get_result(self, operation_url: str, retry_after: int = 20, max_retries: int = 60) -> Dict[str, Any]:
+        """
+        Wait for a long-running operation to complete and return the full result.
+        
+        After the operation succeeds, fetches the actual result from the result URL
+        which is provided in the Location header of the success response.
+        """
+        logger.info(f"Waiting for operation to complete... (polling every {retry_after}s)")
+        
+        with tqdm(total=100, desc="Operation progress", unit="%", 
+                  bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]") as pbar:
+            last_progress = 0
+            
+            for attempt in range(max_retries):
+                time.sleep(retry_after)
+                
+                try:
+                    response = requests.get(operation_url, headers=self._get_headers(), timeout=30)
+                except requests.exceptions.RequestException as e:
+                    logger.warning(f"Operation polling request failed (attempt {attempt+1}/{max_retries}): {e}")
+                    continue
+                
+                if response.status_code == 200:
+                    try:
+                        result = response.json()
+                    except json.JSONDecodeError as e:
+                        logger.warning(f"Failed to parse operation status: {e}")
+                        continue
+                    
+                    status = result.get('status', 'Unknown')
+                    percent_complete = result.get('percentComplete', 0) or 0
+                    
+                    # Update progress bar
+                    if percent_complete > last_progress:
+                        pbar.update(percent_complete - last_progress)
+                        last_progress = percent_complete
+                    
+                    pbar.set_postfix_str(f"Status: {status}")
+                    logger.info(f"Operation status: {status} ({percent_complete}% complete)")
+                    
+                    if status == 'Succeeded':
+                        pbar.update(100 - last_progress)  # Complete the bar
+                        
+                        # Get the result URL from the Location header
+                        result_url = response.headers.get('Location')
+                        if result_url:
+                            logger.info(f"Fetching result from: {result_url}")
+                            try:
+                                result_response = requests.get(result_url, headers=self._get_headers(), timeout=30)
+                                if result_response.status_code == 200:
+                                    return result_response.json()
+                                else:
+                                    logger.warning(f"Failed to fetch result from {result_url}: {result_response.status_code}")
+                            except Exception as e:
+                                logger.warning(f"Error fetching result: {e}")
+                        
+                        # Fallback: try appending /result to operation URL
+                        result_url = f"{operation_url}/result"
+                        logger.info(f"Trying fallback result URL: {result_url}")
+                        try:
+                            result_response = requests.get(result_url, headers=self._get_headers(), timeout=30)
+                            if result_response.status_code == 200:
+                                return result_response.json()
+                        except Exception as e:
+                            logger.warning(f"Error fetching fallback result: {e}")
+                        
+                        # Return the status response if no result URL found
+                        return result
+                        
+                    elif status == 'Failed':
+                        error_msg = result.get('error', {}).get('message', 'Unknown error')
+                        raise FabricAPIError(
+                            status_code=500,
+                            error_code='OperationFailed',
+                            message=f"Operation failed: {error_msg}",
+                        )
+                else:
+                    logger.warning(f"Failed to check operation status: {response.status_code}")
+        
+        raise FabricAPIError(
+            status_code=504,
+            error_code='OperationTimeout',
+            message='Operation timed out',
+        )
     
     @retry(
         stop=stop_after_attempt(5),
@@ -566,11 +670,19 @@ class FabricOntologyClient:
         
         result = self._handle_response(response)
         
-        if result.get('_lro') and wait_for_completion:
-            result = self._wait_for_operation(result['location'], result['retry_after'])
-            # After LRO completes, fetch the created ontology
-            if 'id' in result:
-                return self.get_ontology(result['id'])
+        ontology_location = None
+        if result.get('_lro'):
+            ontology_location = result.get('location')
+            if wait_for_completion:
+                result = self._wait_for_operation(result['location'], result['retry_after'])
+        
+        # Extract ID from location header
+        if ontology_location:
+            # Extract ontology ID from location URL (e.g., /ontologies/{id})
+            ontology_id = ontology_location.split('/')[-1]
+            if ontology_id:
+                logger.info(f"Ontology created: {ontology_id}")
+                return {'id': ontology_id}
         
         logger.info(f"Ontology created: {result.get('id', 'Unknown ID')}")
         return result

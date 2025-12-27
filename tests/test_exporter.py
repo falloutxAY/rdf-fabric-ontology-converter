@@ -366,7 +366,7 @@ class TestSampleFilesRoundTrip:
     
     def test_foaf_roundtrip(self, samples_dir):
         """Test round-trip with FOAF ontology."""
-        ttl_path = os.path.join(samples_dir, 'foaf_ontology.ttl')
+        ttl_path = os.path.join(samples_dir, 'sample_foaf_ontology.ttl')
         if not os.path.exists(ttl_path):
             pytest.skip(f"FOAF TTL not found: {ttl_path}")
         
@@ -383,10 +383,10 @@ class TestSampleFilesRoundTrip:
         assert comparison["classes"]["count2"] > 0
     
     def test_sample_ontology_roundtrip(self, samples_dir):
-        """Test round-trip with sample ontology."""
-        ttl_path = os.path.join(samples_dir, 'sample_ontology.ttl')
+        """Test round-trip with supply chain ontology."""
+        ttl_path = os.path.join(samples_dir, 'sample_supply_chain_ontology.ttl')
         if not os.path.exists(ttl_path):
-            pytest.skip(f"Sample TTL not found: {ttl_path}")
+            pytest.skip(f"Supply chain TTL not found: {ttl_path}")
         
         with open(ttl_path, 'r', encoding='utf-8') as f:
             original_ttl = f.read()

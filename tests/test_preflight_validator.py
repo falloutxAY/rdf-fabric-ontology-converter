@@ -523,7 +523,7 @@ class TestValidateTTLFile:
         """Test validating an existing TTL file."""
         # Use one of the sample files
         samples_dir = Path(__file__).parent.parent / "samples"
-        sample_file = samples_dir / "sample_ontology.ttl"
+        sample_file = samples_dir / "sample_supply_chain_ontology.ttl"
         
         if sample_file.exists():
             report = validate_ttl_file(str(sample_file))
@@ -565,9 +565,9 @@ class TestSampleFilesValidation:
     """Test validation on actual sample files."""
 
     def test_validate_sample_ontology(self):
-        """Test that sample_ontology.ttl can be imported seamlessly."""
+        """Test that sample_supply_chain_ontology.ttl can be imported seamlessly."""
         samples_dir = Path(__file__).parent.parent / "samples"
-        sample_file = samples_dir / "sample_ontology.ttl"
+        sample_file = samples_dir / "sample_supply_chain_ontology.ttl"
         
         if sample_file.exists():
             report = validate_ttl_file(str(sample_file))
@@ -577,7 +577,7 @@ class TestSampleFilesValidation:
     def test_validate_foaf_ontology(self):
         """Test validation of FOAF ontology (expected to have issues)."""
         samples_dir = Path(__file__).parent.parent / "samples"
-        foaf_file = samples_dir / "foaf_ontology.ttl"
+        foaf_file = samples_dir / "sample_foaf_ontology.ttl"
         
         if foaf_file.exists():
             report = validate_ttl_file(str(foaf_file))

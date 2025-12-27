@@ -322,8 +322,8 @@ class TestSampleOntologies:
         return Path(__file__).parent.parent / "samples"
     
     def test_sample_ontology_ttl(self, samples_dir):
-        """Test parsing sample_ontology.ttl"""
-        sample_file = samples_dir / "sample_ontology.ttl"
+        """Test parsing sample_supply_chain_ontology.ttl"""
+        sample_file = samples_dir / "sample_supply_chain_ontology.ttl"
         
         if not sample_file.exists():
             pytest.skip(f"Sample file not found: {sample_file}")
@@ -353,8 +353,8 @@ class TestSampleOntologies:
             assert "namespace" in entity_data
     
     def test_foaf_ontology_ttl(self, samples_dir):
-        """Test parsing foaf_ontology.ttl (Friend of a Friend vocabulary)"""
-        sample_file = samples_dir / "foaf_ontology.ttl"
+        """Test parsing sample_foaf_ontology.ttl (Friend of a Friend vocabulary)"""
+        sample_file = samples_dir / "sample_foaf_ontology.ttl"
         
         if not sample_file.exists():
             pytest.skip(f"Sample file not found: {sample_file}")

@@ -65,6 +65,7 @@ credentials/
 # Local test outputs
 samples/*.json
 samples/**/output/
+*.exported.ttl
 
 # Backup files
 *.bak

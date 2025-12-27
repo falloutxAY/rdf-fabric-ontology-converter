@@ -151,8 +151,8 @@ class TestEndToEnd:
         return Path(__file__).parent.parent / "samples"
     
     def test_parse_sample_ontology_complete(self, samples_dir):
-        """Complete test of parsing sample_ontology.ttl"""
-        sample_file = samples_dir / "sample_ontology.ttl"
+        """Complete test of parsing sample_supply_chain_ontology.ttl"""
+        sample_file = samples_dir / "sample_supply_chain_ontology.ttl"
         
         if not sample_file.exists():
             pytest.skip("Sample file not found")
@@ -191,7 +191,7 @@ class TestEndToEnd:
     
     def test_parse_foaf_with_inheritance(self, samples_dir):
         """Test FOAF ontology with class inheritance"""
-        sample_file = samples_dir / "foaf_ontology.ttl"
+        sample_file = samples_dir / "sample_foaf_ontology.ttl"
         
         if not sample_file.exists():
             pytest.skip("Sample file not found")
@@ -231,9 +231,9 @@ class TestEndToEnd:
         from rdf_converter import parse_ttl_file
         
         ttl_files = [
-            "sample_ontology.ttl",
+            "sample_supply_chain_ontology.ttl",
             "sample_iot_ontology.ttl",
-            "foaf_ontology.ttl"
+            "sample_foaf_ontology.ttl"
         ]
         
         results = []

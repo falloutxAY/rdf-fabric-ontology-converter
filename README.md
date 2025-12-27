@@ -1,10 +1,10 @@
 # RDF to Microsoft Fabric Ontology Converter
 
-Convert RDF TTL (Turtle) ontology files to Microsoft Fabric Ontology format and upload them via the Fabric REST API. Also supports exporting Fabric ontologies back to TTL format with round-trip verification.
+Convert RDF TTL (Turtle) ontology files to Microsoft Fabric Ontology format and upload them via the [Fabric Ontology REST API](https://learn.microsoft.com/rest/api/fabric/ontology/items). Also supports exporting Fabric ontologies back to TTL format for verification.
 
 ## Disclaimer
 
-This is a **personal project** and is **not an official Microsoft product**. It is not supported, endorsed, or maintained by Microsoft Corporation. The views and implementations here are my own and do not represent Microsoft's positions or recommendations.
+This is a **personal project** and is **not an official Microsoft product**. It is **not supported, endorsed, or maintained by Microsoft Corporation**. The views and implementations here are my own and do not represent Microsoft's positions or recommendations.
 
 This tool was created as part of my personal learning with AI-assisted development. There may be errors, and outputs may not be complete or correct for all ontologies. **Use at your own risk.**
 
@@ -15,7 +15,6 @@ Please refer to the [LICENSE](LICENSE) file for full terms.
 - Bidirectional conversion: RDF TTL → Fabric and Fabric → RDF TTL
 - Pre-flight validation: Check TTL files for Fabric compatibility before import
 - List, get, and delete ontologies
-- Round-trip testing with semantic comparison
 
 ## Table of Contents
 
@@ -99,13 +98,13 @@ For detailed configuration options, see [docs/CONFIGURATION.md](docs/CONFIGURATI
 
 ```powershell
 # Validate a TTL file if it can be seamlessly imported into Fabric Ontology
-python src/main.py validate samples\sample_ontology.ttl --verbose
+python src/main.py validate samples\sample_supply_chain_ontology.ttl --verbose
 
 # Convert a TTL file to Fabric format
-python src/main.py convert samples\sample_ontology.ttl --config src\config.json
+python src/main.py convert samples\sample_supply_chain_ontology.ttl --config src\config.json
 
 # Upload an ontology to Fabric (with pre-flight validation)
-python src/main.py upload samples\sample_ontology.ttl --name "MyOntology" --config src\config.json
+python src/main.py upload samples\sample_supply_chain_ontology.ttl --name "MyOntology" --config src\config.json
 
 # List all ontologies in your workspace
 python src/main.py list --config src\config.json
@@ -124,7 +123,7 @@ python src/main.py validate <ttl_file> [--verbose] [--save-report]
 # Save detailed validation report to JSON
 python src/main.py validate <ttl_file> --output validation_report.json
 ```
-You can try this for samples/foaf_ontology.ttl
+You can try this for samples/sample_foaf_ontology.ttl
 
 ### Convert TTL to JSON
 ```powershell
@@ -161,11 +160,15 @@ python src/main.py compare <ttl_file1> <ttl_file2> [--verbose]
 
 ### Round-Trip Test
 ```powershell
-# Offline test (TTL -> JSON -> TTL)
-python src/main.py roundtrip <ttl_file> --save-export
+# Manual round-trip test with Fabric:
+# 1) Upload ontology
+python src/main.py upload <ttl_file> --name "TestOntology" --config src\config.json
 
-# Full test with Fabric upload
-python src/main.py roundtrip <ttl_file> --upload --cleanup --config src\config.json
+# 2) Export ontology (use the ontology ID from step 1)
+python src/main.py export <ontology_id> --output exported.ttl --config src\config.json
+
+# 3) Compare original and exported
+python src/main.py compare <ttl_file> exported.ttl --verbose
 ```
 
 ### List Ontologies
@@ -193,17 +196,17 @@ python src/main.py test --config src\config.json
 ### Example 1: Validate Before Import
 ```bash
 # Check if a TTL file can be imported seamlessly
-python src/main.py validate samples/foaf_ontology.ttl --verbose
+python src/main.py validate samples/sample_foaf_ontology.ttl --verbose
 ```
 
-### Example 2: Manufacturing Ontology
+### Example 2: Supply Chain Ontology
 ```bash
-python src/main.py upload samples/sample_ontology.ttl --name "ManufacturingOntology" --config src/config.json
+python src/main.py upload samples/sample_supply_chain_ontology.ttl --name "SupplyChainOntology" --config src/config.json
 ```
 
 ### Example 3: FOAF Vocabulary
 ```bash
-python src/main.py upload samples/foaf_ontology.ttl --name "FOAF" --config src/config.json
+python src/main.py upload samples/sample_foaf_ontology.ttl --name "FOAF" --config src/config.json
 ```
 
 ### Example 4: Convert Only (No Upload)
@@ -223,8 +226,15 @@ python src/main.py compare original.ttl exported.ttl --verbose
 
 ### Example 7: Round-Trip Verification
 ```bash
-# Test that TTL -> Fabric Ontology -> TTL preserves semantics
-python src/main.py roundtrip samples/sample_ontology.ttl --save-export
+# Manual round-trip test: TTL -> Fabric -> TTL -> Compare
+# Step 1: Upload
+python src/main.py upload samples/sample_supply_chain_ontology.ttl --name "RoundTripTest" --config src/config.json
+
+# Step 2: Export (replace <ontology_id> with the ID from step 1)
+python src/main.py export <ontology_id> --output roundtrip_exported.ttl --config src/config.json
+
+# Step 3: Compare
+python src/main.py compare samples/sample_supply_chain_ontology.ttl roundtrip_exported.ttl --verbose
 ```
 
 ## Limitations
@@ -236,7 +246,7 @@ python src/main.py roundtrip samples/sample_ontology.ttl --save-export
 Use the **validate** command to check if your TTL file can be imported seamlessly:
 
 ```bash
-python src/main.py validate samples/foaf_ontology.ttl --verbose
+python src/main.py validate samples/sample_foaf_ontology.ttl --verbose
 ```
 
 ### Strict Semantics
@@ -295,16 +305,17 @@ rdf-fabric-ontology-converter/
 │   └── preflight_validator.py    # Pre-flight validation for Fabric compatibility
 ├── tests/                        # Test suite
 │   ├── __init__.py
-│   ├── test_converter.py         # Converter unit tests (29 tests)
-│   ├── test_exporter.py          # Exporter unit tests (21 tests)
-│   ├── test_integration.py       # Integration tests (15 tests)
-│   ├── test_preflight_validator.py # Pre-flight validation tests (34 tests)
+│   ├── test_converter.py         # Converter unit tests
+│   ├── test_exporter.py          # Exporter unit tests
+│   ├── test_integration.py       # Integration tests
+│   ├── test_preflight_validator.py # Pre-flight validation tests
 │   └── run_tests.py              # Test runner
 ├── samples/                      # Sample ontology files
-│   ├── sample_ontology.ttl       # Manufacturing example
-│   ├── foaf_ontology.ttl         # FOAF vocabulary
-│   ├── sample_iot_ontology.ttl   # IoT devices
-│   └── sample_fibo_ontology.ttl  # Financial ontology
+│   ├── sample_supply_chain_ontology.ttl  # Supply chain example
+│   ├── sample_foaf_ontology.ttl          # FOAF vocabulary
+│   ├── sample_iot_ontology.ttl           # IoT devices
+│   ├── sample_fibo_ontology.ttl          # Financial ontology
+│   └── manufacturingMedical/             # Medical device manufacturing
 ├── docs/                         # Documentation
 │   ├── CONFIGURATION.md          # Configuration guide
 │   ├── TESTING.md                # Comprehensive testing guide

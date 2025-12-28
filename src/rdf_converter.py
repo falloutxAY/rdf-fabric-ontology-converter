@@ -1995,7 +1995,8 @@ class InputValidator:
         check_exists: bool = True,
         check_readable: bool = True,
         restrict_to_cwd: bool = False,
-        reject_symlinks: bool = True
+        reject_symlinks: bool = True,
+        allow_relative_up: bool = False,
     ) -> Path:
         """
         Validate file path for security and correctness.
@@ -2034,7 +2035,27 @@ class InputValidator:
         path = path.strip()
         
         # Security: Check for path traversal BEFORE resolving
-        cls._check_path_traversal(path)
+        has_relative_up = False
+        if isinstance(path, str):
+            normalized = path.replace('\\', '/')
+            traversal_patterns = ['../', '..\\', '/..', '\\..']
+            for pattern in traversal_patterns:
+                if pattern in path or pattern in normalized:
+                    has_relative_up = True
+                    break
+            if not has_relative_up:
+                # Also check parts for '..'
+                try:
+                    for part in Path(path).parts:
+                        if part == '..':
+                            has_relative_up = True
+                            break
+                except Exception:
+                    # Fall back to strict traversal check
+                    pass
+        if not allow_relative_up:
+            # Original strict check
+            cls._check_path_traversal(path)
         
         # Resolve to absolute path
         path_obj = Path(path).resolve()
@@ -2043,7 +2064,11 @@ class InputValidator:
         cls._check_symlink(path_obj, strict=reject_symlinks)
         
         # Security: Check directory boundary
-        cls._check_directory_boundary(path_obj, warn_only=not restrict_to_cwd)
+        if allow_relative_up and has_relative_up:
+            # Enforce that relative-up stays within cwd
+            cls._check_directory_boundary(path_obj, warn_only=False)
+        else:
+            cls._check_directory_boundary(path_obj, warn_only=not restrict_to_cwd)
         
         # Existence check
         if check_exists:
@@ -2075,7 +2100,7 @@ class InputValidator:
         return path_obj
     
     @classmethod
-    def validate_input_ttl_path(cls, path: Any, restrict_to_cwd: bool = False, reject_symlinks: bool = True) -> Path:
+    def validate_input_ttl_path(cls, path: Any, restrict_to_cwd: bool = False, reject_symlinks: bool = True, allow_relative_up: bool = False) -> Path:
         """
         Validate input TTL/RDF file path.
         
@@ -2096,11 +2121,12 @@ class InputValidator:
             check_exists=True,
             check_readable=True,
             restrict_to_cwd=restrict_to_cwd,
-            reject_symlinks=reject_symlinks
+            reject_symlinks=reject_symlinks,
+            allow_relative_up=allow_relative_up,
         )
     
     @classmethod
-    def validate_input_json_path(cls, path: Any, restrict_to_cwd: bool = False, reject_symlinks: bool = True) -> Path:
+    def validate_input_json_path(cls, path: Any, restrict_to_cwd: bool = False, reject_symlinks: bool = True, allow_relative_up: bool = False) -> Path:
         """
         Validate input JSON file path.
         
@@ -2121,7 +2147,8 @@ class InputValidator:
             check_exists=True,
             check_readable=True,
             restrict_to_cwd=restrict_to_cwd,
-            reject_symlinks=reject_symlinks
+            reject_symlinks=reject_symlinks,
+            allow_relative_up=allow_relative_up,
         )
     
     @classmethod
@@ -2130,7 +2157,8 @@ class InputValidator:
         path: Any,
         allowed_extensions: Optional[List[str]] = None,
         restrict_to_cwd: bool = False,
-        reject_symlinks: bool = True
+        reject_symlinks: bool = True,
+        allow_relative_up: bool = False,
     ) -> Path:
         """
         Validate output file path for writing.
@@ -2164,7 +2192,24 @@ class InputValidator:
         path = path.strip()
         
         # Security: Check for path traversal
-        cls._check_path_traversal(path)
+        has_relative_up = False
+        if isinstance(path, str):
+            normalized = path.replace('\\', '/')
+            traversal_patterns = ['../', '..\\', '/..', '\\..']
+            for pattern in traversal_patterns:
+                if pattern in path or pattern in normalized:
+                    has_relative_up = True
+                    break
+            if not has_relative_up:
+                try:
+                    for part in Path(path).parts:
+                        if part == '..':
+                            has_relative_up = True
+                            break
+                except Exception:
+                    pass
+        if not allow_relative_up:
+            cls._check_path_traversal(path)
         
         # Resolve to absolute path
         path_obj = Path(path).resolve()
@@ -2174,7 +2219,10 @@ class InputValidator:
             cls._check_symlink(path_obj, strict=reject_symlinks)
         
         # Security: Check directory boundary
-        cls._check_directory_boundary(path_obj, warn_only=not restrict_to_cwd)
+        if allow_relative_up and has_relative_up:
+            cls._check_directory_boundary(path_obj, warn_only=False)
+        else:
+            cls._check_directory_boundary(path_obj, warn_only=not restrict_to_cwd)
         
         # Extension validation
         if allowed_extensions:

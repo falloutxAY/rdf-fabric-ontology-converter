@@ -71,6 +71,11 @@ def _add_validate_parser(subparsers: argparse._SubParsersAction) -> None:
         action='store_true',
         help='Show detailed human-readable report'
     )
+    parser.add_argument(
+        '--allow-relative-up',
+        action='store_true',
+        help="Permit '..' in path only if the resolved path stays within the current directory"
+    )
 
 
 def _add_upload_parser(subparsers: argparse._SubParsersAction) -> None:
@@ -112,6 +117,11 @@ def _add_upload_parser(subparsers: argparse._SubParsersAction) -> None:
         '--save-validation-report',
         action='store_true',
         help='Save validation report even if import is cancelled'
+    )
+    parser.add_argument(
+        '--allow-relative-up',
+        action='store_true',
+        help="Permit '..' in path only if the resolved path stays within the current directory"
     )
 
 
@@ -186,6 +196,11 @@ def _add_convert_parser(subparsers: argparse._SubParsersAction) -> None:
         action='store_true',
         help='Skip memory safety checks for very large files (use with caution)'
     )
+    parser.add_argument(
+        '--allow-relative-up',
+        action='store_true',
+        help="Permit '..' in path only if the resolved path stays within the current directory"
+    )
 
 
 def _add_export_parser(subparsers: argparse._SubParsersAction) -> None:
@@ -211,4 +226,9 @@ def _add_compare_parser(subparsers: argparse._SubParsersAction) -> None:
         '--verbose', '-v',
         action='store_true',
         help='Show detailed comparison results'
+    )
+    parser.add_argument(
+        '--allow-relative-up',
+        action='store_true',
+        help="Permit '..' in path only if the resolved path stays within the current directory"
     )

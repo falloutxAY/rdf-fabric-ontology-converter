@@ -151,6 +151,42 @@ If you see security-related errors:
 | `Security Error: Path traversal detected` | Path contains `..` | Use absolute path or copy file to working directory |
 | `Configuration file must be in current working directory` | Config file outside cwd | Move config.json to working directory |
 
+### Allowing relative-up safely (`--allow-relative-up`)
+
+For trusted local use, you can allow `..` in paths by adding `--allow-relative-up` to the command. This is available on `validate`, `upload`, `convert`, and `compare`.
+
+Important safeguards:
+
+- `--allow-relative-up` only permits `..` when the resolved path stays within your current working directory.
+- If the resolved path leaves the cwd, the CLI will block and show a friendly message:
+  - “Path resolves outside the current directory”
+  - “Relative up is only allowed within the current directory when using --allow-relative-up.”
+  - Tip to `cd` into the target folder or use an absolute path inside the workspace.
+
+Examples (Windows PowerShell):
+
+```powershell
+# Blocked: resolves outside the cwd
+python src\main.py validate ..\samples\sample_foaf_ontology.ttl --allow-relative-up --verbose
+
+# Allowed: remains inside the cwd after resolution
+python src\main.py validate .\samples\..\samples\sample_foaf_ontology.ttl --allow-relative-up --verbose
+
+# Tip: Always quote absolute paths with spaces
+python src\main.py validate "C:\Users\me\Projects\rdf-fabric-ontology-converter\samples\sample_foaf_ontology.ttl" --verbose
+```
+
+Notes:
+
+- Absolute paths outside the cwd without `..` are permitted; a warning may be logged.
+- Configuration files are always restricted to the current working directory for safety.
+
+Additional error message you may see with `--allow-relative-up`:
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `Path resolves outside the current directory` | `--allow-relative-up` used but the resolved path left the cwd | `cd` into the target folder or use an absolute path inside the workspace |
+
 ## Additional Resources
 
 - [Configuration Guide](CONFIGURATION.md) - Setup details

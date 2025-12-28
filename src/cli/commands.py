@@ -183,17 +183,25 @@ class ValidateCommand(BaseCommand):
         
         # Validate TTL file path with enhanced error messages
         try:
-            validated_path = InputValidator.validate_input_ttl_path(ttl_file)
+            allow_up = getattr(args, 'allow_relative_up', False)
+            validated_path = InputValidator.validate_input_ttl_path(ttl_file, allow_relative_up=allow_up)
         except ValueError as e:
-            if "symlink" in str(e).lower():
+            err = str(e).lower()
+            if "symlink" in err:
                 print("✗ Security Error: Symlinks are not allowed")
                 print(f"  {e}")
                 print("\n  Please provide the actual file path instead of a symlink.")
                 return 1
-            elif "traversal" in str(e).lower():
+            elif "traversal" in err:
                 print("✗ Security Error: Path traversal detected")
                 print(f"  {e}")
                 print("\n  Paths with '..' are not allowed for security reasons.")
+                return 1
+            elif ("outside current directory" in err or "outside working directory" in err) and allow_up:
+                print("✗ Path resolves outside the current directory")
+                print(f"  {e}")
+                print("\n  Relative up is only allowed within the current directory when using --allow-relative-up.")
+                print("  Tip: cd into the target folder or provide an absolute path inside the workspace.")
                 return 1
             else:
                 print(f"✗ Invalid file path: {e}")
@@ -337,17 +345,25 @@ class UploadCommand(BaseCommand):
             # Validate and read TTL file with enhanced error handling
             ttl_file = args.ttl_file
             try:
-                validated_path = InputValidator.validate_input_ttl_path(ttl_file)
+                allow_up = getattr(args, 'allow_relative_up', False)
+                validated_path = InputValidator.validate_input_ttl_path(ttl_file, allow_relative_up=allow_up)
             except ValueError as e:
-                if "symlink" in str(e).lower():
+                err = str(e).lower()
+                if "symlink" in err:
                     print("✗ Security Error: Symlinks are not allowed")
                     print(f"  {e}")
                     print("\n  Please provide the actual file path instead of a symlink.")
                     return 1
-                elif "traversal" in str(e).lower():
+                elif "traversal" in err:
                     print("✗ Security Error: Path traversal detected")
                     print(f"  {e}")
                     print("\n  Paths with '..' are not allowed for security reasons.")
+                    return 1
+                elif ("outside current directory" in err or "outside working directory" in err) and allow_up:
+                    print("✗ Path resolves outside the current directory")
+                    print(f"  {e}")
+                    print("\n  Relative up is only allowed within the current directory when using --allow-relative-up.")
+                    print("  Tip: cd into the target folder or provide an absolute path inside the workspace.")
                     return 1
                 else:
                     print(f"✗ Invalid file path: {e}")
@@ -780,15 +796,23 @@ class ConvertCommand(BaseCommand):
         ttl_file = args.ttl_file
         
         try:
-            validated_path = InputValidator.validate_input_ttl_path(ttl_file)
+            allow_up = getattr(args, 'allow_relative_up', False)
+            validated_path = InputValidator.validate_input_ttl_path(ttl_file, allow_relative_up=allow_up)
         except ValueError as e:
-            if "symlink" in str(e).lower():
+            err = str(e).lower()
+            if "symlink" in err:
                 print("✗ Security Error: Symlinks are not allowed")
                 print(f"  {e}")
                 return 1
-            elif "traversal" in str(e).lower():
+            elif "traversal" in err:
                 print("✗ Security Error: Path traversal detected")
                 print(f"  {e}")
+                return 1
+            elif ("outside current directory" in err or "outside working directory" in err) and allow_up:
+                print("✗ Path resolves outside the current directory")
+                print(f"  {e}")
+                print("\n  Relative up is only allowed within the current directory when using --allow-relative-up.")
+                print("  Tip: cd into the target folder or provide an absolute path inside the workspace.")
                 return 1
             else:
                 print(f"✗ Invalid file path: {e}")
@@ -1011,11 +1035,20 @@ class CompareCommand(BaseCommand):
         ttl_file2 = args.ttl_file2
         
         try:
-            validated_path1 = InputValidator.validate_input_ttl_path(ttl_file1)
-            validated_path2 = InputValidator.validate_input_ttl_path(ttl_file2)
+            allow_up = getattr(args, 'allow_relative_up', False)
+            validated_path1 = InputValidator.validate_input_ttl_path(ttl_file1, allow_relative_up=allow_up)
+            validated_path2 = InputValidator.validate_input_ttl_path(ttl_file2, allow_relative_up=allow_up)
         except ValueError as e:
-            print(f"Error: Invalid TTL file path: {e}")
-            return 1
+            err = str(e).lower()
+            if ("outside current directory" in err or "outside working directory" in err) and allow_up:
+                print("✗ Path resolves outside the current directory")
+                print(f"  {e}")
+                print("\n  Relative up is only allowed within the current directory when using --allow-relative-up.")
+                print("  Tip: cd into the target folder or provide an absolute path inside the workspace.")
+                return 1
+            else:
+                print(f"Error: Invalid TTL file path: {e}")
+                return 1
         except FileNotFoundError as e:
             print(f"Error: TTL file not found: {e}")
             return 1

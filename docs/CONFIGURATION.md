@@ -63,6 +63,8 @@ Create `src/config.json`:
 
 ## Config - Service Principal
 
+Note: This has not been tested
+
 ```json
 {
   "fabric": {
@@ -76,8 +78,6 @@ Create `src/config.json`:
 }
 ```
 
-
-Security tip: provide any secrets via environment variables (not in config.json).
 
 ## Configuration Options
 

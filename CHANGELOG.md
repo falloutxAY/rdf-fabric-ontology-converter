@@ -21,6 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
   - New `docs/RDF_GUIDE.md` parallel to `docs/DTDL_GUIDE.md`
   - Added TOCs to all major docs (API, COMMANDS, CONFIGURATION, TESTING, TROUBLESHOOTING)
   - Renamed MAPPING_LIMITATIONS.md title to clarify it covers both RDF and DTDL
+  - Clarified purpose: Format guides have brief limitation summaries, MAPPING_LIMITATIONS.md is the comprehensive reference
 
 ### Changed
 - **Package Reorganization**: Consolidated folder structure for consistency

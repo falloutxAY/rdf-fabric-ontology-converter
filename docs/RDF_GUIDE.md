@@ -286,22 +286,29 @@ This demonstrates conversion of a standard semantic web vocabulary with:
 
 ## Limitations
 
-### Information Loss Warning
+> **📘 For comprehensive limitations, see [MAPPING_LIMITATIONS.md](MAPPING_LIMITATIONS.md)**  
+> This section provides a quick overview of the most important limitations.
+
+### Key Information Loss
 
 When converting RDF/OWL to Fabric Ontology, **semantic information may be lost or simplified**:
 
-| RDF/OWL Feature | Impact | Workaround |
-|-----------------|--------|------------|
-| OWL Restrictions | Constraints not enforced | Document separately, validate at data level |
-| Property characteristics | Transitivity, symmetry not enforced | Pre-compute or validate separately |
-| Multiple inheritance | Only first parent used | Manually merge parent properties |
-| Complex class expressions | Simplified to named classes | Flatten before conversion |
-| External imports | Not resolved | Merge all ontologies into single file |
-| Reasoning/inference | Not performed | Use reasoner before conversion |
-| Annotation properties | Metadata only | Not queryable as entity properties |
-| Property chains | Not preserved | Define derived properties explicitly |
+| RDF/OWL Feature | Impact |
+|-----------------|--------|
+| **OWL Restrictions** | Cardinality and value constraints not enforced |
+| **Property characteristics** | Transitivity, symmetry, functionality not enforced |
+| **Multiple inheritance** | Only first parent in subClassOf chain used |
+| **Complex class expressions** | Simplified to named classes only |
+| **External imports** | Not automatically resolved |
+| **Reasoning/inference** | Not performed - only explicit triples converted |
 
-### Compliance Reports
+**See [MAPPING_LIMITATIONS.md](MAPPING_LIMITATIONS.md) for:**
+- Complete list of 25+ unsupported OWL constructs
+- Detailed workarounds and recommendations
+- Fabric API limits and compliance requirements
+- Best practices for RDF sources
+
+### Validation & Compliance Reports
 
 Use the compliance report feature to understand what will be preserved, limited, or lost:
 

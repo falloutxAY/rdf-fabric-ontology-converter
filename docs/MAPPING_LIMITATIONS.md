@@ -1,6 +1,8 @@
 # RDF & DTDL to Fabric: Mapping Limitations & Compliance
 
-This document details the mapping limitations when converting **both RDF/OWL and DTDL** ontologies to Microsoft Fabric Ontology format, including compliance requirements and information loss during conversion.
+**This is the comprehensive technical reference for all conversion limitations.** For quick-start guides with essential limitations, see [RDF_GUIDE.md](RDF_GUIDE.md) or [DTDL_GUIDE.md](DTDL_GUIDE.md).
+
+This document provides exhaustive details on mapping limitations when converting **both RDF/OWL and DTDL** ontologies to Microsoft Fabric Ontology format, including compliance requirements, information loss during conversion, and configuration options.
 
 ## Table of Contents
 

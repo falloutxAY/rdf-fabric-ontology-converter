@@ -284,22 +284,30 @@ This demonstrates the tool's capability to handle large, complex DTDL ontologies
 
 ## Limitations
 
-### Information Loss Warning
+> **📘 For comprehensive limitations, see [MAPPING_LIMITATIONS.md](MAPPING_LIMITATIONS.md)**  
+> This section provides a quick overview of the most important limitations.
+
+### Key Information Loss
 
 When converting DTDL to Fabric Ontology, **some information may be lost or transformed**:
 
-| DTDL Feature | Impact | Workaround |
-|--------------|--------|------------|
-| Commands | Not converted by default | Use `--include-commands` to map to properties |
-| Complex schemas (Enum, Object, Array, Map) | Serialized to JSON String | Access as JSON in Fabric |
-| Multiple inheritance (extends) | Only first parent used | Manually merge parent properties |
-| Relationship properties | Not preserved | Store as separate entity properties |
-| Component structure | Flattened to properties | Use `--flatten-components` for explicit flattening |
-| CommandPayload | Ignored | Not supported in Fabric |
-| @context extensions | Ignored | Use standard DTDL contexts only |
-| Deep nesting (>8 levels in v4) | May cause conversion errors | Simplify schema depth |
+| DTDL Feature | Impact |
+|--------------|--------|
+| **Commands** | Not converted by default (configurable) |
+| **Complex schemas** (Object, Array, Map) | Serialized to JSON strings |
+| **Multiple inheritance** | Only first parent in extends array used |
+| **Relationship properties** | Not preserved in Fabric |
+| **Components** | Configurable handling (skip/flatten/separate) |
+| **Cardinality constraints** | minMultiplicity/maxMultiplicity not enforced |
 
-### Compliance Reports
+**See [MAPPING_LIMITATIONS.md](MAPPING_LIMITATIONS.md) for:**
+- Complete feature support matrix (supported/partial/unsupported)
+- Component, Command, and ScaledDecimal configuration modes
+- DTDL version-specific limits (v2/v3/v4)
+- Fabric API limits and compliance requirements
+- Best practices for DTDL sources
+
+### Validation & Compliance Reports
 
 Use the compliance report feature to understand exactly what will be preserved, limited, or lost:
 

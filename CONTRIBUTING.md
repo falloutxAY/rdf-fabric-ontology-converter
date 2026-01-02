@@ -8,7 +8,7 @@ First off, thanks for taking the time to contribute! This project aims to make i
 - Discuss big changes in an issue before submitting a PR.
 - Keep pull requests focused and easy to review.
 - Add or update tests when fixing bugs or implementing features.
-- Document user-facing changes in the README and/or CHANGELOG.
+- Document user-facing changes in the README as needed.
 
 ## 🧱 Project Structure
 
@@ -158,7 +158,6 @@ class MyClass:
 - [ ] Tests pass locally (`pytest`).
 - [ ] New/updated code is covered by tests.
 - [ ] Documentation reflects the change.
-- [ ] CHANGELOG has an entry under "Unreleased".
 - [ ] Linked related issues in the PR description.
 
 ## 🧪 Testing Matrix

@@ -7,10 +7,10 @@ This guide provides comprehensive information about importing **RDF/OWL ontologi
 - [What is RDF/OWL?](#what-is-rdfowl)
 - [RDF Commands](#rdf-commands)
 - [RDF to Fabric Mapping](#rdf-to-fabric-mapping)
-- [Supported RDF Features](#supported-rdf-features)
+- [What Gets Converted?](#what-gets-converted)
 - [RDF Validation Checks](#rdf-validation-checks)
 - [Examples](#examples)
-- [Limitations](#limitations)
+- [Key Considerations](#key-considerations)
 
 ## What is RDF/OWL?
 
@@ -72,72 +72,38 @@ python src\main.py rdf-export <ontology-id> --output exported.ttl
 
 ## RDF to Fabric Mapping
 
-The converter maps RDF/OWL concepts to Microsoft Fabric Ontology equivalents:
+> **📘 For complete mapping details, see [MAPPING_LIMITATIONS.md](MAPPING_LIMITATIONS.md#rdf-supported-constructs)**
 
-| RDF/OWL Concept | Fabric Ontology Equivalent | Notes |
-|-----------------|----------------------------|-------|
-| `owl:Class` / `rdfs:Class` | EntityType | Direct mapping with name and description |
-| `owl:DatatypeProperty` | Property (static) | XSD datatypes mapped to Fabric types |
-| `owl:ObjectProperty` | RelationshipType | With target entity type constraints |
-| `rdfs:subClassOf` | BaseEntityTypeId | Simple inheritance only |
-| `rdfs:domain` | Property assignment | Determines which entity owns the property |
-| `rdfs:range` (datatype) | Property valueType | XSD types → Fabric types |
-| `rdfs:range` (class) | Relationship target | Target entity type for relationships |
-| `rdfs:label` | DisplayName | Preferred label used as display name |
-| `rdfs:comment` | Description | Documentation text preserved |
-| `owl:Ontology` | Ontology metadata | Version and import information |
+The converter maps RDF/OWL concepts to Fabric Ontology:
 
-### Type Mapping
+- **Classes** (`owl:Class`, `rdfs:Class`) → EntityType
+- **Datatype Properties** (`owl:DatatypeProperty`) → EntityTypeProperty with XSD type mapping
+- **Object Properties** (`owl:ObjectProperty`) → RelationshipType
+- **Inheritance** (`rdfs:subClassOf`) → baseEntityTypeId (single parent only)
+- **Labels & Comments** (`rdfs:label`, `rdfs:comment`) → displayName and description
 
-XSD datatypes are mapped to Fabric property types as follows:
+**XSD Type Mapping:** Standard XSD types (string, boolean, integer, decimal, date, dateTime, etc.) are mapped to equivalent Fabric property types. Unsupported types default to String.
 
-| XSD Datatype | Fabric Property Type | Notes |
-|-------------|---------------------|-------|
-| `xsd:string` | String | Unicode text |
-| `xsd:boolean` | Boolean | true/false |
-| `xsd:integer` | Integer | 32-bit signed integer |
-| `xsd:int` | Integer | Alias for integer |
-| `xsd:long` | Long | 64-bit signed integer |
-| `xsd:decimal` | Decimal | High-precision decimal |
-| `xsd:double` | Double | 64-bit floating point |
-| `xsd:float` | Float | 32-bit floating point |
-| `xsd:date` | Date | ISO 8601 date format |
-| `xsd:dateTime` | DateTime | ISO 8601 datetime format |
-| `xsd:time` | Time | ISO 8601 time format |
-| `xsd:duration` | Duration | ISO 8601 duration format |
-| `xsd:anyURI` | String | URI as string |
-| **Unsupported** | String (default) | Unknown types mapped to String |
+## What Gets Converted?
 
-## Supported RDF Features
+> **📘 For complete feature support matrix, see [MAPPING_LIMITATIONS.md](MAPPING_LIMITATIONS.md#rdf-supported-constructs)**
 
-### Fully Supported
+### ✅ Fully Supported
+- Classes, datatype properties, object properties
+- Simple inheritance (single parent)
+- Domain/range declarations
+- Labels, comments, and standard XSD types
 
-- ✅ **Classes** (`owl:Class`, `rdfs:Class`)
-- ✅ **Datatype Properties** (`owl:DatatypeProperty`)
-- ✅ **Object Properties** (`owl:ObjectProperty`)
-- ✅ **Simple inheritance** (`rdfs:subClassOf` with single parent)
-- ✅ **Domain/range declarations** (`rdfs:domain`, `rdfs:range`)
-- ✅ **Labels and comments** (`rdfs:label`, `rdfs:comment`)
-- ✅ **XSD primitive types** (string, boolean, integer, decimal, date, etc.)
-- ✅ **Namespace prefixes** (standard RDF prefix handling)
+### ⚠️ Limited Support
+- Multiple inheritance (first parent only)
+- Complex class expressions (simplified)
+- Property characteristics (metadata only)
 
-### Limited Support
-
-- ⚠️ **Multiple inheritance** - Only first parent in subClassOf chain is used
-- ⚠️ **Complex subClassOf expressions** - Restrictions flattened to simple inheritance
-- ⚠️ **Union/intersection of classes** - Extracted members as separate entities
-- ⚠️ **Property characteristics** (Functional, Transitive, etc.) - Metadata only, not enforced
-- ⚠️ **Annotation properties** - Stored as metadata, not as entity properties
-
-### Not Supported
-
-- ❌ **OWL Restrictions** (`owl:Restriction`, cardinality, value constraints) - Ignored
-- ❌ **Property chains** (`owl:propertyChainAxiom`) - Not converted
-- ❌ **Inverse properties** (`owl:inverseOf`) - Manual creation needed
-- ❌ **Class equivalence** (`owl:equivalentClass`) - Skipped
-- ❌ **External imports** (`owl:imports`) - Must be merged before conversion
-- ❌ **Complex class expressions** (negation, complement) - Simplified
-- ❌ **Reasoning/inference** - Explicit triples only
+### ❌ Not Supported
+- OWL Restrictions (cardinality, value constraints)
+- Property chains, inverse properties
+- External imports (must merge first)
+- Reasoning/inference
 
 ## RDF Validation Checks
 
@@ -246,33 +212,31 @@ This demonstrates conversion of a standard semantic web vocabulary with:
 - Properties for names, emails, homepages
 - Complex class hierarchies
 
-## Limitations
+## Key Considerations
 
-> **📘 For comprehensive limitations, see [MAPPING_LIMITATIONS.md](MAPPING_LIMITATIONS.md)**  
-> This section provides a quick overview of the most important limitations.
+> **📘 For comprehensive limitations and workarounds, see [MAPPING_LIMITATIONS.md](MAPPING_LIMITATIONS.md)**
 
-### Key Information Loss
+### Information Loss During Conversion
 
-When converting RDF/OWL to Fabric Ontology, **semantic information may be lost or simplified**:
+RDF/OWL has rich semantics that may not fully translate to Fabric Ontology:
 
-| RDF/OWL Feature | Impact |
-|-----------------|--------|
-| **OWL Restrictions** | Cardinality and value constraints not enforced |
-| **Property characteristics** | Transitivity, symmetry, functionality not enforced |
-| **Multiple inheritance** | Only first parent in subClassOf chain used |
-| **Complex class expressions** | Simplified to named classes only |
-| **External imports** | Not automatically resolved |
-| **Reasoning/inference** | Not performed - only explicit triples converted |
+- **OWL Restrictions** (cardinality, value constraints) are not enforced
+- **Property characteristics** (transitivity, symmetry) are metadata only
+- **Multiple inheritance** is simplified to single parent
+- **Complex expressions** are flattened to named classes
+- **External imports** must be merged before conversion
+- **Reasoning/inference** is not performed
 
-**See [MAPPING_LIMITATIONS.md](MAPPING_LIMITATIONS.md) for:**
-- Complete list of 25+ unsupported OWL constructs
-- Detailed workarounds and recommendations
-- Fabric API limits and compliance requirements
-- Best practices for RDF sources
+### Before You Convert
 
-### Validation & Compliance Reports
+1. **Validate first:** `python src\main.py rdf-validate your_file.ttl --verbose`
+2. **Review the report:** Check for unsupported constructs
+3. **Merge external ontologies:** Ensure all referenced classes are declared locally
+4. **Document constraints:** Keep track of restrictions that won't be preserved
 
-Use the compliance report feature to understand what will be preserved, limited, or lost:
+### Compliance Reports
+
+Generate detailed reports showing what will be preserved, limited, or lost:
 
 ```python
 from rdf import RDFToFabricConverter
@@ -281,20 +245,16 @@ converter = RDFToFabricConverter()
 result, report = converter.parse_ttl_with_compliance_report(ttl_content)
 
 if report:
-    print(f"✅ Classes found: {report.summary['declared_classes']}")
-    print(f"✅ Properties found: {report.summary['declared_properties']}")
     print(f"⚠️  Warnings: {len(report.warnings)}")
-    
     for warning in report.warnings:
         print(f"[{warning.severity}] {warning.message}")
 ```
 
 ### See Also
 
-- **[Mapping Limitations](MAPPING_LIMITATIONS.md)** - Full list of RDF/DTDL → Fabric conversion constraints
-- **[W3C RDF Specification](https://www.w3.org/RDF/)** - Official RDF documentation
-- **[W3C OWL Specification](https://www.w3.org/OWL/)** - Official OWL documentation
-- **[Fabric Ontology API](API.md)** - Microsoft Fabric Ontology REST API reference
+- **[MAPPING_LIMITATIONS.md](MAPPING_LIMITATIONS.md)** - Complete technical reference for RDF/DTDL conversion constraints
+- **[W3C RDF/OWL Specifications](https://www.w3.org/RDF/)** - Official standards documentation
+- **[Fabric Ontology API](API.md)** - Microsoft Fabric API reference
 
 ## Related Resources
 

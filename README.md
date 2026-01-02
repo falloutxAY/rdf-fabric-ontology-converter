@@ -162,7 +162,6 @@ For detailed architecture, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - **[Contributing Guidelines](CONTRIBUTING.md)** – Development setup and contribution process
 - **[Code of Conduct](CODE_OF_CONDUCT.md)** – Community standards
 - **[Security Policy](SECURITY.md)** – Reporting vulnerabilities
-- **[Changelog](CHANGELOG.md)** – Version history
 
 ## Contributing
 

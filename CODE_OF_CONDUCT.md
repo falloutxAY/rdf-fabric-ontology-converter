@@ -32,12 +32,3 @@ Project maintainers are responsible for clarifying the standards of acceptable b
 
 This Code of Conduct applies both within project spaces and in public spaces when an individual is representing the project or its community.
 
-## Enforcement
-
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the maintainers at `fabric-ontology-owners@example.com`. All complaints will be reviewed and investigated, and will result in a response that is deemed necessary and appropriate to the circumstances.
-
-## Attribution
-
-This Code of Conduct is adapted from the [Contributor Covenant][homepage], version 2.1.
-
-[homepage]: https://www.contributor-covenant.org

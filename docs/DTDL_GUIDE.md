@@ -7,10 +7,10 @@ This guide provides comprehensive information about importing **Digital Twins De
 - [What is DTDL?](#what-is-dtdl)
 - [DTDL Commands](#dtdl-commands)
 - [DTDL to Fabric Mapping](#dtdl-to-fabric-mapping)
-- [Supported DTDL Features](#supported-dtdl-features)
+- [What Gets Converted?](#what-gets-converted)
 - [DTDL Validation Checks](#dtdl-validation-checks)
 - [Examples](#examples)
-- [Limitations](#limitations)
+- [Key Considerations](#key-considerations)
 
 ## What is DTDL?
 
@@ -69,85 +69,43 @@ python src\main.py dtdl-upload ./models/ --recursive --ontology-name "MyDigitalT
 
 ## DTDL to Fabric Mapping
 
-The converter maps DTDL concepts to Microsoft Fabric Ontology equivalents:
+> **📘 For complete mapping details and configuration options, see [MAPPING_LIMITATIONS.md](MAPPING_LIMITATIONS.md#dtdl-supported-features)**
 
-| DTDL Concept | Fabric Ontology Equivalent | Notes |
-|--------------|---------------------------|-------|
-| Interface | EntityType | Direct mapping with display name and description |
-| Property | Property (static) | Primitive and complex types supported |
-| Telemetry | TimeseriesProperty | Mapped to time-series for sensor data |
-| Relationship | RelationshipType | With target entity type constraints |
-| Component | Nested properties | Flattened when `--flatten-components` used |
-| Inheritance (extends) | BaseEntityTypeId | Single inheritance only (first parent) |
-| Enum | String with allowed values | Enum values preserved as constraints |
-| @id (DTMI) | Used to generate EntityTypeId | Hashed to stable numeric ID |
-| displayName | DisplayName | Localized names preserved |
-| description | Description | Documentation preserved |
+The converter maps DTDL concepts to Fabric Ontology:
 
-### Type Mapping
+- **Interface** → EntityType
+- **Property** → EntityTypeProperty (primitive and complex types)
+- **Telemetry** → TimeseriesProperty (for sensor data)
+- **Relationship** → RelationshipType
+- **Component** → Configurable (skip/flatten/separate)
+- **Command** → Configurable (skip/property/entity)
+- **Inheritance** (extends) → baseEntityTypeId (single parent only)
 
-DTDL schema types are mapped to Fabric property types as follows:
+**Type Mapping:** DTDL primitive types (boolean, integer, double, string, date, etc.) map directly to Fabric types. Complex types (Object, Array, Map) are serialized to JSON strings. DTDL v4 types (byte, uuid, geospatial) are supported with appropriate conversions.
 
-| DTDL Schema Type | Fabric Property Type | Notes |
-|-----------------|---------------------|-------|
-| boolean | Boolean | Direct mapping |
-| date | Date | ISO 8601 date format |
-| dateTime | DateTime | ISO 8601 datetime format |
-| double | Double | 64-bit floating point |
-| duration | Duration | ISO 8601 duration format |
-| float | Float | 32-bit floating point |
-| integer | Integer | 32-bit signed integer |
-| long | Long | 64-bit signed integer |
-| string | String | Unicode text |
-| time | Time | ISO 8601 time format |
-| **DTDL v4 Types:** | | |
-| byte | Integer | 8-bit signed, mapped to Integer |
-| short | Integer | 16-bit signed, mapped to Integer |
-| decimal | Decimal | High-precision decimal |
-| uuid | String | UUID as string |
-| unsignedByte | Integer | Mapped to Integer (no unsigned in Fabric) |
-| unsignedShort | Integer | Mapped to Integer |
-| unsignedInteger | Long | Mapped to Long to preserve range |
-| unsignedLong | Long | Mapped to Long (may overflow for large values) |
-| bytes | String | Base64-encoded binary data as string |
-| **Complex Types:** | | |
-| Enum | String | Enum values stored as allowed string values |
-| Object | String | Serialized to JSON string |
-| Array | String | Serialized to JSON string |
-| Map | String | Serialized to JSON string |
-| **Geospatial (v4):** | | |
-| point, lineString, polygon, etc. | String | Serialized to GeoJSON string |
+## What Gets Converted?
 
-## Supported DTDL Features
+> **📘 For complete feature support matrix and configuration options, see [MAPPING_LIMITATIONS.md](MAPPING_LIMITATIONS.md#dtdl-supported-features)**
 
-### Fully Supported
+### ✅ Fully Supported (DTDL v2/v3/v4)
+- Interfaces, Properties, Telemetry, Relationships
+- Single inheritance (extends)
+- Primitive types and DTDL v4 types (byte, uuid, geospatial)
+- Enums, display names, descriptions
 
-- ✅ **DTDL v2, v3, and v4** contexts
-- ✅ **Properties** with primitive and complex types
-- ✅ **Telemetry** (mapped to timeseries properties)
-- ✅ **Relationships** with target constraints
-- ✅ **Interface inheritance** (extends) - first parent only
-- ✅ **Components** (with flatten option)
-- ✅ **Semantic types** (@type annotations)
-- ✅ **Display names and descriptions** (with localization)
-- ✅ **Enum schemas** (as string constraints)
-- ✅ **DTDL v4 new primitive types**: `byte`, `bytes`, `decimal`, `short`, `uuid`
-- ✅ **DTDL v4 unsigned types**: `unsignedByte`, `unsignedShort`, `unsignedInteger`, `unsignedLong`
-- ✅ **DTDL v4 geospatial schemas**: `point`, `lineString`, `polygon`, `multiPoint`, `multiLineString`, `multiPolygon`
+### ⚠️ Configurable Features
+- **Components:** skip / flatten / separate (see [MAPPING_LIMITATIONS.md](MAPPING_LIMITATIONS.md#component-handling-modes))
+- **Commands:** skip / property / entity (see [MAPPING_LIMITATIONS.md](MAPPING_LIMITATIONS.md#command-handling-modes))
+- **ScaledDecimal (v4):** json_string / structured / calculated (see [MAPPING_LIMITATIONS.md](MAPPING_LIMITATIONS.md#scaleddecimal-handling-modes-dtdl-v4))
 
-### Limited Support
+### ⚠️ Limited Support
+- Multiple inheritance (first parent only)
+- Complex schemas (Object, Array, Map → JSON strings)
+- Relationship properties (not preserved)
 
-- ⚠️ **Multiple inheritance** - Only first parent in `extends` array is used
-- ⚠️ **Complex schemas** (Object, Array, Map) - Serialized to JSON strings (no native structure)
-- ⚠️ **Components** - Flattened to properties unless `--flatten-components` is used
-- ⚠️ **Relationship properties** - Not preserved (Fabric Ontology relationships don't support properties)
-
-### Not Supported
-
-- ❌ **Commands** - Skipped by default (can be included with `--include-commands` flag, mapped to properties)
-- ❌ **CommandPayload** - Not converted
-- ❌ **@context extensions** - Custom contexts ignored
-- ❌ **Semantic type inference** - Only basic type mapping, no semantic reasoning
+### ❌ Not Supported
+- Custom @context extensions
+- Semantic type inference
 
 ## DTDL Validation Checks
 
@@ -263,34 +221,47 @@ This demonstrates the tool's capability to handle large, complex DTDL ontologies
 - Components and semantic types
 - Hundreds of interfaces
 
-## Limitations
+## Key Considerations
 
-> **📘 For comprehensive limitations, see [MAPPING_LIMITATIONS.md](MAPPING_LIMITATIONS.md)**  
-> This section provides a quick overview of the most important limitations.
+> **📘 For comprehensive limitations, configuration modes, and best practices, see [MAPPING_LIMITATIONS.md](MAPPING_LIMITATIONS.md)**
 
-### Key Information Loss
+### Information Loss During Conversion
 
-When converting DTDL to Fabric Ontology, **some information may be lost or transformed**:
+DTDL is designed for digital twins, while Fabric Ontology targets business data models. Some features don't translate directly:
 
-| DTDL Feature | Impact |
-|--------------|--------|
-| **Commands** | Not converted by default (configurable) |
-| **Complex schemas** (Object, Array, Map) | Serialized to JSON strings |
-| **Multiple inheritance** | Only first parent in extends array used |
-| **Relationship properties** | Not preserved in Fabric |
-| **Components** | Configurable handling (skip/flatten/separate) |
-| **Cardinality constraints** | minMultiplicity/maxMultiplicity not enforced |
+- **Commands** are skipped by default (configurable via `command_mode`)
+- **Complex schemas** (Object, Array, Map) become JSON strings
+- **Multiple inheritance** simplified to first parent only
+- **Relationship properties** are not preserved
+- **Components** need configuration (`component_mode`)
+- **Cardinality constraints** (minMultiplicity/maxMultiplicity) not enforced
 
-**See [MAPPING_LIMITATIONS.md](MAPPING_LIMITATIONS.md) for:**
-- Complete feature support matrix (supported/partial/unsupported)
-- Component, Command, and ScaledDecimal configuration modes
-- DTDL version-specific limits (v2/v3/v4)
-- Fabric API limits and compliance requirements
-- Best practices for DTDL sources
+### Configuration Options
 
-### Validation & Compliance Reports
+Customize conversion behavior via config.json or command parameters:
 
-Use the compliance report feature to understand exactly what will be preserved, limited, or lost:
+```json
+{
+  "dtdl": {
+    "component_mode": "flatten",
+    "command_mode": "skip",
+    "scaled_decimal_mode": "json_string"
+  }
+}
+```
+
+See [MAPPING_LIMITATIONS.md](MAPPING_LIMITATIONS.md#component-handling-modes) for detailed mode descriptions.
+
+### Before You Convert
+
+1. **Validate first:** `python src\main.py dtdl-validate ./models/ --recursive`
+2. **Choose configuration:** Decide how to handle Components, Commands, ScaledDecimals
+3. **Review compliance report:** Understand what will be preserved vs. lost
+4. **Test with samples:** Try conversion on a subset before full upload
+
+### Compliance Reports
+
+Generate detailed reports showing conversion impact:
 
 ```python
 from dtdl import DTDLToFabricConverter
@@ -299,19 +270,16 @@ converter = DTDLToFabricConverter()
 result, report = converter.convert_with_compliance_report(interfaces)
 
 if report:
-    print(f"✅ Supported features: {len(report.supported_features)}")
     print(f"⚠️  Warnings: {len(report.warnings)}")
-    print(f"❌ Limitations: {len(report.limitations)}")
-    
     for warning in report.warnings:
         print(f"[{warning.impact.value}] {warning.feature}: {warning.message}")
 ```
 
 ### See Also
 
-- **[Mapping Limitations](MAPPING_LIMITATIONS.md)** - Full list of RDF/DTDL → Fabric conversion constraints
-- **[DTDL Specification](https://learn.microsoft.com/azure/digital-twins/concepts-models)** - Official DTDL documentation
-- **[Fabric Ontology API](API.md)** - Microsoft Fabric Ontology REST API reference
+- **[MAPPING_LIMITATIONS.md](MAPPING_LIMITATIONS.md)** - Complete technical reference for conversion constraints and configuration
+- **[DTDL Specification](https://learn.microsoft.com/azure/digital-twins/concepts-models)** - Official Azure documentation
+- **[Fabric Ontology API](API.md)** - Microsoft Fabric API reference
 
 ## Related Resources
 

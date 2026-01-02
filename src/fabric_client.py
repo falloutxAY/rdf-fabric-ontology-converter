@@ -216,7 +216,7 @@ class FabricConfig:
             raise TypeError(f"config_path must be string, got {type(config_path)}")
         
         # Import InputValidator for path security checks
-        from rdf_converter import InputValidator
+        from core.validators import InputValidator
         
         # Validate config path with security checks
         try:

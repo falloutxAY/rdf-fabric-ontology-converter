@@ -179,9 +179,21 @@ class LoggingConfig:
     
     DATE_FORMAT: Final[str] = "%Y-%m-%d %H:%M:%S"
     """Default date format for logs."""
+
+    DEFAULT_FORMAT_STYLE: Final[str] = "text"
+    """Human-readable formatter style."""
+
+    JSON_DATE_FORMAT: Final[str] = "%Y-%m-%dT%H:%M:%S.%fZ"
+    """ISO-8601 timestamp format for structured logs."""
+    
+    SUPPORTED_FORMATS: Final[tuple[str, ...]] = ("text", "json")
+    """Supported formatter styles."""
     
     MAX_LOG_FILE_MB: Final[int] = 10
     """Maximum log file size before rotation (MB)."""
     
     LOG_BACKUP_COUNT: Final[int] = 5
     """Number of backup log files to keep."""
+
+    ROTATION_ENABLED: Final[bool] = True
+    """Enable log rotation by default when a file handler is configured."""

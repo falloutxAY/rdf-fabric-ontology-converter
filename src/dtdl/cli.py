@@ -16,16 +16,18 @@ Usage:
 
 import argparse
 import json
-import logging
 import sys
 from pathlib import Path
 from typing import Optional, List
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+import logging
+
+try:  # Prefer absolute import when running via src.main
+    from cli.helpers import setup_logging
+except ImportError:  # pragma: no cover - fallback when running as package
+    from ..cli.helpers import setup_logging  # type: ignore
+
+setup_logging()
 logger = logging.getLogger(__name__)
 
 

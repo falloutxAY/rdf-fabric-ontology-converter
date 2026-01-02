@@ -8,13 +8,15 @@ and the Fabric client, including:
 - Circuit breaker pattern (CircuitBreaker, CircuitState, CircuitBreakerOpenError)
 - Cancellation handling (CancellationToken, CancellationTokenSource, setup_cancellation_handler)
 - Memory management (MemoryManager)
+- Input validation (InputValidator)
 - Configuration constants (ExitCode, MemoryLimits, APIConfig, etc.)
 
 Usage:
-    from core import CircuitBreaker, CancellationToken, MemoryManager
+    from core import CircuitBreaker, CancellationToken, MemoryManager, InputValidator
     from core import ExitCode, APIConfig
     from core.rate_limiter import TokenBucketRateLimiter
     from core.cancellation import setup_cancellation_handler
+    from core.validators import InputValidator
 """
 
 # Rate limiting
@@ -50,6 +52,9 @@ from .cancellation import (
 
 # Memory management
 from .memory import MemoryManager
+
+# Input validation
+from .validators import InputValidator
 
 # Re-export constants from parent module
 try:
@@ -93,6 +98,8 @@ __all__ = [
     "get_global_token",
     # Memory management
     "MemoryManager",
+    # Input validation
+    "InputValidator",
     # Constants
     "ExitCode",
     "MemoryLimits",

@@ -4,10 +4,26 @@ CLI argument parser configuration.
 This module defines the argument parser structure for all CLI commands.
 It centralizes all argument parsing logic and provides a clean interface
 for the main entry point.
+
+Command Naming Convention:
+    - RDF commands: rdf-validate, rdf-convert, rdf-upload, rdf-export
+    - DTDL commands: dtdl-validate, dtdl-convert, dtdl-upload
+    - Legacy aliases (deprecated): validate, convert, upload, export, dtdl-import
 """
 
 import argparse
+import warnings
 from typing import Callable, Dict, Optional
+
+
+# Deprecated command aliases for backward compatibility
+DEPRECATED_COMMANDS = {
+    'validate': 'rdf-validate',
+    'convert': 'rdf-convert',
+    'upload': 'rdf-upload',
+    'export': 'rdf-export',
+    'dtdl-import': 'dtdl-upload',
+}
 
 
 def create_argument_parser() -> argparse.ArgumentParser:
@@ -18,49 +34,85 @@ def create_argument_parser() -> argparse.ArgumentParser:
         Configured ArgumentParser with all subcommands.
     """
     parser = argparse.ArgumentParser(
-        description="RDF TTL to Microsoft Fabric Ontology Converter",
+        description="RDF/DTDL to Microsoft Fabric Ontology Converter",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    %(prog)s upload samples\\sample_supply_chain_ontology.ttl
-    %(prog)s upload my_ontology.ttl --name MyOntology --update
-    %(prog)s validate samples\\sample_foaf_ontology.ttl --verbose
+    # RDF/TTL Commands (use rdf- prefix)
+    %(prog)s rdf-upload samples\\sample_supply_chain_ontology.ttl
+    %(prog)s rdf-upload my_ontology.ttl --name MyOntology --update
+    %(prog)s rdf-validate samples\\sample_foaf_ontology.ttl --verbose
+    %(prog)s rdf-convert samples\\sample_supply_chain_ontology.ttl --output fabric_definition.json
+    %(prog)s rdf-export 12345678-1234-1234-1234-123456789012 --output exported.ttl
+    
+    # DTDL Commands (use dtdl- prefix)
+    %(prog)s dtdl-validate models/ --recursive
+    %(prog)s dtdl-convert models/ --output fabric_definition.json
+    %(prog)s dtdl-upload models/ --ontology-name MyDTDL
+    
+    # Other Commands
     %(prog)s list
     %(prog)s get 12345678-1234-1234-1234-123456789012
-    %(prog)s convert samples\\sample_supply_chain_ontology.ttl --output fabric_definition.json
-    %(prog)s export 12345678-1234-1234-1234-123456789012 --output exported.ttl
     %(prog)s compare original.ttl exported.ttl
     %(prog)s test
+    
+Note: Old command names (validate, convert, upload, export, dtdl-import) are 
+      deprecated but still work for backward compatibility.
         """,
     )
     
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
     
-    # Add all subparsers
-    _add_validate_parser(subparsers)
-    _add_upload_parser(subparsers)
+    # Add RDF subparsers (new names with rdf- prefix)
+    _add_rdf_validate_parser(subparsers)
+    _add_rdf_upload_parser(subparsers)
+    _add_rdf_convert_parser(subparsers)
+    _add_rdf_export_parser(subparsers)
+    
+    # Add deprecated aliases for backward compatibility
+    _add_validate_parser_alias(subparsers)
+    _add_upload_parser_alias(subparsers)
+    _add_convert_parser_alias(subparsers)
+    _add_export_parser_alias(subparsers)
+    
+    # Add common commands (no prefix needed)
     _add_list_parser(subparsers)
     _add_get_parser(subparsers)
     _add_delete_parser(subparsers)
     _add_test_parser(subparsers)
-    _add_convert_parser(subparsers)
-    _add_export_parser(subparsers)
     _add_compare_parser(subparsers)
     
     # DTDL commands
     _add_dtdl_validate_parser(subparsers)
     _add_dtdl_convert_parser(subparsers)
-    _add_dtdl_import_parser(subparsers)
+    _add_dtdl_upload_parser(subparsers)
+    
+    # Deprecated alias for dtdl-import
+    _add_dtdl_import_parser_alias(subparsers)
     
     return parser
 
 
-def _add_validate_parser(subparsers: argparse._SubParsersAction) -> None:
-    """Add the validate command parser."""
+def _add_rdf_validate_parser(subparsers: argparse._SubParsersAction) -> None:
+    """Add the rdf-validate command parser."""
     parser = subparsers.add_parser(
-        'validate',
+        'rdf-validate',
         help='Validate a TTL file for Fabric compatibility'
     )
+    _configure_validate_parser(parser)
+
+
+def _add_validate_parser_alias(subparsers: argparse._SubParsersAction) -> None:
+    """Add deprecated 'validate' alias for backward compatibility."""
+    parser = subparsers.add_parser(
+        'validate',
+        help='[DEPRECATED: Use rdf-validate] Validate a TTL file for Fabric compatibility'
+    )
+    _configure_validate_parser(parser)
+
+
+def _configure_validate_parser(parser: argparse.ArgumentParser) -> None:
+    """Configure common arguments for validate command."""
     parser.add_argument('ttl_file', help='Path to the TTL file to validate')
     parser.add_argument(
         '--output', '-o',
@@ -83,12 +135,26 @@ def _add_validate_parser(subparsers: argparse._SubParsersAction) -> None:
     )
 
 
-def _add_upload_parser(subparsers: argparse._SubParsersAction) -> None:
-    """Add the upload command parser."""
+def _add_rdf_upload_parser(subparsers: argparse._SubParsersAction) -> None:
+    """Add the rdf-upload command parser."""
     parser = subparsers.add_parser(
-        'upload',
+        'rdf-upload',
         help='Upload a TTL file to Fabric Ontology'
     )
+    _configure_upload_parser(parser)
+
+
+def _add_upload_parser_alias(subparsers: argparse._SubParsersAction) -> None:
+    """Add deprecated 'upload' alias for backward compatibility."""
+    parser = subparsers.add_parser(
+        'upload',
+        help='[DEPRECATED: Use rdf-upload] Upload a TTL file to Fabric Ontology'
+    )
+    _configure_upload_parser(parser)
+
+
+def _configure_upload_parser(parser: argparse.ArgumentParser) -> None:
+    """Configure common arguments for upload command."""
     parser.add_argument('ttl_file', help='Path to the TTL file to upload')
     parser.add_argument('--config', '-c', help='Path to configuration file')
     parser.add_argument('--name', '-n', help='Override ontology name')
@@ -183,12 +249,26 @@ def _add_test_parser(subparsers: argparse._SubParsersAction) -> None:
     )
 
 
-def _add_convert_parser(subparsers: argparse._SubParsersAction) -> None:
-    """Add the convert command parser."""
+def _add_rdf_convert_parser(subparsers: argparse._SubParsersAction) -> None:
+    """Add the rdf-convert command parser."""
     parser = subparsers.add_parser(
-        'convert',
+        'rdf-convert',
         help='Convert TTL to Fabric format without uploading'
     )
+    _configure_convert_parser(parser)
+
+
+def _add_convert_parser_alias(subparsers: argparse._SubParsersAction) -> None:
+    """Add deprecated 'convert' alias for backward compatibility."""
+    parser = subparsers.add_parser(
+        'convert',
+        help='[DEPRECATED: Use rdf-convert] Convert TTL to Fabric format without uploading'
+    )
+    _configure_convert_parser(parser)
+
+
+def _configure_convert_parser(parser: argparse.ArgumentParser) -> None:
+    """Configure common arguments for convert command."""
     parser.add_argument('ttl_file', help='Path to the TTL file to convert')
     parser.add_argument('--output', '-o', help='Output JSON file path')
     parser.add_argument(
@@ -208,12 +288,26 @@ def _add_convert_parser(subparsers: argparse._SubParsersAction) -> None:
     )
 
 
-def _add_export_parser(subparsers: argparse._SubParsersAction) -> None:
-    """Add the export command parser."""
+def _add_rdf_export_parser(subparsers: argparse._SubParsersAction) -> None:
+    """Add the rdf-export command parser."""
     parser = subparsers.add_parser(
-        'export',
+        'rdf-export',
         help='Export ontology from Fabric to TTL format'
     )
+    _configure_export_parser(parser)
+
+
+def _add_export_parser_alias(subparsers: argparse._SubParsersAction) -> None:
+    """Add deprecated 'export' alias for backward compatibility."""
+    parser = subparsers.add_parser(
+        'export',
+        help='[DEPRECATED: Use rdf-export] Export ontology from Fabric to TTL format'
+    )
+    _configure_export_parser(parser)
+
+
+def _configure_export_parser(parser: argparse.ArgumentParser) -> None:
+    """Configure common arguments for export command."""
     parser.add_argument('ontology_id', help='Ontology ID to export')
     parser.add_argument('--config', '-c', help='Path to configuration file')
     parser.add_argument('--output', '-o', help='Output TTL file path')
@@ -304,12 +398,26 @@ def _add_dtdl_convert_parser(subparsers: argparse._SubParsersAction) -> None:
     )
 
 
-def _add_dtdl_import_parser(subparsers: argparse._SubParsersAction) -> None:
-    """Add the dtdl-import command parser (validate + convert + upload)."""
+def _add_dtdl_upload_parser(subparsers: argparse._SubParsersAction) -> None:
+    """Add the dtdl-upload command parser (validate + convert + upload)."""
     parser = subparsers.add_parser(
-        'dtdl-import',
+        'dtdl-upload',
         help='Import DTDL models to Fabric Ontology (validate + convert + upload)'
     )
+    _configure_dtdl_upload_parser(parser)
+
+
+def _add_dtdl_import_parser_alias(subparsers: argparse._SubParsersAction) -> None:
+    """Add deprecated 'dtdl-import' alias for backward compatibility."""
+    parser = subparsers.add_parser(
+        'dtdl-import',
+        help='[DEPRECATED: Use dtdl-upload] Import DTDL models to Fabric Ontology'
+    )
+    _configure_dtdl_upload_parser(parser)
+
+
+def _configure_dtdl_upload_parser(parser: argparse.ArgumentParser) -> None:
+    """Configure common arguments for dtdl-upload command."""
     parser.add_argument('path', help='Path to DTDL file or directory')
     parser.add_argument('--config', '-c', help='Path to configuration file')
     parser.add_argument(

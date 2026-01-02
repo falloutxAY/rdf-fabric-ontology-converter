@@ -15,7 +15,7 @@ python -m pytest tests/ -v    # Run test suite
 |-------|----------|
 | **Unauthorized / 403 Forbidden** | Verify config.json credentials, ensure Contributor role on workspace, try `"use_interactive_auth": true` |
 | **CircuitBreakerOpen** | API failing repeatedly; wait for recovery timeout or check Fabric service status |
-| **ItemDisplayNameAlreadyInUse** | Use `--update` flag or different name: `python src/main.py upload sample.ttl --name "MyOntology_v2"` |
+| **ItemDisplayNameAlreadyInUse** | Use `--update` flag or different name: `python src/main.py rdf-upload sample.ttl --name "MyOntology_v2"` |
 | **CorruptedPayload** | Validate TTL syntax, check for special characters, ensure parent entities defined first |
 | **Invalid baseEntityTypeId** | Parent class must be defined in same ontology, converter orders entities automatically |
 | **Invalid RDF/TTL syntax** | Validate at [W3C Validator](https://www.w3.org/RDF/Validator/), check prefixes, ensure UTF-8 encoding |
@@ -42,14 +42,14 @@ If browser doesn't open for interactive auth:
 
 ```powershell
 # Update existing ontology
-python src/main.py upload sample.ttl --update
+python src/main.py rdf-upload sample.ttl --update
 
 # List existing ontologies
 python src/main.py list
 
 # Delete and recreate
 python src/main.py delete <ontology-id>
-python src/main.py upload sample.ttl
+python src/main.py rdf-upload sample.ttl
 ```
 
 ## Circuit Breaker Issues
@@ -66,12 +66,12 @@ If you see "Circuit breaker is open":
 For large files (>100MB), use streaming mode:
 ```powershell
 # Use streaming mode for memory-efficient processing
-python src/main.py convert large.ttl --streaming
-python src/main.py upload large.ttl --streaming
+python src/main.py rdf-convert large.ttl --streaming
+python src/main.py rdf-upload large.ttl --streaming
 
 # Or use force flag if you have sufficient RAM (4x file size)
-python src/main.py convert large.ttl --force-memory
-python src/main.py upload large.ttl --force-memory
+python src/main.py rdf-convert large.ttl --force-memory
+python src/main.py rdf-upload large.ttl --force-memory
 
 # Or split into smaller files by domain
 ```
@@ -136,7 +136,7 @@ If you need to access files outside the current directory:
 ```bash
 # Copy files to working directory instead of using path traversal
 cp /some/external/path/ontology.ttl ./ontology.ttl
-python src/main.py upload ontology.ttl --name "MyOntology"
+python src/main.py rdf-upload ontology.ttl --name "MyOntology"
 ```
 
 - Windows: Use forward slashes `samples/file.ttl` or double backslashes `samples\\file.ttl`
@@ -153,7 +153,7 @@ If you see security-related errors:
 
 ### Allowing relative-up safely (`--allow-relative-up`)
 
-For trusted local use, you can allow `..` in paths by adding `--allow-relative-up` to the command. This is available on `validate`, `upload`, `convert`, and `compare`.
+For trusted local use, you can allow `..` in paths by adding `--allow-relative-up` to the command. This is available on `rdf-validate`, `rdf-upload`, `rdf-convert`, and `compare`.
 
 Important safeguards:
 
@@ -167,13 +167,13 @@ Examples (Windows PowerShell):
 
 ```powershell
 # Blocked: resolves outside the cwd
-python src\main.py validate ..\samples\sample_foaf_ontology.ttl --allow-relative-up --verbose
+python src\main.py rdf-validate ..\samples\sample_foaf_ontology.ttl --allow-relative-up --verbose
 
 # Allowed: remains inside the cwd after resolution
-python src\main.py validate .\samples\..\samples\sample_foaf_ontology.ttl --allow-relative-up --verbose
+python src\main.py rdf-validate .\samples\..\samples\sample_foaf_ontology.ttl --allow-relative-up --verbose
 
 # Tip: Always quote absolute paths with spaces
-python src\main.py validate "C:\Users\me\Projects\rdf-fabric-ontology-converter\samples\sample_foaf_ontology.ttl" --verbose
+python src\main.py rdf-validate "C:\Users\me\Projects\rdf-fabric-ontology-converter\samples\sample_foaf_ontology.ttl" --verbose
 ```
 
 Notes:

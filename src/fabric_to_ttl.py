@@ -354,8 +354,8 @@ class FabricToTTLConverter:
             FileNotFoundError: If input file not found
             PermissionError: If file not readable/writable
         """
-        # Import here to avoid circular imports
-        from rdf_converter import InputValidator
+        # Import from core.validators (shared module)
+        from core.validators import InputValidator
         
         # Validate input path with security checks
         validated_input_path = InputValidator.validate_file_path(
@@ -593,8 +593,8 @@ def export_ontology_to_ttl(
     ttl_output = converter.convert(fabric_definition)
     
     if output_path:
-        # Import here to avoid circular imports
-        from rdf_converter import InputValidator
+        # Import from core.validators (shared module)
+        from core.validators import InputValidator
         
         # Validate output path with security checks
         validated_output_path = InputValidator.validate_output_file_path(

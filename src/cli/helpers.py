@@ -13,11 +13,86 @@ import logging
 import os
 import sys
 import tempfile
+from datetime import datetime
+from logging import Handler
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Optional, Dict, Any, Literal
+from typing import Optional, Dict, Any, Literal, Tuple, List
+
+try:  # Prefer absolute import when running from project root
+    from constants import LoggingConfig
+except ImportError:  # pragma: no cover - fallback when running as package
+    from ..constants import LoggingConfig  # type: ignore
 
 # Type alias for log levels
 LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+
+
+class JSONFormatter(logging.Formatter):
+    """A lightweight JSON formatter for structured logging."""
+
+    _RESERVED_FIELDS = {
+        "name",
+        "msg",
+        "args",
+        "levelname",
+        "levelno",
+        "pathname",
+        "filename",
+        "module",
+        "exc_info",
+        "exc_text",
+        "stack_info",
+        "lineno",
+        "funcName",
+        "created",
+        "msecs",
+        "relativeCreated",
+        "thread",
+        "threadName",
+        "process",
+        "processName",
+    }
+
+    def format(self, record: logging.LogRecord) -> str:  # noqa: D401 - custom JSON body
+        timestamp = datetime.utcfromtimestamp(record.created).strftime(
+            LoggingConfig.JSON_DATE_FORMAT
+        )
+        payload: Dict[str, Any] = {
+            "timestamp": timestamp,
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+            "module": record.module,
+            "function": record.funcName,
+            "line": record.lineno,
+            "process": record.process,
+            "thread": record.threadName,
+        }
+
+        if record.exc_info:
+            payload["exception"] = self.formatException(record.exc_info)
+        if record.stack_info:
+            payload["stack"] = self.formatStack(record.stack_info)
+
+        # Include any extra fields supplied via LoggerAdapter/extra
+        for key, value in record.__dict__.items():
+            if key in self._RESERVED_FIELDS or key.startswith("_"):
+                continue
+            if key in payload:
+                continue
+            try:
+                json.dumps(value)  # Validate serializable
+                payload[key] = value
+            except TypeError:
+                payload[key] = str(value)
+
+        return json.dumps(payload, ensure_ascii=False)
+
+
+_MANAGED_HANDLERS: List[Handler] = []
+_LOGGING_SIGNATURE: Optional[Tuple[Any, ...]] = None
+_LAST_LOG_FILE: Optional[str] = None
 
 
 def _ensure_utf8_stdout() -> None:
@@ -52,9 +127,51 @@ def get_default_config_path() -> str:
     return str(src_dir / "config.json")
 
 
+def _clear_managed_handlers() -> None:
+    """Remove handlers that were added by this module."""
+    global _MANAGED_HANDLERS
+    root_logger = logging.getLogger()
+    for handler in _MANAGED_HANDLERS:
+        try:
+            root_logger.removeHandler(handler)
+            handler.close()
+        except Exception:
+            continue
+    _MANAGED_HANDLERS = []
+
+
+def _coerce_positive_int(value: Any, default: int) -> int:
+    """Convert config-provided values to positive integers."""
+    try:
+        numeric = int(value)
+        return numeric if numeric > 0 else default
+    except (TypeError, ValueError):
+        return default
+
+
+def _create_file_handler(
+    path: str,
+    rotation_enabled: bool,
+    max_bytes: int,
+    backup_count: int
+) -> Handler:
+    """Create a file or rotating file handler."""
+    if rotation_enabled and max_bytes > 0:
+        return RotatingFileHandler(
+            path,
+            maxBytes=max_bytes,
+            backupCount=max(backup_count, 1),
+            encoding='utf-8'
+        )
+    return logging.FileHandler(path, encoding='utf-8')
+
+
 def setup_logging(
-    level: LogLevel = "INFO",
-    log_file: Optional[str] = None
+    level: LogLevel = LoggingConfig.DEFAULT_LOG_LEVEL,
+    log_file: Optional[str] = None,
+    *,
+    config: Optional[Dict[str, Any]] = None,
+    include_console: bool = True,
 ) -> Optional[str]:
     """
     Setup logging configuration with fallback locations.
@@ -67,69 +184,133 @@ def setup_logging(
     4. Console-only (final fallback)
     
     Args:
-        level: Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-        log_file: Optional log file path. If None, logs to console only.
+        level: Legacy log level override (kept for backward compatibility).
+        log_file: Legacy log file override.
+        config: Optional logging configuration dictionary.
+        include_console: If False, skip adding a console handler.
         
     Returns:
         The actual log file path used, or None if logging to console only.
     """
-    log_level = getattr(logging, level.upper(), logging.INFO)
+    global _LOGGING_SIGNATURE, _LAST_LOG_FILE
+
+    config_dict = dict(config or {})
+
+    resolved_level = str(config_dict.get('level', level or LoggingConfig.DEFAULT_LOG_LEVEL))
+    log_level = getattr(logging, resolved_level.upper(), logging.INFO)
+
+    config_file = config_dict.get('file') or config_dict.get('log_file')
+    file_path = log_file if log_file is not None else config_file
     
-    handlers = [logging.StreamHandler(sys.stdout)]
+    format_style = str(config_dict.get('format', LoggingConfig.DEFAULT_FORMAT_STYLE)).lower()
+    if format_style not in LoggingConfig.SUPPORTED_FORMATS:
+        format_style = LoggingConfig.DEFAULT_FORMAT_STYLE
+    if config_dict.get('structured'):
+        format_style = 'json'
+    structured = format_style == 'json'
+
+    text_pattern = config_dict.get('pattern') or config_dict.get('text_pattern')
+    format_string = text_pattern or LoggingConfig.LOG_FORMAT
+    date_format = config_dict.get('date_format', LoggingConfig.DATE_FORMAT)
+
+    formatter: logging.Formatter
+    if structured:
+        formatter = JSONFormatter()
+    else:
+        formatter = logging.Formatter(fmt=format_string, datefmt=date_format)
+
+    rotation_cfg = config_dict.get('rotation') if isinstance(config_dict.get('rotation'), dict) else {}
+    rotation_enabled = rotation_cfg.get('enabled')
+    if rotation_enabled is None:
+        rotation_enabled = bool(file_path) and LoggingConfig.ROTATION_ENABLED
+    max_mb = rotation_cfg.get('max_mb', LoggingConfig.MAX_LOG_FILE_MB)
+    backup_count = rotation_cfg.get('backup_count', LoggingConfig.LOG_BACKUP_COUNT)
+    max_bytes = _coerce_positive_int(max_mb, LoggingConfig.MAX_LOG_FILE_MB) * 1024 * 1024
+    backup_count = _coerce_positive_int(backup_count, LoggingConfig.LOG_BACKUP_COUNT)
+
+    signature = (
+        log_level,
+        file_path,
+        format_style,
+        include_console,
+        rotation_enabled,
+        max_bytes,
+        backup_count,
+    )
+
+    if _LOGGING_SIGNATURE == signature and _MANAGED_HANDLERS:
+        return _LAST_LOG_FILE
+
+    handlers: List[Handler] = []
     actual_log_file = None
     
-    if log_file:
-        # Define fallback locations
-        log_filename = os.path.basename(log_file) or "rdf_converter.log"
+    if include_console:
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setFormatter(formatter)
+        handlers.append(console_handler)
+    
+    if file_path:
+        log_filename = os.path.basename(file_path) or "rdf_converter.log"
         fallback_locations = [
-            log_file,  # Primary location
-            os.path.join(tempfile.gettempdir(), log_filename),  # System temp
-            os.path.join(Path.home(), log_filename),  # User home
+            file_path,
+            os.path.join(tempfile.gettempdir(), log_filename),
+            os.path.join(Path.home(), log_filename),
         ]
-        
         file_handler = None
         for fallback_path in fallback_locations:
             try:
-                # Ensure directory exists
                 log_dir = os.path.dirname(fallback_path)
                 if log_dir and not os.path.exists(log_dir):
                     os.makedirs(log_dir, exist_ok=True)
-                
-                # Try to create/open the file
-                file_handler = logging.FileHandler(fallback_path, encoding='utf-8')
+                file_handler = _create_file_handler(
+                    fallback_path,
+                    rotation_enabled=bool(rotation_enabled),
+                    max_bytes=max_bytes,
+                    backup_count=backup_count,
+                )
+                file_handler.setFormatter(formatter)
                 handlers.append(file_handler)
                 actual_log_file = fallback_path
-                
-                if fallback_path != log_file:
+                if fallback_path != file_path:
                     print(f"Note: Using fallback log file: {fallback_path}")
                 break
-                
             except PermissionError:
                 print(f"  Could not create log at {fallback_path}: Permission denied")
                 continue
-            except OSError as e:
-                print(f"  Could not create log at {fallback_path}: {e}")
+            except OSError as exc:
+                print(f"  Could not create log at {fallback_path}: {exc}")
                 continue
-            except Exception as e:
-                print(f"  Unexpected error creating log at {fallback_path}: {e}")
+            except Exception as exc:
+                print(f"  Unexpected error creating log at {fallback_path}: {exc}")
                 continue
-        
         if not file_handler:
-            print(f"Warning: Could not write log file to any location")
-            print(f"  Requested: {log_file}")
+            print("Warning: Could not write log file to any location")
+            print(f"  Requested: {file_path}")
             print(f"  Attempted fallbacks: {', '.join(fallback_locations[1:])}")
-            print(f"  Logging to console only")
-    
-    logging.basicConfig(
-        level=log_level,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=handlers,
-    )
-    
+            print("  Logging to console only")
+
+    if not handlers:
+        # As a failsafe, ensure we still have console output
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setFormatter(formatter)
+        handlers.append(console_handler)
+
+    _clear_managed_handlers()
+    root_logger = logging.getLogger()
+    logging.captureWarnings(True)
+    root_logger.setLevel(log_level)
+
+    for handler in handlers:
+        root_logger.addHandler(handler)
+        _MANAGED_HANDLERS.append(handler)
+
+    _LOGGING_SIGNATURE = signature
+    _LAST_LOG_FILE = actual_log_file
+
     logger = logging.getLogger(__name__)
     if actual_log_file:
         logger.info(f"Logging to: {actual_log_file}")
-    
+
     return actual_log_file
 
 

@@ -158,13 +158,28 @@ class BaseCommand(ABC):
             self._client = FabricOntologyClient(fabric_config)
         return self._client
     
-    def setup_logging_from_config(self) -> None:
-        """Setup logging based on configuration."""
-        log_config = self.config.get('logging', {})
-        setup_logging(
-            level=log_config.get('level', 'INFO'),
-            log_file=log_config.get('file'),
-        )
+    def setup_logging_from_config(self, allow_missing: bool = True) -> None:
+        """Setup logging configuration, falling back gracefully if config is absent."""
+        log_config: Dict[str, Any] = {}
+
+        if self._config is not None:
+            log_config = self._config.get('logging', {})
+        else:
+            config_path = Path(self.config_path)
+            if config_path.exists() or not allow_missing:
+                try:
+                    config_data = load_config(self.config_path)
+                    self._config = config_data
+                    log_config = config_data.get('logging', {})
+                except FileNotFoundError:
+                    if not allow_missing:
+                        raise
+                except Exception as exc:
+                    if not allow_missing:
+                        raise
+                    print(f"Warning: Could not load logging configuration: {exc}")
+
+        setup_logging(config=log_config)
     
     @abstractmethod
     def execute(self, args: Any) -> int:
@@ -192,7 +207,7 @@ class ValidateCommand(BaseCommand):
         from rdf_converter import InputValidator
         from preflight_validator import validate_ttl_content
         
-        setup_logging()
+        self.setup_logging_from_config()
         
         ttl_file = args.ttl_file
         
@@ -352,10 +367,7 @@ class UploadCommand(BaseCommand):
             
             # Setup logging
             log_config = config_data.get('logging', {})
-            setup_logging(
-                level=log_config.get('level', 'INFO'),
-                log_file=log_config.get('file'),
-            )
+            setup_logging(config=log_config)
             
             # Validate and read TTL file with enhanced error handling
             ttl_file = args.ttl_file
@@ -611,7 +623,7 @@ class ListCommand(BaseCommand):
         fabric_config = FabricConfig.from_dict(config_data)
         
         log_config = config_data.get('logging', {})
-        setup_logging(level=log_config.get('level', 'INFO'))
+        setup_logging(config=log_config)
         
         client = FabricOntologyClient(fabric_config)
         
@@ -652,7 +664,7 @@ class GetCommand(BaseCommand):
         fabric_config = FabricConfig.from_dict(config_data)
         
         log_config = config_data.get('logging', {})
-        setup_logging(level=log_config.get('level', 'INFO'))
+        setup_logging(config=log_config)
         
         client = FabricOntologyClient(fabric_config)
         
@@ -686,7 +698,7 @@ class DeleteCommand(BaseCommand):
         fabric_config = FabricConfig.from_dict(config_data)
         
         log_config = config_data.get('logging', {})
-        setup_logging(level=log_config.get('level', 'INFO'))
+        setup_logging(config=log_config)
         
         client = FabricOntologyClient(fabric_config)
         
@@ -718,9 +730,9 @@ class TestCommand(BaseCommand):
         if os.path.exists(config_path):
             config_data = load_config(config_path)
             log_config = config_data.get('logging', {})
-            setup_logging(level=log_config.get('level', 'INFO'))
+            setup_logging(config=log_config)
         else:
-            setup_logging()
+            self.setup_logging_from_config()
             config_data = None
         
         # Find sample TTL file
@@ -804,7 +816,7 @@ class ConvertCommand(BaseCommand):
             StreamingRDFConverter
         )
         
-        setup_logging()
+        self.setup_logging_from_config()
         
         ttl_file = args.ttl_file
         
@@ -958,7 +970,7 @@ class ExportCommand(BaseCommand):
         try:
             config_data = load_config(config_path)
             log_config = config_data.get('logging', {})
-            setup_logging(level=log_config.get('level', 'INFO'), log_file=log_config.get('file'))
+            setup_logging(config=log_config)
         except FileNotFoundError as e:
             print(f"✗ {e}")
             return 1
@@ -1042,7 +1054,7 @@ class CompareCommand(BaseCommand):
         from rdf_converter import InputValidator
         from fabric_to_ttl import compare_ontologies
         
-        setup_logging()
+        self.setup_logging_from_config()
         
         ttl_file1 = args.ttl_file1
         ttl_file2 = args.ttl_file2

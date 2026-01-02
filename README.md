@@ -119,9 +119,9 @@ For detailed configuration options, see [docs/CONFIGURATION.md](docs/CONFIGURATI
 # 1) Configure
 copy config.sample.json src\config.json
 
-# 2) Validate → Convert → Upload
-python src/main.py validate samples/sample_supply_chain_ontology.ttl
-python src/main.py upload   samples/sample_supply_chain_ontology.ttl --name "MyOntology"
+# 2) Validate → Convert → Upload (use rdf- prefix for RDF commands)
+python src/main.py rdf-validate samples/sample_supply_chain_ontology.ttl
+python src/main.py rdf-upload   samples/sample_supply_chain_ontology.ttl --name "MyOntology"
 ```
 
 ## Usage
@@ -133,48 +133,51 @@ python src\main.py -h
 
 ### RDF/TTL Commands
 
+> **Note:** RDF commands now use the `rdf-` prefix (e.g., `rdf-validate`, `rdf-upload`).
+> Legacy command names without the prefix are deprecated but still work.
+
 #### Validate TTL File (pre-flight)
 ```powershell
 # Check if a TTL file can be imported seamlessly
-python src\main.py validate <ttl_file> [--verbose] [--save-report]
+python src\main.py rdf-validate <ttl_file> [--verbose] [--save-report]
 
 # Save detailed validation report to JSON
-python src\main.py validate <ttl_file> --output validation_report.json
+python src\main.py rdf-validate <ttl_file> --output validation_report.json
 ```
 You can try this for samples\sample_foaf_ontology.ttl
 
 ### Convert TTL to JSON
 ```powershell
-python src\main.py convert <ttl_file> [--output <output.json>] --config src\config.json
+python src\main.py rdf-convert <ttl_file> [--output <output.json>] --config src\config.json
 
 # For large files (>100MB), use streaming mode for better memory efficiency
-python src\main.py convert <ttl_file> --streaming
+python src\main.py rdf-convert <ttl_file> --streaming
 
 # For very large files (>500MB), bypass memory safety checks
-python src\main.py convert <ttl_file> --force-memory
+python src\main.py rdf-convert <ttl_file> --force-memory
 ```
 
 ### Upload Ontology
 ```powershell
 # Upload with pre-flight validation (default)
-python src\main.py upload <ttl_file> [--name <ontology_name>] [--update] --config src\config.json
+python src\main.py rdf-upload <ttl_file> [--name <ontology_name>] [--update] --config src\config.json
 
 # Skip validation and upload directly
-python src\main.py upload <ttl_file> --skip-validation --config src\config.json
+python src\main.py rdf-upload <ttl_file> --skip-validation --config src\config.json
 
 # Force upload even if validation issues are found
-python src\main.py upload <ttl_file> --force --config src\config.json
+python src\main.py rdf-upload <ttl_file> --force --config src\config.json
 
 # For large files, use streaming mode for memory-efficient conversion
-python src\main.py upload <ttl_file> --streaming --config src\config.json
+python src\main.py rdf-upload <ttl_file> --streaming --config src\config.json
 
 # For very large files, bypass memory safety checks (use with caution)
-python src\main.py upload <ttl_file> --force-memory --config src\config.json
+python src\main.py rdf-upload <ttl_file> --force-memory --config src\config.json
 ```
 
 ### Export Ontology to TTL
 ```powershell
-python src\main.py export <ontology_id> [--output <output.ttl>] --config src\config.json
+python src\main.py rdf-export <ontology_id> [--output <output.ttl>] --config src\config.json
 ```
 
 ### Compare Two TTL Files
@@ -186,10 +189,10 @@ python src\main.py compare <ttl_file1> <ttl_file2> [--verbose]
 ```powershell
 # Manual round-trip test with Fabric:
 # 1) Upload ontology
-python src\main.py upload <ttl_file> --name "TestOntology" --config src\config.json
+python src\main.py rdf-upload <ttl_file> --name "TestOntology" --config src\config.json
 
 # 2) Export ontology (use the ontology ID from step 1)
-python src\main.py export <ontology_id> --output exported.ttl --config src\config.json
+python src\main.py rdf-export <ontology_id> --output exported.ttl --config src\config.json
 
 # 3) Compare original and exported
 python src\main.py compare <ttl_file> exported.ttl --verbose
@@ -250,16 +253,16 @@ python src\main.py dtdl-convert path/to/dtdl/ --recursive --output fabric_output
 #### Import DTDL to Fabric
 ```powershell
 # Full import: validate → convert → upload
-python src\main.py dtdl-import path/to/dtdl/ --recursive --ontology-name "MyDTDLOntology"
+python src\main.py dtdl-upload path/to/dtdl/ --recursive --ontology-name "MyDTDLOntology"
 
 # Dry run: validate and convert without uploading
-python src\main.py dtdl-import path/to/dtdl/ --recursive --dry-run --output preview.json
+python src\main.py dtdl-upload path/to/dtdl/ --recursive --dry-run --output preview.json
 
 # With custom namespace
-python src\main.py dtdl-import path/to/dtdl/ --namespace customtypes --ontology-name "CustomOntology"
+python src\main.py dtdl-upload path/to/dtdl/ --namespace customtypes --ontology-name "CustomOntology"
 
 # Flatten component properties into parent entities
-python src\main.py dtdl-import path/to/dtdl/ --flatten-components --ontology-name "FlatOntology"
+python src\main.py dtdl-upload path/to/dtdl/ --flatten-components --ontology-name "FlatOntology"
 ```
 
 ### DTDL to Fabric Mapping
@@ -298,7 +301,7 @@ The validator performs comprehensive checks including:
 
 ```powershell
 # Import the RealEstateCore DTDL ontology
-python src\main.py dtdl-import path/to/RealEstateCore/ --recursive --ontology-name "RealEstateCore"
+python src\main.py dtdl-upload path/to/RealEstateCore/ --recursive --ontology-name "RealEstateCore"
 ```
 
 The RealEstateCore DTDL ontology (~269 interfaces) has been successfully tested with this tool.
@@ -311,10 +314,10 @@ The RealEstateCore DTDL ontology (~269 interfaces) has been successfully tested 
 
 ### Pre-flight Validation
 
-Use the **validate** command to check if your TTL file can be imported seamlessly:
+Use the **rdf-validate** command to check if your TTL file can be imported seamlessly:
 
 ```powershell
-python src\main.py validate samples\sample_foaf_ontology.ttl --verbose
+python src\main.py rdf-validate samples\sample_foaf_ontology.ttl --verbose
 ```
 
 For complete details, see:

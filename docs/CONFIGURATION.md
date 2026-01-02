@@ -28,22 +28,81 @@ Required permission for service principals: `Item.ReadWrite.All`.
 
 ## Environment Variables
 
-Environment variables override `config.json`. Recommended for secrets:
+Environment variables take precedence over `config.json` settings. This is the recommended approach for managing secrets and for CI/CD environments.
+
+### Supported Environment Variables
+
+| Environment Variable | Config Equivalent | Description |
+|---------------------|-------------------|-------------|
+| `FABRIC_CLIENT_SECRET` | `fabric.client_secret` | Service principal client secret for authentication |
+| `AZURE_TENANT_ID` | `fabric.tenant_id` | Azure AD / Entra ID tenant ID |
+| `AZURE_CLIENT_ID` | `fabric.client_id` | Azure AD application (service principal) client ID |
+| `AZURE_CLIENT_SECRET` | `fabric.client_secret` | Alternative to `FABRIC_CLIENT_SECRET` (Azure SDK standard) |
+
+### Azure SDK Environment Variables
+
+The tool uses Azure Identity SDK's `DefaultAzureCredential`, which automatically checks these environment variables for authentication:
+
+| Environment Variable | Description |
+|---------------------|-------------|
+| `AZURE_TENANT_ID` | Azure AD tenant ID for service principal auth |
+| `AZURE_CLIENT_ID` | Service principal client ID |
+| `AZURE_CLIENT_SECRET` | Service principal client secret |
+| `AZURE_CLIENT_CERTIFICATE_PATH` | Path to PFX/PEM certificate (alternative to secret) |
+| `AZURE_USERNAME` | Username for username/password auth (not recommended) |
+| `AZURE_PASSWORD` | Password for username/password auth (not recommended) |
+
+### Precedence Order
+
+Configuration values are resolved in this order (first found wins):
+
+1. **Environment variables** (highest priority)
+2. **Config file** (`config.json`)
+3. **Default values** (lowest priority)
+
+### Setting Environment Variables
 
 ```powershell
-# Windows (PowerShell)
-$env:FABRIC_CLIENT_SECRET = "<secret>"
+# Windows (PowerShell) - Session only
+$env:FABRIC_CLIENT_SECRET = "<your-secret>"
+$env:AZURE_TENANT_ID = "<your-tenant-id>"
 
-# Linux/Mac
-export FABRIC_CLIENT_SECRET="<secret>"
+# Windows (PowerShell) - Persistent for user
+[Environment]::SetEnvironmentVariable("FABRIC_CLIENT_SECRET", "<your-secret>", "User")
+
+# Linux/Mac (bash) - Session only
+export FABRIC_CLIENT_SECRET="<your-secret>"
+export AZURE_TENANT_ID="<your-tenant-id>"
+
+# Linux/Mac (bash) - Add to ~/.bashrc or ~/.zshrc for persistence
+echo 'export FABRIC_CLIENT_SECRET="<your-secret>"' >> ~/.bashrc
 ```
+
+### Azure Key Vault Integration (Production)
+
+For production deployments, we recommend storing secrets in Azure Key Vault and retrieving them at runtime. Example approach:
+
+```powershell
+# Retrieve secret from Key Vault and set as environment variable
+$env:FABRIC_CLIENT_SECRET = az keyvault secret show `
+    --vault-name "my-keyvault" `
+    --name "fabric-client-secret" `
+    --query "value" -o tsv
+
+# Then run the converter
+python src/main.py rdf-upload ontology.ttl
+```
+
+Or use managed identity with Key Vault references in your CI/CD pipeline.
 
 ## Security Best Practices
 
-- Never commit secrets to source control
-- Prefer Managed Identity or Key Vault for production
-- Use environment variables for local development secrets
-- Keep `src/config.json` in `.gitignore`
+- **Never commit secrets** to source control
+- **Prefer Managed Identity** for production deployments on Azure
+- **Use Azure Key Vault** for storing and managing secrets
+- **Use environment variables** for local development secrets
+- Keep `src/config.json` in `.gitignore` (already configured)
+- **Rotate secrets regularly** and use short-lived credentials when possible
 
 ## Config - Interactive authentication
 
@@ -57,7 +116,12 @@ Create `src/config.json`:
     "use_interactive_auth": true
   },
   "ontology": { "default_namespace": "usertypes", "id_prefix": 1000000000000 },
-  "logging":  { "level": "INFO", "log_file": "logs/app.log" }
+  "logging": {
+    "level": "INFO",
+    "file": "logs/app.log",
+    "format": "text",
+    "rotation": { "enabled": true, "max_mb": 10, "backup_count": 5 }
+  }
 }
 ```
 
@@ -104,8 +168,24 @@ Note: This has not been tested
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `level` | string | "INFO" | Logging level: DEBUG, INFO, WARNING, ERROR |
-| `log_file` | string | "rdf_import.log" | Path to log file |
+| `level` | string | "INFO" | Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL |
+| `file` \| `log_file` | string | `logs/app.log` | Path to log file (if omitted, logs stream to console only) |
+| `format` | string | `text` | Set to `json` (or `structured: true`) to enable structured logging |
+| `rotation.enabled` | boolean | true | Toggle rotating file handler when a file path is configured |
+| `rotation.max_mb` | integer | 10 | Maximum size (in MB) of each log file before rotation |
+| `rotation.backup_count` | integer | 5 | Number of rotated log files to retain |
+
+Example structured log entry:
+
+```json
+{
+  "timestamp": "2026-01-01T12:00:00.123Z",
+  "level": "INFO",
+  "logger": "fabric_client",
+  "message": "Ontology upload complete",
+  "workspace_id": "<guid>"
+}
+```
 
 ### Rate Limiting Settings
 
@@ -161,9 +241,9 @@ You can maintain multiple configurations:
 
 ```powershell
 # Development
-python src\main.py upload sample.ttl --config config.dev.json
+python src\main.py rdf-upload sample.ttl --config config.dev.json
 
 # Production
-python src\main.py upload sample.ttl --config config.prod.json
+python src\main.py rdf-upload sample.ttl --config config.prod.json
 ```
 

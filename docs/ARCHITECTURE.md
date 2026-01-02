@@ -22,10 +22,10 @@ The converter follows a layered architecture with clear separation of concerns:
 │                          CLI Layer                                   │
 │  ┌──────────────┐ ┌──────────────┐ ┌──────────────────────────────┐│
 │  │   RDF Cmds   │ │   DTDL Cmds  │ │  Common Cmds (list/get/etc) ││
-│  │  validate    │ │  dtdl-validate│ │  list-ontologies            ││
-│  │  convert     │ │  dtdl-convert│ │  get-ontology               ││
-│  │  upload      │ │  dtdl-import │ │  delete-ontology            ││
-│  │  export      │ │              │ │  fabric-to-ttl              ││
+│  │  rdf-validate│ │  dtdl-validate│ │  list-ontologies            ││
+│  │  rdf-convert │ │  dtdl-convert│ │  get-ontology               ││
+│  │  rdf-upload  │ │  dtdl-upload │ │  delete-ontology            ││
+│  │  rdf-export  │ │              │ │  fabric-to-ttl              ││
 │  └──────┬───────┘ └──────┬───────┘ └────────────┬─────────────────┘│
 └─────────┼────────────────┼──────────────────────┼──────────────────┘
           │                │                      │

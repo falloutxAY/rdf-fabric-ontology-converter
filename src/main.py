@@ -5,21 +5,26 @@ RDF TTL to Microsoft Fabric Ontology Uploader
 This is the main entry point for uploading RDF TTL and DTDL ontologies to Microsoft Fabric.
 
 Usage:
-    # RDF/TTL Commands
-    python main.py upload <ttl_file> [--config <config.json>] [--name <ontology_name>]
-    python main.py validate <ttl_file> [--verbose]
+    # RDF/TTL Commands (use rdf- prefix)
+    python main.py rdf-upload <ttl_file> [--config <config.json>] [--name <ontology_name>]
+    python main.py rdf-validate <ttl_file> [--verbose]
+    python main.py rdf-convert <ttl_file> [--output <output.json>]
+    python main.py rdf-export <ontology_id> [--output <output.ttl>]
+    
+    # DTDL Commands (use dtdl- prefix)
+    python main.py dtdl-validate <path> [--recursive]
+    python main.py dtdl-convert <path> [--output <output.json>] [--ontology-name <name>]
+    python main.py dtdl-upload <path> [--ontology-name <name>] [--config <config.json>]
+    
+    # Other Commands
     python main.py list [--config <config.json>]
     python main.py get <ontology_id> [--config <config.json>]
     python main.py delete <ontology_id> [--config <config.json>]
     python main.py test [--config <config.json>]
-    python main.py convert <ttl_file> [--output <output.json>]
-    python main.py export <ontology_id> [--output <output.ttl>]
     python main.py compare <ttl_file1> <ttl_file2>
-    
-    # DTDL Commands
-    python main.py dtdl-validate <path> [--recursive]
-    python main.py dtdl-convert <path> [--output <output.json>] [--ontology-name <name>]
-    python main.py dtdl-import <path> [--ontology-name <name>] [--config <config.json>]
+
+Note: Legacy command names (validate, upload, convert, export, dtdl-import) 
+      are deprecated but still work for backward compatibility.
 
 Architecture:
     This module provides the main entry point and delegates to the cli/ module
@@ -30,6 +35,7 @@ Architecture:
 """
 
 import sys
+import warnings
 from pathlib import Path
 
 # Ensure the src directory is in the Python path for imports
@@ -53,23 +59,36 @@ from cli import (
     DTDLConvertCommand,
     DTDLImportCommand,
 )
+from cli.parsers import DEPRECATED_COMMANDS
 
 
 # Command mapping from command name to Command class
 COMMAND_MAP = {
-    # RDF/TTL commands
+    # RDF/TTL commands (new names with rdf- prefix)
+    'rdf-validate': ValidateCommand,
+    'rdf-upload': UploadCommand,
+    'rdf-convert': ConvertCommand,
+    'rdf-export': ExportCommand,
+    
+    # Deprecated aliases for backward compatibility
     'validate': ValidateCommand,
     'upload': UploadCommand,
+    'convert': ConvertCommand,
+    'export': ExportCommand,
+    
+    # Common commands (no prefix needed)
     'list': ListCommand,
     'get': GetCommand,
     'delete': DeleteCommand,
     'test': TestCommand,
-    'convert': ConvertCommand,
-    'export': ExportCommand,
     'compare': CompareCommand,
+    
     # DTDL commands
     'dtdl-validate': DTDLValidateCommand,
     'dtdl-convert': DTDLConvertCommand,
+    'dtdl-upload': DTDLImportCommand,
+    
+    # Deprecated alias
     'dtdl-import': DTDLImportCommand,
 }
 
@@ -88,6 +107,17 @@ def main():
     if not args.command:
         parser.print_help()
         sys.exit(1)
+    
+    # Check for deprecated command names and warn users
+    if args.command in DEPRECATED_COMMANDS:
+        new_command = DEPRECATED_COMMANDS[args.command]
+        warnings.warn(
+            f"Command '{args.command}' is deprecated and will be removed in a future version. "
+            f"Use '{new_command}' instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        print(f"⚠️  Warning: '{args.command}' is deprecated. Please use '{new_command}' instead.")
     
     # Get the command class and instantiate it
     command_class = COMMAND_MAP.get(args.command)

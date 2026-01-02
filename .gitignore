@@ -41,6 +41,9 @@ env/
 # Code validation reports
 code-validation/
 
+# Review documents
+review/
+
 # Testing
 .pytest_cache/
 .coverage

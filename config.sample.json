@@ -25,6 +25,12 @@
     },
     "logging": {
         "level": "INFO",
-        "file": "rdf_import.log"
+        "file": "logs/app.log",
+        "format": "json",
+        "rotation": {
+            "enabled": true,
+            "max_mb": 20,
+            "backup_count": 10
+        }
     }
 }

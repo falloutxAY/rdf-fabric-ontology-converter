@@ -8,15 +8,15 @@ Validate TTL files before import to identify compatibility issues:
 
 ```powershell
 # Quick validation
-python src\main.py validate samples\sample_foaf_ontology.ttl --verbose
+python src\main.py rdf-validate samples\sample_foaf_ontology.ttl --verbose
 
 # Save detailed report
-python src\main.py validate samples\sample_foaf_ontology.ttl --output report.json
+python src\main.py rdf-validate samples\sample_foaf_ontology.ttl --output report.json
 ```
 
 **Upload with validation** (automatic):
 ```powershell
-python src\main.py upload my_ontology.ttl --name "MyOntology"
+python src\main.py rdf-upload my_ontology.ttl --name "MyOntology"
 # Creates import_log_<name>_<timestamp>.json in logs/ if issues detected
 
 # Skip validation: --skip-validation or --force

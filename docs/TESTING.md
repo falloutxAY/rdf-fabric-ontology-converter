@@ -3,7 +3,7 @@
 ## 🚀 Quick Start
 
 ```powershell
-# Run all tests (~333 tests)
+# Run all tests (~358 tests)
 python -m pytest tests/ -v
 
 # Or use the test runner
@@ -28,6 +28,10 @@ pytest -m slow           # Long-running tests
 | `test_validation.py` | Pre-flight validation, exporter, E2E | ~74 |
 | `conftest.py` | Shared fixtures and pytest markers | - |
 | `run_tests.py` | Test runner utility | - |
+| `fixtures/` | Centralized test fixtures | - |
+| `fixtures/ttl_fixtures.py` | RDF/TTL sample content | - |
+| `fixtures/dtdl_fixtures.py` | DTDL JSON samples | - |
+| `fixtures/config_fixtures.py` | Configuration samples | - |
 
 ### Pytest markers
 

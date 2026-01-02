@@ -1117,7 +1117,7 @@ class TestPathTraversalProtection:
     @pytest.fixture
     def validator(self):
         """Get InputValidator class"""
-        from rdf_converter import InputValidator
+        from core.validators import InputValidator
         return InputValidator
     
     def test_path_traversal_forward_slash_rejected(self, validator):
@@ -1240,7 +1240,7 @@ class TestSymlinkSecurityProtection:
     @pytest.fixture
     def validator(self):
         """Get InputValidator class"""
-        from rdf_converter import InputValidator
+        from core.validators import InputValidator
         return InputValidator
     
     @pytest.mark.skipif(
@@ -1330,7 +1330,7 @@ class TestConfigFilePathValidation:
     @pytest.fixture
     def validator(self):
         """Get InputValidator class"""
-        from rdf_converter import InputValidator
+        from core.validators import InputValidator
         return InputValidator
     
     def test_config_file_requires_json_extension(self, validator, tmp_path, monkeypatch):
@@ -1368,7 +1368,7 @@ class TestEnhancedErrorMessages:
     @pytest.fixture
     def validator(self):
         """Get InputValidator class"""
-        from rdf_converter import InputValidator
+        from core.validators import InputValidator
         return InputValidator
     
     def test_path_traversal_error_message_is_clear(self, validator):

@@ -116,6 +116,50 @@ print(result.get_summary())     # Human-readable summary
 
 ---
 
+## Core Utilities
+
+### `InputValidator`
+
+Centralized input validation with security checks. Located in `src/core/validators.py`.
+
+```python
+from src.core.validators import InputValidator
+
+# Validate file path with security checks
+validated_path = InputValidator.validate_file_path(
+    "ontology.ttl",
+    allowed_extensions=['.ttl', '.rdf'],
+    check_exists=True,
+    reject_symlinks=True  # Security: reject symlinks by default
+)
+
+# Validate TTL input file specifically
+validated_path = InputValidator.validate_input_ttl_path("ontology.ttl")
+
+# Validate JSON input file
+validated_path = InputValidator.validate_input_json_path("config.json")
+
+# Validate output file path
+validated_path = InputValidator.validate_output_file_path(
+    "output.ttl",
+    allowed_extensions=['.ttl']
+)
+
+# Validate TTL content
+content = InputValidator.validate_ttl_content(ttl_string)
+
+# Validate ID prefix
+prefix = InputValidator.validate_id_prefix(1000000000000)
+```
+
+**Security Features:**
+- Path traversal detection (`../` patterns)
+- Symlink detection and rejection
+- Extension validation
+- Directory boundary awareness
+
+---
+
 ## RDF Converter
 
 ### `RDFToFabricConverter`
@@ -284,7 +328,7 @@ Options:
 ### Import DTDL
 
 ```bash
-python -m src.main dtdl-import <path> [options]
+python -m src.main dtdl-upload <path> [options]
 
 Options:
   --ontology-name NAME  Ontology name
@@ -298,7 +342,7 @@ Options:
 
 ```bash
 # Validate TTL file
-python -m src.main validate <ttl_file>
+python -m src.main rdf-validate <ttl_file>
 
 # List ontologies
 python -m src.main list
@@ -310,11 +354,14 @@ python -m src.main get <ontology_id> [--with-definition]
 python -m src.main delete <ontology_id> [--force]
 
 # Export to TTL
-python -m src.main export <ontology_id> [--output FILE]
+python -m src.main rdf-export <ontology_id> [--output FILE]
 
 # Convert to JSON (without upload)
-python -m src.main convert <ttl_file> [--output FILE]
+python -m src.main rdf-convert <ttl_file> [--output FILE]
 ```
+
+> **Note:** Legacy command names without the `rdf-` prefix (e.g., `validate`, `upload`, `convert`, `export`)
+> and `dtdl-import` are deprecated but still work for backward compatibility.
 
 ---
 

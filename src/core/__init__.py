@@ -54,7 +54,7 @@ from .cancellation import (
 from .memory import MemoryManager
 
 # Input validation
-from .validators import InputValidator
+from .validators import InputValidator, URLValidator, ValidationRateLimiter
 
 # Re-export constants from parent module
 try:
@@ -100,6 +100,8 @@ __all__ = [
     "MemoryManager",
     # Input validation
     "InputValidator",
+    "URLValidator",
+    "ValidationRateLimiter",
     # Constants
     "ExitCode",
     "MemoryLimits",

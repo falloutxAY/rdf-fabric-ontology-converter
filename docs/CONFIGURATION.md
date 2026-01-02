@@ -210,6 +210,70 @@ Prevents cascading failures when the API is unhealthy.
 | `circuit_breaker.recovery_timeout` | float | 60.0 | Wait before attempting recovery |
 | `circuit_breaker.success_threshold` | integer | 2 | Successes to fully close circuit |
 
+### Local Validation Rate Limiting (Security)
+
+The `ValidationRateLimiter` protects against resource exhaustion when exposing validation as a service. Configure these when building validation endpoints or services.
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `requests_per_minute` | integer | 30 | Max validation requests per minute |
+| `max_content_size_mb` | float | 50 | Max content size in MB per validation |
+| `max_concurrent` | integer | 5 | Max concurrent validation operations |
+| `max_memory_percent` | float | 80 | Reject when system memory exceeds this % |
+| `enabled` | boolean | true | Enable/disable rate limiting |
+
+**Programmatic Usage:**
+
+```python
+from src.core.validators import ValidationRateLimiter
+
+# Configure rate limiter
+limiter = ValidationRateLimiter(
+    requests_per_minute=30,
+    max_content_size_mb=50,
+    max_concurrent=5,
+    max_memory_percent=80,
+)
+
+# Check before validation
+allowed, reason = limiter.check_validation_allowed(content)
+if not allowed:
+    return {"error": reason}, 429
+
+# Perform validation
+result = validate(content)
+```
+
+### URL Security (SSRF Protection)
+
+The `URLValidator` provides SSRF (Server-Side Request Forgery) protection for any URL handling.
+
+**Default Allowed Protocols:** `https` only
+**Default Allowed Ports:** `443`, `8443`
+**Blocked:** Private IPs (10.x.x.x, 192.168.x.x, 127.0.0.1, etc.), localhost
+
+**Trusted Ontology Domains (default):**
+- `w3.org`, `purl.org`, `schema.org`, `xmlns.com`
+- `github.com`, `raw.githubusercontent.com`
+
+**Programmatic Usage:**
+
+```python
+from src.core.validators import URLValidator
+
+# Basic validation
+url = URLValidator.validate_url("https://example.com/ontology.ttl")
+
+# Ontology-specific validation (trusted domains)
+url = URLValidator.validate_ontology_url("https://www.w3.org/2002/07/owl#")
+
+# Custom domain allowlist
+url = URLValidator.validate_url(
+    "https://internal.company.com/ontology.ttl",
+    allowed_domains=['company.com']
+)
+```
+
 ## Troubleshooting
 
 ### "Unauthorized" Error

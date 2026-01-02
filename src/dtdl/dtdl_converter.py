@@ -45,10 +45,8 @@ try:
         SkippedItem,
     )
 except ImportError:
-    # Fallback for direct script execution
-    import sys
-    sys.path.insert(0, str(Path(__file__).parent.parent))
-    from models import (
+    # Fallback for direct script execution without sys.path manipulation
+    from models import (  # type: ignore[import-not-found]
         EntityType,
         EntityTypeProperty,
         RelationshipType,

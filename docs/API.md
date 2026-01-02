@@ -160,6 +160,100 @@ prefix = InputValidator.validate_id_prefix(1000000000000)
 
 ---
 
+### `URLValidator`
+
+SSRF (Server-Side Request Forgery) protection for URL handling. Located in `src/core/validators.py`.
+
+```python
+from src.core.validators import URLValidator
+
+# Basic URL validation (HTTPS only by default)
+validated_url = URLValidator.validate_url("https://example.com/ontology.ttl")
+
+# Validate with domain allowlist
+validated_url = URLValidator.validate_url(
+    "https://w3.org/ontology.ttl",
+    allowed_domains=['w3.org', 'example.com']
+)
+
+# Validate ontology URL (uses trusted ontology domains)
+validated_url = URLValidator.validate_ontology_url("https://www.w3.org/2002/07/owl#")
+
+# Check if string is a URL
+is_url = URLValidator.is_url("https://example.com")  # True
+is_url = URLValidator.is_url("/local/path.ttl")      # False
+
+# Sanitize URL for logging (removes credentials/query params)
+safe_url = URLValidator.sanitize_url_for_logging("https://user:pass@example.com?secret=key")
+```
+
+**Security Features:**
+- Protocol validation (HTTPS only by default)
+- Private IP blocking (prevents access to 10.x.x.x, 192.168.x.x, 127.0.0.1, etc.)
+- Localhost blocking
+- Domain allowlist support
+- Port restriction (443, 8443 by default)
+
+**Default Trusted Ontology Domains:**
+- `w3.org` (W3C standards)
+- `purl.org` (Persistent URLs)
+- `schema.org` (Schema.org)
+- `xmlns.com` (XML namespaces)
+- `github.com`, `raw.githubusercontent.com` (GitHub)
+
+---
+
+### `ValidationRateLimiter`
+
+Rate limiter and resource guard for validation operations. Protects against resource exhaustion attacks. Located in `src/core/validators.py`.
+
+```python
+from src.core.validators import ValidationRateLimiter
+
+# Create limiter with default settings
+limiter = ValidationRateLimiter()
+
+# Create limiter with custom settings
+limiter = ValidationRateLimiter(
+    requests_per_minute=30,      # Max validations per minute
+    max_content_size_mb=50,      # Max content size in MB
+    max_concurrent=5,            # Max concurrent validations
+    max_memory_percent=80,       # Max system memory usage %
+)
+
+# Check if validation is allowed
+allowed, reason = limiter.check_validation_allowed(content)
+if not allowed:
+    raise ValueError(f"Validation not allowed: {reason}")
+
+# Use context manager for automatic tracking
+ctx = limiter.validation_context()
+ctx.check(content)
+with ctx:
+    if ctx.allowed:
+        result = validate_content(content)
+    else:
+        print(f"Blocked: {ctx.reason}")
+
+# Get statistics
+stats = limiter.get_statistics()
+print(f"Total validations: {stats['total_validations']}")
+print(f"Rejected (rate): {stats['rejected_rate_limit']}")
+print(f"Rejected (size): {stats['rejected_size']}")
+
+# Disable rate limiting (for testing)
+limiter = ValidationRateLimiter(enabled=False)
+```
+
+**Protection Features:**
+- Request rate limiting (requests per minute)
+- Content size limits (prevents processing extremely large files)
+- Memory usage monitoring (rejects when system memory is high)
+- Concurrent operation limits (prevents resource exhaustion)
+- Statistics tracking for monitoring
+
+---
+
 ## RDF Converter
 
 ### `RDFToFabricConverter`

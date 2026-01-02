@@ -9,6 +9,7 @@ The command classes are intentionally thin - they delegate actual work to
 the appropriate domain modules (rdf_converter, fabric_client, etc.).
 """
 
+import argparse
 import json
 import logging
 import os
@@ -182,7 +183,7 @@ class BaseCommand(ABC):
         setup_logging(config=log_config)
     
     @abstractmethod
-    def execute(self, args: Any) -> int:
+    def execute(self, args: argparse.Namespace) -> int:
         """
         Execute the command.
         
@@ -202,7 +203,7 @@ class BaseCommand(ABC):
 class ValidateCommand(BaseCommand):
     """Validate a TTL file for Fabric Ontology compatibility."""
     
-    def execute(self, args: Any) -> int:
+    def execute(self, args: argparse.Namespace) -> int:
         """Execute the validate command."""
         from rdf_converter import InputValidator
         from preflight_validator import validate_ttl_content
@@ -315,7 +316,7 @@ class ValidateCommand(BaseCommand):
 class UploadCommand(BaseCommand):
     """Upload an RDF TTL file to Fabric Ontology."""
     
-    def execute(self, args: Any) -> int:
+    def execute(self, args: argparse.Namespace) -> int:
         """Execute the upload command."""
         from rdf_converter import (
             InputValidator, parse_ttl_with_result, parse_ttl_streaming,
@@ -614,7 +615,7 @@ class UploadCommand(BaseCommand):
 class ListCommand(BaseCommand):
     """List all ontologies in the workspace."""
     
-    def execute(self, args: Any) -> int:
+    def execute(self, args: argparse.Namespace) -> int:
         """Execute the list command."""
         from fabric_client import FabricConfig, FabricOntologyClient, FabricAPIError
         
@@ -655,7 +656,7 @@ class ListCommand(BaseCommand):
 class GetCommand(BaseCommand):
     """Get details of a specific ontology."""
     
-    def execute(self, args: Any) -> int:
+    def execute(self, args: argparse.Namespace) -> int:
         """Execute the get command."""
         from fabric_client import FabricConfig, FabricOntologyClient, FabricAPIError
         
@@ -689,7 +690,7 @@ class GetCommand(BaseCommand):
 class DeleteCommand(BaseCommand):
     """Delete an ontology."""
     
-    def execute(self, args: Any) -> int:
+    def execute(self, args: argparse.Namespace) -> int:
         """Execute the delete command."""
         from fabric_client import FabricConfig, FabricOntologyClient, FabricAPIError
         
@@ -721,7 +722,7 @@ class DeleteCommand(BaseCommand):
 class TestCommand(BaseCommand):
     """Test the program with a sample ontology."""
     
-    def execute(self, args: Any) -> int:
+    def execute(self, args: argparse.Namespace) -> int:
         """Execute the test command."""
         from rdf_converter import InputValidator, parse_ttl_content
         from fabric_client import FabricConfig, FabricOntologyClient, FabricAPIError
@@ -809,7 +810,7 @@ class TestCommand(BaseCommand):
 class ConvertCommand(BaseCommand):
     """Convert TTL to Fabric Ontology definition without uploading."""
     
-    def execute(self, args: Any) -> int:
+    def execute(self, args: argparse.Namespace) -> int:
         """Execute the convert command."""
         from rdf_converter import (
             InputValidator, parse_ttl_with_result, parse_ttl_streaming,
@@ -958,7 +959,7 @@ class ConvertCommand(BaseCommand):
 class ExportCommand(BaseCommand):
     """Export an ontology from Fabric to TTL format."""
     
-    def execute(self, args: Any) -> int:
+    def execute(self, args: argparse.Namespace) -> int:
         """Execute the export command."""
         from rdf_converter import InputValidator
         from fabric_client import FabricConfig, FabricOntologyClient, FabricAPIError
@@ -1049,7 +1050,7 @@ class ExportCommand(BaseCommand):
 class CompareCommand(BaseCommand):
     """Compare two TTL files for semantic equivalence."""
     
-    def execute(self, args: Any) -> int:
+    def execute(self, args: argparse.Namespace) -> int:
         """Execute the compare command."""
         from rdf_converter import InputValidator
         from fabric_to_ttl import compare_ontologies
@@ -1142,7 +1143,7 @@ class CompareCommand(BaseCommand):
 class DTDLValidateCommand(BaseCommand):
     """Command to validate DTDL files."""
     
-    def execute(self, args) -> int:
+    def execute(self, args: argparse.Namespace) -> int:
         """Execute DTDL validation."""
         from pathlib import Path
         
@@ -1215,7 +1216,7 @@ class DTDLValidateCommand(BaseCommand):
 class DTDLConvertCommand(BaseCommand):
     """Command to convert DTDL to Fabric format."""
     
-    def execute(self, args) -> int:
+    def execute(self, args: argparse.Namespace) -> int:
         """Execute DTDL conversion."""
         from pathlib import Path
         import json
@@ -1292,7 +1293,7 @@ class DTDLConvertCommand(BaseCommand):
 class DTDLImportCommand(BaseCommand):
     """Command to import DTDL to Fabric Ontology (validate + convert + upload)."""
     
-    def execute(self, args) -> int:
+    def execute(self, args: argparse.Namespace) -> int:
         """Execute DTDL import pipeline."""
         from pathlib import Path
         import json

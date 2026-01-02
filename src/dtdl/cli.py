@@ -181,14 +181,14 @@ def upload_command(args: argparse.Namespace) -> int:
         0 on success, 1 on upload errors
     """
     # Import Fabric client from parent module
-    import sys
-    sys.path.insert(0, str(Path(__file__).parent.parent))
-    
     try:
-        from fabric_client import FabricOntologyClient
+        from ..fabric_client import FabricOntologyClient
     except ImportError:
-        logger.error("Could not import FabricOntologyClient. Ensure fabric_client.py is available.")
-        return 1
+        try:
+            from fabric_client import FabricOntologyClient
+        except ImportError:
+            logger.error("Could not import FabricOntologyClient. Ensure fabric_client.py is available.")
+            return 1
     
     definition_path = Path(args.definition)
     if not definition_path.exists():
@@ -310,14 +310,14 @@ def import_command(args: argparse.Namespace) -> int:
     else:
         logger.info("Step 4: Uploading to Fabric...")
         
-        import sys
-        sys.path.insert(0, str(Path(__file__).parent.parent))
-        
         try:
-            from fabric_client import FabricOntologyClient, FabricConfig
+            from ..fabric_client import FabricOntologyClient, FabricConfig
         except ImportError:
-            logger.error("Could not import FabricOntologyClient")
-            return 1
+            try:
+                from fabric_client import FabricOntologyClient, FabricConfig
+            except ImportError:
+                logger.error("Could not import FabricOntologyClient")
+                return 1
         
         # Load config from file
         config_path = args.config if hasattr(args, 'config') and args.config else str(Path(__file__).parent.parent / "config.json")

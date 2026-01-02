@@ -52,6 +52,107 @@ samples/          # Example RDF, DTDL, and CSV datasets
    ```
 6. **Push** to your fork and open a pull request against `main`.
 
+## 📝 Docstring Style Guide
+
+This project uses **Google-style docstrings** for all Python code. All public modules, classes, methods, and functions should have docstrings.
+
+### Module Docstrings
+
+```python
+"""Short one-line summary of module purpose.
+
+Longer description providing more context about the module's functionality,
+architecture, and key components. Can include multiple paragraphs.
+
+Example:
+    from mymodule import MyClass
+    
+    obj = MyClass()
+    result = obj.do_something()
+"""
+```
+
+### Function/Method Docstrings
+
+```python
+def my_function(param1: str, param2: int = 10) -> bool:
+    """Short one-line summary of function.
+    
+    More detailed description explaining what the function does,
+    any important behavior, and usage notes.
+    
+    Args:
+        param1: Description of param1. Should be concise but clear.
+        param2: Description of param2 with default value context.
+            Can use indentation for multi-line descriptions.
+    
+    Returns:
+        Description of the return value and its meaning.
+        Can span multiple lines if needed.
+    
+    Raises:
+        ValueError: When param1 is empty or invalid.
+        TypeError: When param2 is not an integer.
+    
+    Example:
+        >>> result = my_function("test", 20)
+        >>> print(result)
+        True
+    
+    Note:
+        Any additional notes, warnings, or important context.
+    """
+    pass
+```
+
+### Class Docstrings
+
+```python
+class MyClass:
+    """Short one-line summary of class purpose.
+    
+    Longer description of the class, its responsibilities,
+    and how it fits into the system architecture.
+    
+    Attributes:
+        attribute1: Description of public attribute1.
+        attribute2: Description of public attribute2.
+    
+    Example:
+        >>> obj = MyClass()
+        >>> obj.do_something()
+    """
+    
+    def __init__(self, param1: str):
+        """Initialize MyClass.
+        
+        Args:
+            param1: Description of initialization parameter.
+        """
+        self.attribute1 = param1
+```
+
+### Key Guidelines
+
+- **Always include docstrings** for public modules, classes, and functions
+- **Use present tense**: "Returns the result" not "Return the result"
+- **Be concise but clear**: First line should be a short summary
+- **Type hints in code**: Don't repeat type information from annotations in docstrings
+- **Examples help**: Include usage examples for complex APIs
+- **Document exceptions**: List all exceptions that callers should handle
+
+### Section Order
+
+1. Short summary (one line)
+2. Extended description (optional)
+3. Args (for functions/methods)
+4. Returns (for functions/methods)
+5. Raises (if applicable)
+6. Yields (for generators)
+7. Example (if helpful)
+8. Note/Warning (if applicable)
+
+
 ## ✅ Pull Request Checklist
 
 - [ ] Tests pass locally (`pytest`).

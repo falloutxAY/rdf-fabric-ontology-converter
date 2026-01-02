@@ -1,6 +1,5 @@
 # RDF and DTDL to Microsoft Fabric Ontology Converter
 
-[![CI](https://github.com/falloutxAY/rdf-fabric-ontology-converter/actions/workflows/ci.yml/badge.svg)](https://github.com/falloutxAY/rdf-fabric-ontology-converter/actions/workflows/ci.yml)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)

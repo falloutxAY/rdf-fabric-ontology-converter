@@ -25,7 +25,6 @@ This policy covers:
 
 - Source code in this repository
 - Sample data shipped with the project
-- GitHub Actions workflows and automation scripts
 
 ## Exclusions
 

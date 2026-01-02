@@ -12,7 +12,7 @@
 
 If you discover a security vulnerability, please do **not** create a public GitHub issue. Instead:
 
-1. Email the maintainers at `fabric-ontology-security@example.com` with the following details:
+1. Email the maintainers with the following details:
    - Description of the vulnerability
    - Steps to reproduce or proof-of-concept
    - Potential impact

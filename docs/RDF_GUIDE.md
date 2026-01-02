@@ -27,86 +27,48 @@ RDF/OWL is widely used for semantic web applications, knowledge graphs, and data
 
 ## RDF Commands
 
-### Validate RDF/TTL
+> **📘 For complete command reference, see [COMMANDS.md](COMMANDS.md#rdf-commands)**
 
-Validate RDF ontologies before conversion to catch syntax errors, missing declarations, and unsupported constructs.
+This section shows the typical workflow for working with RDF/TTL ontologies.
 
-```powershell
-# Validate a single TTL file
-python src\main.py rdf-validate path/to/ontology.ttl
-
-# Validate a directory of TTL files recursively
-python src\main.py rdf-validate path/to/ontologies/ --recursive --verbose
-
-# Save validation report to JSON
-python src\main.py rdf-validate path/to/ontology.ttl --output validation_report.json
-
-# Validate and save auto-named report
-python src\main.py rdf-validate path/to/ontology.ttl --save-report
-```
-
-**Validation checks performed:**
-- RDF syntax validation (Turtle format)
-- Prefix and namespace resolution
-- Class and property declarations
-- Domain/range consistency
-- Unsupported OWL construct detection
-- Fabric API compatibility checks
-- Large ontology warnings (>1000 entities)
-
-### Convert RDF/TTL (without upload)
-
-Convert RDF to Fabric JSON format for inspection without uploading to Fabric.
+### Quick Workflow
 
 ```powershell
-# Convert TTL to Fabric JSON format for inspection
-python src\main.py rdf-convert path/to/ontology.ttl --output fabric_output.json
+# 1. Validate your TTL file
+python src\main.py rdf-validate ontology.ttl --verbose
 
-# With custom namespace
-python src\main.py rdf-convert path/to/ontology.ttl --namespace myontology --output output.json
+# 2. Convert to Fabric JSON (optional - for inspection)
+python src\main.py rdf-convert ontology.ttl --output fabric_output.json
 
-# Batch convert directory
-python src\main.py rdf-convert path/to/ontologies/ --recursive --output converted/
+# 3. Upload to Fabric
+python src\main.py rdf-upload ontology.ttl --name "MyOntology"
+
+# 4. Export back to TTL (optional - for verification)
+python src\main.py rdf-export <ontology-id> --output exported.ttl
 ```
 
-### Import RDF/TTL to Fabric
+### Available Commands
 
-Full pipeline: validate → convert → upload to Microsoft Fabric Ontology.
+| Command | Purpose |
+|---------|----------|
+| `rdf-validate` | Validate TTL syntax and Fabric compatibility |
+| `rdf-convert` | Convert TTL to Fabric JSON (no upload) |
+| `rdf-upload` | Full pipeline: validate → convert → upload |
+| `rdf-export` | Export Fabric ontology to TTL format |
 
-```powershell
-# Full import: validate → convert → upload
-python src\main.py rdf-upload path/to/ontology.ttl --name "MyOntology"
+### Common Options
 
-# Dry run: validate and convert without uploading
-python src\main.py rdf-upload path/to/ontology.ttl --dry-run --output preview.json
+- `--recursive` - Process directories recursively
+- `--verbose` - Show detailed output
+- `--output` - Specify output file path
+- `--streaming` - Use memory-efficient mode for large files (>100MB)
+- `--config` - Use custom configuration file
 
-# With custom namespace
-python src\main.py rdf-upload path/to/ontology.ttl --namespace myontology --name "MyOntology"
-
-# Batch upload directory
-python src\main.py rdf-upload path/to/ontologies/ --recursive --name "MultiOntology"
-
-# Update existing ontology
-python src\main.py rdf-upload path/to/ontology.ttl --name "MyOntology" --update
-
-# Skip validation (not recommended)
-python src\main.py rdf-upload path/to/ontology.ttl --skip-validation --name "RiskyOntology"
-
-# Streaming mode for large files (memory-efficient)
-python src\main.py rdf-upload large_ontology.ttl --streaming --name "LargeOntology"
-```
-
-### Export Fabric to TTL
-
-Export existing Fabric ontology back to RDF/TTL format for sharing or round-trip validation.
-
-```powershell
-# Export ontology to TTL
-python src\main.py fabric-to-ttl --name "MyOntology" --output exported.ttl
-
-# Export with custom base URI
-python src\main.py fabric-to-ttl --name "MyOntology" --base-uri "http://example.com/ontology#" --output exported.ttl
-```
+**See [COMMANDS.md](COMMANDS.md#rdf-commands) for:**
+- Complete command syntax and all options
+- Batch processing examples
+- Streaming mode details
+- Advanced configuration
 
 ## RDF to Fabric Mapping
 

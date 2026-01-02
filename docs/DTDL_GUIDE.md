@@ -26,65 +26,46 @@ DTDL supports semantic modeling, inheritance, and type composition to create ric
 
 ## DTDL Commands
 
-### Validate DTDL
+> **📘 For complete command reference, see [COMMANDS.md](COMMANDS.md#dtdl-commands)**
 
-Validate DTDL models before conversion to catch schema errors, inheritance cycles, and missing references.
+This section shows the typical workflow for working with DTDL models.
 
-```powershell
-# Validate a single DTDL file
-python src\main.py dtdl-validate path/to/model.json
-
-# Validate a directory of DTDL files recursively
-python src\main.py dtdl-validate path/to/dtdl/ --recursive --verbose
-
-# Save validation report to JSON
-python src\main.py dtdl-validate path/to/dtdl/ --recursive --output validation_report.json
-```
-
-**Validation checks performed:**
-- DTMI format validation
-- JSON-LD context verification
-- Schema type checking
-- Inheritance cycle detection
-- Relationship target validation
-- Component schema validation
-- Large ontology warnings (>200 interfaces)
-
-### Convert DTDL (without upload)
-
-Convert DTDL to Fabric JSON format for inspection without uploading to Fabric.
+### Quick Workflow
 
 ```powershell
-# Convert DTDL to Fabric JSON format for inspection
-python src\main.py dtdl-convert path/to/dtdl/ --recursive --output fabric_output.json
+# 1. Validate your DTDL models
+python src\main.py dtdl-validate ./models/ --recursive --verbose
 
-# With custom namespace
-python src\main.py dtdl-convert path/to/dtdl/ --namespace customtypes --output output.json
+# 2. Convert to Fabric JSON (optional - for inspection)
+python src\main.py dtdl-convert ./models/ --recursive --output fabric_output.json
 
-# Flatten component properties into parent entities
-python src\main.py dtdl-convert path/to/dtdl/ --flatten-components --output flattened.json
+# 3. Upload to Fabric
+python src\main.py dtdl-upload ./models/ --recursive --ontology-name "MyDigitalTwin"
 ```
 
-### Import DTDL to Fabric
+### Available Commands
 
-Full pipeline: validate → convert → upload to Microsoft Fabric Ontology.
+| Command | Purpose |
+|---------|----------|
+| `dtdl-validate` | Validate DTDL schema and structure |
+| `dtdl-convert` | Convert DTDL to Fabric JSON (no upload) |
+| `dtdl-upload` | Full pipeline: validate → convert → upload |
 
-```powershell
-# Full import: validate → convert → upload
-python src\main.py dtdl-upload path/to/dtdl/ --recursive --ontology-name "MyDTDLOntology"
+### Common Options
 
-# Dry run: validate and convert without uploading
-python src\main.py dtdl-upload path/to/dtdl/ --recursive --dry-run --output preview.json
+- `--recursive` - Process directories recursively
+- `--verbose` - Show detailed interface information
+- `--output` - Specify output file path
+- `--ontology-name` - Set the ontology name
+- `--namespace` - Custom namespace (default: `usertypes`)
+- `--flatten-components` - Flatten component properties into parent entities
+- `--dry-run` - Convert without uploading
 
-# With custom namespace
-python src\main.py dtdl-upload path/to/dtdl/ --namespace customtypes --ontology-name "CustomOntology"
-
-# Flatten component properties into parent entities
-python src\main.py dtdl-upload path/to/dtdl/ --flatten-components --ontology-name "FlatOntology"
-
-# Skip validation (not recommended)
-python src\main.py dtdl-upload path/to/dtdl/ --skip-validation --ontology-name "RiskyOntology"
-```
+**See [COMMANDS.md](COMMANDS.md#dtdl-commands) for:**
+- Complete command syntax and all options
+- Component and command handling modes
+- Advanced configuration examples
+- Batch processing details
 
 ## DTDL to Fabric Mapping
 

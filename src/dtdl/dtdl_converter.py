@@ -31,6 +31,7 @@ from .dtdl_models import (
     DTDLArray,
     DTDLMap,
     DTDLPrimitiveSchema,
+    DTDLScaledDecimal,
 )
 
 # Import shared Fabric models
@@ -90,6 +91,8 @@ DTDL_TO_FABRIC_TYPE: Dict[str, str] = {
     "multiPoint": "String",
     "multiLineString": "String",
     "multiPolygon": "String",
+    # DTDL v4 Scaled Decimal (stored as JSON object with scale and value)
+    "scaledDecimal": "String",
 }
 
 
@@ -558,6 +561,10 @@ class DTDLToFabricConverter:
         
         if isinstance(schema, (DTDLObject, DTDLArray, DTDLMap)):
             # Complex types stored as JSON strings
+            return "String"
+        
+        if isinstance(schema, DTDLScaledDecimal):
+            # ScaledDecimal stored as JSON object string
             return "String"
         
         return "String"

@@ -107,7 +107,7 @@ The converter follows a layered architecture with clear separation of concerns:
 
 ### 2. Converter Layer
 
-#### 2.1 RDF Pipeline (`src/`)
+#### 2.1 RDF Pipeline (`src/` and `src/converters/`)
 
 **PreflightValidator** (`preflight_validator.py`)
 - Scans TTL files before conversion
@@ -115,15 +115,28 @@ The converter follows a layered architecture with clear separation of concerns:
 - Validates file size and estimates memory requirements
 - Generates detailed validation reports
 
-**RDFToFabricConverter** (`rdf_converter.py`)
-- Uses `rdflib` for RDF graph parsing
+**RDFToFabricConverter** (`rdf_converter.py`) - Facade/Orchestrator
+- Main entry point for RDF to Fabric conversion
+- Uses composition pattern delegating to extracted components:
+  - `converters/rdf_parser.py` - TTL parsing with memory management
+  - `converters/property_extractor.py` - Class/property extraction
+  - `converters/type_mapper.py` - XSD to Fabric type mapping
+  - `converters/uri_utils.py` - URI parsing and name extraction
+  - `converters/class_resolver.py` - OWL class expression resolution
+  - `converters/fabric_serializer.py` - Fabric API JSON serialization
 - Handles OWL/RDFS constructs:
   - `owl:Class` → EntityType
   - `owl:DatatypeProperty` → EntityTypeProperty
   - `owl:ObjectProperty` → RelationshipType
   - `rdfs:subClassOf` → inheritance
-- Type mapping via `converters/type_mapper.py`
-- URI resolution via `converters/uri_utils.py`
+
+**RDF Converter Components** (`src/converters/`)
+- `rdf_parser.py` - MemoryManager and RDFGraphParser for TTL parsing
+- `property_extractor.py` - ClassExtractor, DataPropertyExtractor, ObjectPropertyExtractor
+- `type_mapper.py` - TypeMapper for XSD to Fabric type mapping
+- `uri_utils.py` - URIUtils for URI parsing and name extraction
+- `class_resolver.py` - ClassResolver for OWL class expression resolution
+- `fabric_serializer.py` - FabricSerializer for Fabric API JSON creation
 
 **FabricToTTLExporter** (`fabric_to_ttl.py`)
 - Reverse conversion: Fabric → TTL
@@ -133,22 +146,28 @@ The converter follows a layered architecture with clear separation of concerns:
 #### 2.2 DTDL Pipeline (`src/dtdl/`)
 
 **DTDLParser** (`dtdl_parser.py`)
-- Parses DTDL v4 JSON files
-- Supports all DTDL primitive types
+- Parses DTDL v2, v3, and v4 JSON files
+- Supports all DTDL primitive types including v4 additions:
+  - `byte`, `bytes`, `decimal`, `short`, `uuid`
+  - Unsigned types: `unsignedByte`, `unsignedShort`, `unsignedInteger`, `unsignedLong`
+  - `scaledDecimal` for high-precision decimal values
 - Handles complex schemas (Array, Enum, Map, Object)
-- Resolves `extends` inheritance (max 12 levels)
+- Supports geospatial schemas: `point`, `lineString`, `polygon`, `multiPoint`, `multiLineString`, `multiPolygon`
+- Resolves `extends` inheritance (max 12 levels per v4 spec)
 
 **DTDLValidator** (`dtdl_validator.py`)
 - Validates DTMI format
 - Checks interface structure
 - Verifies relationship targets
 - Validates semantic types and units
+- Enforces v4 limits: 12 inheritance levels, 8 complex schema depth
 
 **DTDLToFabricConverter** (`dtdl_converter.py`)
 - Maps DTDL interfaces to EntityType
 - Converts properties and telemetry
 - Handles relationships with cardinality
 - Flattens components to properties
+- Maps `scaledDecimal` to JSON-encoded strings
 
 ### 3. Shared Models (`src/models/`)
 

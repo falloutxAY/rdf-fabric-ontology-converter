@@ -204,7 +204,7 @@ definition, name, result = parse_ttl_streaming(file_path, progress_callback=lamb
 
 ### `DTDLParser`
 
-Parses DTDL JSON files into typed models.
+Parses DTDL v2, v3, and v4 JSON files into typed models.
 
 ```python
 from src.dtdl import DTDLParser
@@ -226,11 +226,46 @@ result = parser.parse_string(json_content)
 - `errors: List[str]`
 - `success: bool`
 
+**Supported DTDL v4 Types:**
+- All v2/v3 primitives: `boolean`, `date`, `dateTime`, `double`, `duration`, `float`, `integer`, `long`, `string`, `time`
+- New v4 primitives: `byte`, `bytes`, `decimal`, `short`, `uuid`, `unsignedByte`, `unsignedShort`, `unsignedInteger`, `unsignedLong`
+- v4 `scaledDecimal` schema for high-precision decimals
+- Geospatial types: `point`, `lineString`, `polygon`, `multiPoint`, `multiLineString`, `multiPolygon`
+
+---
+
+### `DTDLScaledDecimal`
+
+Represents a DTDL v4 scaled decimal schema with arbitrary precision.
+
+```python
+from src.dtdl.dtdl_models import DTDLScaledDecimal
+
+# Create a scaled decimal schema for temperature with 2 decimal places
+schema = DTDLScaledDecimal(precision=10, scale=2)
+
+# Convert to DTDL dict representation
+dtdl_dict = schema.to_dict()
+# {'@type': 'ScaledDecimal', 'precision': 10, 'scale': 2}
+
+# Get JSON schema representation
+json_schema = schema.get_json_schema()
+# {'type': 'string', 'pattern': '^-?\\d+\\.\\d{2}$', 'description': 'Scaled decimal...'}
+```
+
+**Properties:**
+| Property | Type | Description |
+|----------|------|-------------|
+| `precision` | `int` | Total number of significant digits (must be > 0) |
+| `scale` | `int` | Digits after decimal point (0 ≤ scale ≤ precision) |
+
+**DTMI:** `dtmi:dtdl:instance:Schema:scaledDecimal;4`
+
 ---
 
 ### `DTDLValidator`
 
-Validates DTDL interfaces for correctness.
+Validates DTDL interfaces for correctness. Supports v4 validation limits.
 
 ```python
 from src.dtdl import DTDLValidator
@@ -249,6 +284,10 @@ else:
         print(error)
 ```
 
+**v4 Validation Limits:**
+- Maximum inheritance depth: 12 levels
+- Maximum complex schema nesting: 8 levels
+
 ---
 
 ### `DTDLToFabricConverter`
@@ -266,6 +305,20 @@ converter = DTDLToFabricConverter(
 result = converter.convert(interfaces)
 definition = converter.to_fabric_definition(result, "my_ontology")
 ```
+
+**v4 Type Mappings:**
+| DTDL v4 Type | Fabric ValueType |
+|--------------|------------------|
+| `scaledDecimal` | `string` (JSON-encoded) |
+| `byte` | `integer` |
+| `bytes` | `binary` |
+| `decimal` | `string` |
+| `short` | `integer` |
+| `uuid` | `string` |
+| `unsignedByte` | `integer` |
+| `unsignedShort` | `integer` |
+| `unsignedInteger` | `integer` |
+| `unsignedLong` | `integer` |
 
 ---
 
@@ -305,6 +358,133 @@ result = client.create_or_update_ontology(
 
 # Delete
 client.delete_ontology(ontology_id)
+```
+
+---
+
+## RDF Converter Components
+
+The RDF conversion functionality has been modularized for better maintainability. The following components are available in `src/converters/`:
+
+### `MemoryManager`
+
+Manages memory usage during RDF parsing to prevent out-of-memory crashes.
+
+```python
+from src.converters import MemoryManager
+
+# Check if enough memory is available to parse a file
+can_proceed, message = MemoryManager.check_memory_available(
+    file_size_mb=100.0,
+    force=False
+)
+
+if can_proceed:
+    print(f"Memory OK: {message}")
+else:
+    print(f"Insufficient memory: {message}")
+
+# Get current memory status
+available_mb = MemoryManager.get_available_memory_mb()
+process_mb = MemoryManager.get_memory_usage_mb()
+
+# Log memory status for debugging
+MemoryManager.log_memory_status("After parsing")
+```
+
+### `RDFGraphParser`
+
+Handles TTL/RDF parsing with memory safety checks.
+
+```python
+from src.converters import RDFGraphParser
+
+# Parse TTL content with memory safety
+graph, triple_count, size_mb = RDFGraphParser.parse_ttl_content(
+    ttl_content,
+    force_large_file=False
+)
+
+# Parse TTL file with memory safety
+graph, triple_count, size_mb = RDFGraphParser.parse_ttl_file(
+    "ontology.ttl",
+    force_large_file=False
+)
+```
+
+### `ClassExtractor`
+
+Extracts OWL/RDFS classes as entity types.
+
+```python
+from src.converters import ClassExtractor
+
+entity_types, uri_to_id = ClassExtractor.extract_classes(
+    graph,
+    id_generator=lambda: str(counter := counter + 1),
+    uri_to_name=lambda uri: uri.split('/')[-1]
+)
+```
+
+### `DataPropertyExtractor`
+
+Extracts data properties and assigns them to entity types.
+
+```python
+from src.converters import DataPropertyExtractor
+
+property_to_domain, uri_to_id = DataPropertyExtractor.extract_data_properties(
+    graph,
+    entity_types,
+    id_generator,
+    uri_to_name
+)
+```
+
+### `ObjectPropertyExtractor`
+
+Extracts object properties as relationship types.
+
+```python
+from src.converters import ObjectPropertyExtractor
+
+relationship_types, uri_to_id = ObjectPropertyExtractor.extract_object_properties(
+    graph,
+    entity_types,
+    property_to_domain,
+    id_generator,
+    uri_to_name,
+    skip_callback=lambda type, name, reason, uri: print(f"Skipped {name}: {reason}")
+)
+```
+
+### `EntityIdentifierSetter`
+
+Sets entity ID parts and display name properties for entity types.
+
+```python
+from src.converters import EntityIdentifierSetter
+
+# Modifies entity_types in place
+EntityIdentifierSetter.set_identifiers(entity_types)
+```
+
+### Other Converter Utilities
+
+```python
+from src.converters import TypeMapper, URIUtils, ClassResolver, FabricSerializer
+
+# Type mapping
+fabric_type = TypeMapper.get_fabric_type("http://www.w3.org/2001/XMLSchema#string")
+
+# URI utilities  
+name = URIUtils.uri_to_name(uri, fallback_counter=1)
+
+# Class resolution (for union/intersection types)
+targets = ClassResolver.resolve_class_targets(graph, node)
+
+# Fabric JSON serialization
+definition = FabricSerializer.create_definition(entity_types, relationship_types, "MyOntology")
 ```
 
 ---

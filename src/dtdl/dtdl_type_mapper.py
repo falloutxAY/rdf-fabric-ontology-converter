@@ -16,6 +16,7 @@ from .dtdl_models import (
     DTDLArray,
     DTDLMap,
     DTDLField,
+    DTDLScaledDecimal,
 )
 
 
@@ -59,6 +60,9 @@ PRIMITIVE_TYPE_MAP: Dict[str, FabricValueType] = {
     "float": FabricValueType.DOUBLE,
     "double": FabricValueType.DOUBLE,
     "decimal": FabricValueType.DOUBLE,
+    
+    # Scaled Decimal (DTDL v4) - stored as JSON object with scale and value
+    "scaledDecimal": FabricValueType.STRING,
     
     # Strings
     "string": FabricValueType.STRING,
@@ -158,7 +162,7 @@ class DTDLTypeMapper:
     
     def map_schema(
         self,
-        schema: Union[str, DTDLEnum, DTDLObject, DTDLArray, DTDLMap, Any],
+        schema: Union[str, DTDLEnum, DTDLObject, DTDLArray, DTDLMap, DTDLScaledDecimal, Any],
         semantic_type: Optional[str] = None,
         unit: Optional[str] = None
     ) -> TypeMappingResult:
@@ -187,6 +191,9 @@ class DTDLTypeMapper:
         
         if isinstance(schema, DTDLObject):
             return self._map_object(schema)
+        
+        if isinstance(schema, DTDLScaledDecimal):
+            return self._map_scaled_decimal(schema, semantic_type, unit)
         
         # Unknown schema type - default to string
         return TypeMappingResult(
@@ -318,6 +325,37 @@ class DTDLTypeMapper:
             fabric_type=FabricValueType.STRING,
             is_complex=True,
             original_schema="Object",
+            json_schema=json_schema,
+        )
+    
+    def _map_scaled_decimal(
+        self,
+        scaled_decimal: DTDLScaledDecimal,
+        semantic_type: Optional[str] = None,
+        unit: Optional[str] = None
+    ) -> TypeMappingResult:
+        """
+        Map a DTDL v4 ScaledDecimal to Fabric type.
+        
+        ScaledDecimal is stored as a JSON object with 'scale' and 'value' fields,
+        so it maps to String in Fabric (JSON encoded).
+        
+        Args:
+            scaled_decimal: The ScaledDecimal schema
+            semantic_type: Optional semantic type annotation
+            unit: Optional unit annotation
+            
+        Returns:
+            TypeMappingResult with mapping details
+        """
+        json_schema = DTDLScaledDecimal.get_json_schema()
+        
+        return TypeMappingResult(
+            fabric_type=FabricValueType.STRING,
+            is_complex=True,
+            semantic_type=semantic_type,
+            unit=unit,
+            original_schema="scaledDecimal",
             json_schema=json_schema,
         )
     

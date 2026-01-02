@@ -9,12 +9,21 @@ Components:
 - uri_utils: URI parsing and name extraction  
 - class_resolver: OWL class/union resolution
 - fabric_serializer: Fabric API JSON serialization
+- rdf_parser: TTL parsing with memory management
+- property_extractor: Class/property extraction from RDF graphs
 """
 
 from .type_mapper import TypeMapper, XSD_TO_FABRIC_TYPE
 from .uri_utils import URIUtils
 from .class_resolver import ClassResolver
 from .fabric_serializer import FabricSerializer
+from .rdf_parser import MemoryManager, RDFGraphParser
+from .property_extractor import (
+    ClassExtractor,
+    DataPropertyExtractor,
+    ObjectPropertyExtractor,
+    EntityIdentifierSetter,
+)
 
 __all__ = [
     'TypeMapper',
@@ -22,4 +31,10 @@ __all__ = [
     'URIUtils',
     'ClassResolver',
     'FabricSerializer',
+    'MemoryManager',
+    'RDFGraphParser',
+    'ClassExtractor',
+    'DataPropertyExtractor',
+    'ObjectPropertyExtractor',
+    'EntityIdentifierSetter',
 ]

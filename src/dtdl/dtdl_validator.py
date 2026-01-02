@@ -22,6 +22,7 @@ from .dtdl_models import (
     DTDLComponent,
     DTDLCommand,
     DTDLPrimitiveSchema,
+    DTDLScaledDecimal,
 )
 
 logger = logging.getLogger(__name__)
@@ -477,6 +478,9 @@ class DTDLValidator:
                     dtmi=dtmi,
                     field=field,
                 ))
+        elif isinstance(schema, DTDLScaledDecimal):
+            # ScaledDecimal is a valid DTDL v4 schema type
+            pass  # No additional validation needed
     
     def _validate_schema_definition(
         self,

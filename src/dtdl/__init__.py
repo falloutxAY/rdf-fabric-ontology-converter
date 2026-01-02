@@ -36,6 +36,10 @@ from .dtdl_models import (
     DTDLArray,
     DTDLMap,
     DTDLContext,
+    DTDLScaledDecimal,
+    DTDLPrimitiveSchema,
+    GEOSPATIAL_SCHEMA_DTMIS,
+    SCALED_DECIMAL_SCHEMA_DTMI,
 )
 
 from .dtdl_parser import DTDLParser
@@ -65,6 +69,11 @@ __all__ = [
     'DTDLArray',
     'DTDLMap',
     'DTDLContext',
+    'DTDLScaledDecimal',
+    'DTDLPrimitiveSchema',
+    # DTDL v4 Schema DTMIs
+    'GEOSPATIAL_SCHEMA_DTMIS',
+    'SCALED_DECIMAL_SCHEMA_DTMI',
     # Core classes
     'DTDLParser',
     'DTDLValidator',

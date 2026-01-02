@@ -35,6 +35,7 @@ from .dtdl_models import (
     DTDLMapValue,
     DTDLField,
     DTDLSchema,
+    DTDLScaledDecimal,
 )
 
 logger = logging.getLogger(__name__)
@@ -557,6 +558,9 @@ class DTDLParser:
             return "string"  # Default to string
         
         if isinstance(schema, str):
+            # Handle scaledDecimal as a string reference (DTDL v4)
+            if schema == "scaledDecimal":
+                return DTDLScaledDecimal()
             return schema  # Primitive type or DTMI reference
         
         if isinstance(schema, dict):

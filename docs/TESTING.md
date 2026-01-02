@@ -3,7 +3,7 @@
 ## 🚀 Quick Start
 
 ```powershell
-# Run all tests (~358 tests)
+# Run all tests (~367 tests)
 python -m pytest tests/ -v
 
 # Or use the test runner
@@ -23,6 +23,7 @@ pytest -m slow           # Long-running tests
 | File | Purpose | Est. Tests |
 |------|----------|------------|
 | `test_converter.py` | Core RDF conversion, type mapping | ~90 |
+| `test_dtdl.py` | DTDL parsing, validation, conversion, v4 features | ~31 |
 | `test_resilience.py` | Rate limiter, circuit breaker, cancellation | ~107 |
 | `test_fabric_client.py` | Fabric API client, streaming converter | ~62 |
 | `test_validation.py` | Pre-flight validation, exporter, E2E | ~74 |
@@ -121,6 +122,19 @@ High-level coverage includes:
 - Resilience (rate limiter, circuit breaker, retries)
 - Fabric client behavior and streaming converter
 - Validation, exporter, and end-to-end flows
+- **DTDL v4 features** (scaledDecimal, new primitive types, validation limits)
+
+### DTDL v4 Test Coverage
+
+The `TestDTDLv4Features` class in `test_dtdl.py` validates:
+- Primitive type parsing (byte, bytes, decimal, short, uuid, unsigned types)
+- `scaledDecimal` schema parsing and validation
+- Geospatial schema DTMIs with v4 version suffix
+- Inheritance depth limits (max 12 levels)
+- Complex schema depth limits (max 8 levels)
+- `scaledDecimal` to Fabric conversion (mapped to JSON string)
+- DTDLScaledDecimal model methods (`to_dict()`, `get_json_schema()`)
+- Nullable command payload support
 
 ## Adding new tests
 

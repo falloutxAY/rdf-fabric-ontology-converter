@@ -27,6 +27,10 @@ from src.dtdl import (
     DTDLObject,
     DTDLArray,
     FabricValueType,
+    DTDLScaledDecimal,
+    DTDLPrimitiveSchema,
+    GEOSPATIAL_SCHEMA_DTMIS,
+    SCALED_DECIMAL_SCHEMA_DTMI,
 )
 
 
@@ -444,6 +448,236 @@ class TestIntegration:
         
         # Should have multiple entities and relationships
         assert len(conversion.entity_types) > 0
+
+
+class TestDTDLv4Features:
+    """Tests for DTDL v4 specific features."""
+    
+    @pytest.fixture
+    def parser(self):
+        return DTDLParser()
+    
+    @pytest.fixture
+    def validator(self):
+        return DTDLValidator()
+    
+    @pytest.fixture
+    def mapper(self):
+        return DTDLTypeMapper()
+    
+    @pytest.fixture
+    def converter(self):
+        return DTDLToFabricConverter()
+    
+    def test_parse_scaled_decimal_property(self, parser):
+        """Test parsing an interface with scaledDecimal schema (DTDL v4)."""
+        json_data = {
+            "@context": "dtmi:dtdl:context;4",
+            "@id": "dtmi:com:example:MeasurementDevice;1",
+            "@type": "Interface",
+            "displayName": "Measurement Device",
+            "contents": [
+                {
+                    "@type": "Telemetry",
+                    "name": "distance",
+                    "schema": "scaledDecimal"
+                }
+            ]
+        }
+        
+        result = parser.parse_string(json.dumps(json_data))
+        
+        assert len(result.interfaces) == 1
+        assert len(result.errors) == 0
+        
+        interface = result.interfaces[0]
+        telemetry = interface.telemetries[0]
+        assert telemetry.name == "distance"
+        assert isinstance(telemetry.schema, DTDLScaledDecimal)
+    
+    def test_parse_v4_primitive_types(self, parser):
+        """Test parsing DTDL v4 primitive types."""
+        json_data = {
+            "@context": "dtmi:dtdl:context;4",
+            "@id": "dtmi:com:example:DataTypes;1",
+            "@type": "Interface",
+            "contents": [
+                {"@type": "Property", "name": "byteProp", "schema": "byte"},
+                {"@type": "Property", "name": "shortProp", "schema": "short"},
+                {"@type": "Property", "name": "bytesProp", "schema": "bytes"},
+                {"@type": "Property", "name": "decimalProp", "schema": "decimal"},
+                {"@type": "Property", "name": "uuidProp", "schema": "uuid"},
+                {"@type": "Property", "name": "unsignedByteProp", "schema": "unsignedByte"},
+                {"@type": "Property", "name": "unsignedShortProp", "schema": "unsignedShort"},
+                {"@type": "Property", "name": "unsignedIntegerProp", "schema": "unsignedInteger"},
+                {"@type": "Property", "name": "unsignedLongProp", "schema": "unsignedLong"},
+            ]
+        }
+        
+        result = parser.parse_string(json.dumps(json_data))
+        
+        assert len(result.interfaces) == 1
+        assert len(result.errors) == 0
+        assert len(result.interfaces[0].properties) == 9
+    
+    def test_map_scaled_decimal_type(self, mapper):
+        """Test type mapping for scaledDecimal."""
+        scaled_decimal = DTDLScaledDecimal()
+        result = mapper.map_schema(scaled_decimal)
+        
+        assert result.fabric_type == FabricValueType.STRING
+        assert result.is_complex
+        assert result.original_schema == "scaledDecimal"
+        assert result.json_schema is not None
+        assert "scale" in result.json_schema.get("properties", {})
+        assert "value" in result.json_schema.get("properties", {})
+    
+    def test_map_v4_primitive_types(self, mapper):
+        """Test type mapping for DTDL v4 primitive types."""
+        # All integer types should map to BigInt
+        assert mapper.map_schema("byte").fabric_type == FabricValueType.BIG_INT
+        assert mapper.map_schema("short").fabric_type == FabricValueType.BIG_INT
+        assert mapper.map_schema("unsignedByte").fabric_type == FabricValueType.BIG_INT
+        assert mapper.map_schema("unsignedShort").fabric_type == FabricValueType.BIG_INT
+        assert mapper.map_schema("unsignedInteger").fabric_type == FabricValueType.BIG_INT
+        assert mapper.map_schema("unsignedLong").fabric_type == FabricValueType.BIG_INT
+        
+        # Decimal should map to Double
+        assert mapper.map_schema("decimal").fabric_type == FabricValueType.DOUBLE
+        
+        # UUID and bytes should map to String
+        assert mapper.map_schema("uuid").fabric_type == FabricValueType.STRING
+        assert mapper.map_schema("bytes").fabric_type == FabricValueType.STRING
+    
+    def test_validate_scaled_decimal_property(self, validator):
+        """Test validation of scaledDecimal properties."""
+        interface = DTDLInterface(
+            dtmi="dtmi:com:example:Device;1",
+            contents=[
+                DTDLTelemetry(name="measurement", schema=DTDLScaledDecimal())
+            ]
+        )
+        
+        result = validator.validate([interface])
+        
+        # Should not have validation errors for scaledDecimal
+        scaled_decimal_errors = [
+            e for e in result.errors 
+            if "scaledDecimal" in e.message.lower()
+        ]
+        assert len(scaled_decimal_errors) == 0
+    
+    def test_convert_scaled_decimal_property(self, converter, parser):
+        """Test conversion of scaledDecimal properties to Fabric format."""
+        json_data = {
+            "@context": "dtmi:dtdl:context;4",
+            "@id": "dtmi:com:example:Sensor;1",
+            "@type": "Interface",
+            "contents": [
+                {
+                    "@type": "Telemetry",
+                    "name": "preciseReading",
+                    "schema": "scaledDecimal"
+                }
+            ]
+        }
+        
+        result = parser.parse_string(json.dumps(json_data))
+        conversion = converter.convert(result.interfaces)
+        
+        assert len(conversion.entity_types) == 1
+        entity = conversion.entity_types[0]
+        
+        # Telemetry goes to timeseriesProperties, not regular properties
+        ts_props = [p for p in entity.timeseriesProperties if p.name == "preciseReading"]
+        assert len(ts_props) == 1
+        # ScaledDecimal should map to String (JSON encoded)
+        assert ts_props[0].valueType == "String"
+    
+    def test_parse_command_with_nullable_request_response(self, parser):
+        """Test parsing a command with nullable request/response (DTDL v4)."""
+        json_data = {
+            "@context": "dtmi:dtdl:context;4",
+            "@id": "dtmi:com:example:Device;1",
+            "@type": "Interface",
+            "contents": [
+                {
+                    "@type": "Command",
+                    "name": "optionalCommand",
+                    "request": {
+                        "name": "optionalInput",
+                        "schema": "string",
+                        "nullable": True
+                    },
+                    "response": {
+                        "name": "optionalOutput",
+                        "schema": "integer",
+                        "nullable": True
+                    }
+                }
+            ]
+        }
+        
+        result = parser.parse_string(json.dumps(json_data))
+        
+        assert len(result.interfaces) == 1
+        command = result.interfaces[0].commands[0]
+        assert command.request.nullable is True
+        assert command.response.nullable is True
+    
+    def test_geospatial_schema_dtmis(self):
+        """Test that geospatial schema DTMIs are properly defined for v4."""
+        expected_schemas = [
+            "point", "lineString", "polygon",
+            "multiPoint", "multiLineString", "multiPolygon"
+        ]
+        
+        for schema in expected_schemas:
+            assert schema in GEOSPATIAL_SCHEMA_DTMIS
+            assert GEOSPATIAL_SCHEMA_DTMIS[schema].endswith(";4")
+    
+    def test_scaled_decimal_schema_dtmi(self):
+        """Test that scaledDecimal schema DTMI is properly defined."""
+        assert SCALED_DECIMAL_SCHEMA_DTMI == "dtmi:standard:schema:scaledDecimal;4"
+    
+    def test_primitive_schema_enum_includes_v4_types(self):
+        """Test that DTDLPrimitiveSchema enum includes all v4 types."""
+        v4_types = [
+            "byte", "bytes", "decimal", "short",
+            "unsignedByte", "unsignedInteger", "unsignedLong", "unsignedShort",
+            "uuid", "scaledDecimal"
+        ]
+        
+        enum_values = [e.value for e in DTDLPrimitiveSchema]
+        
+        for v4_type in v4_types:
+            assert v4_type in enum_values, f"Missing DTDL v4 type: {v4_type}"
+    
+    def test_v4_context_version_parsing(self, parser):
+        """Test that DTDL v4 context is properly parsed."""
+        json_data = {
+            "@context": "dtmi:dtdl:context;4",
+            "@id": "dtmi:com:example:Device;1",
+            "@type": "Interface",
+            "contents": []
+        }
+        
+        result = parser.parse_string(json.dumps(json_data))
+        
+        assert len(result.interfaces) == 1
+        interface = result.interfaces[0]
+        assert interface.context is not None
+        assert interface.context.dtdl_version == 4
+    
+    def test_v4_inheritance_depth_limit(self, validator):
+        """Test that v4 inheritance depth limit (12) is enforced."""
+        # DTDL v4 allows max 12 levels of inheritance
+        assert validator.MAX_EXTENDS_DEPTH == 12
+    
+    def test_v4_complex_schema_depth_limit(self, validator):
+        """Test that v4 complex schema depth limit (8) is enforced."""
+        # DTDL v4 allows max 8 levels of nested complex schemas
+        assert validator.MAX_COMPLEX_SCHEMA_DEPTH == 8
 
 
 if __name__ == "__main__":

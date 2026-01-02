@@ -38,13 +38,29 @@ class DTDLPrimitiveSchema(str, Enum):
     UNSIGNED_LONG = "unsignedLong"
     UNSIGNED_SHORT = "unsignedShort"
     UUID = "uuid"
-    # Geospatial schemas
+    # Geospatial schemas (DTDL v4)
     POINT = "point"
     LINE_STRING = "lineString"
     POLYGON = "polygon"
     MULTI_POINT = "multiPoint"
     MULTI_LINE_STRING = "multiLineString"
     MULTI_POLYGON = "multiPolygon"
+    # Scaled Decimal (DTDL v4)
+    SCALED_DECIMAL = "scaledDecimal"
+
+
+# DTDL v4 Geospatial Schema DTMIs
+GEOSPATIAL_SCHEMA_DTMIS = {
+    "point": "dtmi:standard:schema:geospatial:point;4",
+    "lineString": "dtmi:standard:schema:geospatial:lineString;4",
+    "polygon": "dtmi:standard:schema:geospatial:polygon;4",
+    "multiPoint": "dtmi:standard:schema:geospatial:multiPoint;4",
+    "multiLineString": "dtmi:standard:schema:geospatial:multiLineString;4",
+    "multiPolygon": "dtmi:standard:schema:geospatial:multiPolygon;4",
+}
+
+# DTDL v4 Scaled Decimal Schema DTMI
+SCALED_DECIMAL_SCHEMA_DTMI = "dtmi:standard:schema:scaledDecimal;4"
 
 
 # =============================================================================
@@ -297,8 +313,64 @@ class DTDLMap:
     comment: Optional[str] = None
 
 
+@dataclass
+class DTDLScaledDecimal:
+    """
+    Represents a DTDL v4 Scaled Decimal schema.
+    
+    The scaledDecimal schema type combines a decimal value with an explicit scale,
+    useful for representing very large or small values efficiently.
+    
+    Structure:
+        - scale: Count of decimal places to shift value (positive left, negative right)
+        - value: The significand of the scaled decimal value (as decimal string)
+    
+    Example JSON representation:
+        {
+            "distance": {
+                "scale": 7,
+                "value": "1234.56"
+            }
+        }
+        This represents the value 12345600000.
+    
+    Attributes:
+        dtmi: Optional @id
+        display_name: Optional display name
+        description: Optional description
+        comment: Optional comment for model authors
+    """
+    dtmi: Optional[str] = None
+    display_name: Optional[Union[str, Dict[str, str]]] = None
+    description: Optional[Union[str, Dict[str, str]]] = None
+    comment: Optional[str] = None
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialize to dictionary."""
+        # scaledDecimal is referenced by name, not as a complex type definition
+        return "scaledDecimal"
+    
+    @staticmethod
+    def get_json_schema() -> Dict[str, Any]:
+        """Get JSON Schema representation for scaledDecimal values."""
+        return {
+            "type": "object",
+            "properties": {
+                "scale": {
+                    "type": "integer",
+                    "description": "Count of decimal places to shift value (positive left, negative right)"
+                },
+                "value": {
+                    "type": "string",
+                    "description": "The significand as a decimal string"
+                }
+            },
+            "required": ["scale", "value"]
+        }
+
+
 # Type alias for any schema
-DTDLSchema = Union[str, DTDLObject, DTDLArray, DTDLEnum, DTDLMap]
+DTDLSchema = Union[str, DTDLObject, DTDLArray, DTDLEnum, DTDLMap, DTDLScaledDecimal]
 
 
 # =============================================================================

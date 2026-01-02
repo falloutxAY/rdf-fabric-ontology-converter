@@ -279,7 +279,7 @@ python src\main.py dtdl-upload path/to/dtdl/ --flatten-components --ontology-nam
 
 ### Supported DTDL Features
 
-- ✅ DTDL v2 and v3 contexts
+- ✅ DTDL v2, v3, and v4 contexts
 - ✅ Properties with primitive and complex types
 - ✅ Telemetry (mapped to timeseries properties)
 - ✅ Relationships with target constraints
@@ -287,6 +287,13 @@ python src\main.py dtdl-upload path/to/dtdl/ --flatten-components --ontology-nam
 - ✅ Components (with flatten option)
 - ✅ Semantic types (@type annotations)
 - ✅ Display names and descriptions
+- ✅ **DTDL v4 Features:**
+  - New primitive types: `byte`, `bytes`, `decimal`, `short`, `uuid`
+  - Unsigned integer types: `unsignedByte`, `unsignedShort`, `unsignedInteger`, `unsignedLong`
+  - `scaledDecimal` schema type for high-precision decimal values
+  - Geospatial schemas: `point`, `lineString`, `polygon`, `multiPoint`, `multiLineString`, `multiPolygon`
+  - Command request/response `nullable` property
+  - Increased inheritance depth (12 levels) and complex schema depth (8 levels)
 
 ### DTDL Validation Checks
 

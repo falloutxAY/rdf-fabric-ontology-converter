@@ -5,13 +5,18 @@ This document provides detailed API documentation for the RDF/DTDL to Microsoft 
 ## Table of Contents
 
 - [Package Structure](#package-structure)
-- [Core Modules](#core-modules)
-- [Core Utilities](#core-utilities)
-- [Streaming Engine](#streaming-engine)
-- [RDF Converter](#rdf-converter)
-- [DTDL Converter](#dtdl-converter)
+- [Core Infrastructure](#core-infrastructure)
+  - [Data Models](#data-models)
+  - [Validators](#validators)
+  - [Streaming Engine](#streaming-engine)
+- [RDF/OWL Conversion](#rdfowl-conversion)
+  - [RDF Converter](#rdf-converter)
+  - [RDF Components](#rdf-components)
+- [DTDL Conversion](#dtdl-conversion)
+  - [DTDL Parser](#dtdl-parser)
+  - [DTDL Validator](#dtdl-validator)
+  - [DTDL to Fabric Converter](#dtdl-to-fabric-converter)
 - [Fabric Client](#fabric-client)
-- [RDF Converter Components](#rdf-converter-components)
 - [CLI Commands](#cli-commands)
 - [Error Handling](#error-handling)
 - [Type Mappings](#type-mappings)
@@ -45,9 +50,13 @@ from src.core import FabricConfig
 
 ---
 
-## Core Modules
+## Core Infrastructure
 
-### `src.models` — Shared Data Models
+Shared components used by both RDF and DTDL converters.
+
+### Data Models
+
+#### `src.models` — Shared Data Models
 
 #### `EntityType`
 
@@ -157,9 +166,9 @@ print(result.get_summary())     # Human-readable summary
 
 ---
 
-## Core Utilities
+### Validators
 
-### `InputValidator`
+#### `InputValidator`
 
 Centralized input validation with security checks. Located in `src/core/validators.py`.
 
@@ -201,7 +210,7 @@ prefix = InputValidator.validate_id_prefix(1000000000000)
 
 ---
 
-### `URLValidator`
+#### `URLValidator`
 
 SSRF (Server-Side Request Forgery) protection for URL handling. Located in `src/core/validators.py`.
 
@@ -244,7 +253,7 @@ safe_url = URLValidator.sanitize_url_for_logging("https://user:pass@example.com?
 
 ---
 
-### `ValidationRateLimiter`
+#### `ValidationRateLimiter`
 
 Rate limiter and resource guard for validation operations. Protects against resource exhaustion attacks. Located in `src/core/validators.py`.
 
@@ -295,7 +304,7 @@ limiter = ValidationRateLimiter(enabled=False)
 
 ---
 
-### `FabricLimitsValidator`
+#### `FabricLimitsValidator`
 
 Validates Fabric Ontology definitions against API limits and constraints. Located in `src/core/validators.py`.
 
@@ -368,7 +377,7 @@ class FabricLimitValidationError:
 
 ---
 
-### `EntityIdPartsInferrer`
+#### `EntityIdPartsInferrer`
 
 Intelligently infers and sets `entityIdParts` for entity types. Located in `src/core/validators.py`.
 
@@ -429,11 +438,11 @@ display_prop_id = inferrer.set_display_name_property(entity)
 
 ---
 
-## Streaming Engine
+### Streaming Engine
 
 The streaming engine provides a unified infrastructure for memory-efficient processing of large ontology files in both RDF (TTL) and DTDL (JSON) formats. Located in `src/core/streaming.py`.
 
-### Overview
+#### Overview
 
 ```python
 from src.core.streaming import (
@@ -453,7 +462,7 @@ if should_use_streaming("large_ontology.ttl", threshold_mb=100):
     print("Consider using streaming mode")
 ```
 
-### `StreamConfig`
+#### `StreamConfig`
 
 Configuration for streaming operations.
 
@@ -478,7 +487,7 @@ if config.should_use_streaming(file_size_mb=150.0):
     use_streaming_mode()
 ```
 
-### `StreamingEngine`
+#### `StreamingEngine`
 
 Main orchestrator for streaming operations.
 
@@ -516,7 +525,7 @@ else:
     print(f"Error: {result.error_message}")
 ```
 
-### `StreamResult`
+#### `StreamResult`
 
 Container for streaming operation results.
 
@@ -530,7 +539,7 @@ from src.core.streaming import StreamResult
 # - error_message: Error description if failed
 ```
 
-### `StreamStats`
+#### `StreamStats`
 
 Statistics collected during streaming.
 
@@ -547,7 +556,7 @@ print(stats.duration_seconds)    # Processing time
 print(stats.get_summary())       # Human-readable summary
 ```
 
-### RDF Streaming
+#### RDF Streaming
 
 ```python
 from src.core.streaming import (
@@ -576,7 +585,7 @@ conversion_result = adapter.convert_streaming(
 )
 ```
 
-### DTDL Streaming
+#### DTDL Streaming
 
 ```python
 from src.core.streaming import (
@@ -606,7 +615,7 @@ adapter = DTDLStreamAdapter(
 conversion_result = adapter.convert_streaming("./large_models/")
 ```
 
-### Custom Streaming Implementation
+#### Custom Streaming Implementation
 
 Extend the base classes for custom formats:
 
@@ -652,7 +661,7 @@ engine = StreamingEngine(
 )
 ```
 
-### Utility Functions
+#### Utility Functions
 
 ```python
 from src.core.streaming import should_use_streaming, get_streaming_threshold
@@ -667,9 +676,13 @@ threshold = get_streaming_threshold()  # Default: 100 MB
 
 ---
 
-## RDF Converter
+## RDF/OWL Conversion
 
-### `RDFToFabricConverter`
+Components for converting RDF/OWL/TTL ontologies to Fabric format.
+
+### RDF Converter
+
+#### `RDFToFabricConverter`
 
 Converts RDF/TTL ontologies to Fabric format.
 
@@ -688,14 +701,14 @@ definition, ontology_name, result = parse_ttl_with_result(
 )
 ```
 
-#### Methods
+**Methods:**
 
 | Method | Parameters | Returns | Description |
 |--------|------------|---------|-------------|
 | `parse_ttl(content)` | `str` | `Tuple[List[EntityType], List[RelationshipType]]` | Parse TTL string |
 | `parse_ttl_file(path)` | `str` | Same as above | Parse TTL file |
 
-#### Convenience Functions
+**Convenience Functions:**
 
 ```python
 # Basic parsing
@@ -707,9 +720,140 @@ definition, name, result = parse_ttl_streaming(file_path, progress_callback=lamb
 
 ---
 
-## DTDL Converter
+### RDF Components
 
-### `DTDLParser`
+The RDF conversion functionality has been modularized for better maintainability. The following components are available in `src/rdf/`:
+
+#### `MemoryManager`
+
+Manages memory usage during RDF parsing to prevent out-of-memory crashes.
+
+```python
+from rdf import MemoryManager
+
+# Check if enough memory is available to parse a file
+can_proceed, message = MemoryManager.check_memory_available(
+    file_size_mb=100.0,
+    force=False
+)
+
+if can_proceed:
+    print(f"Memory OK: {message}")
+else:
+    print(f"Insufficient memory: {message}")
+
+# Get current memory status
+available_mb = MemoryManager.get_available_memory_mb()
+process_mb = MemoryManager.get_memory_usage_mb()
+
+# Log memory status for debugging
+MemoryManager.log_memory_status("After parsing")
+```
+
+#### `RDFGraphParser`
+
+Handles TTL/RDF parsing with memory safety checks.
+
+```python
+from rdf import RDFGraphParser
+
+# Parse TTL content with memory safety
+graph, triple_count, size_mb = RDFGraphParser.parse_ttl_content(
+    ttl_content,
+    force_large_file=False
+)
+
+# Parse TTL file with memory safety
+graph, triple_count, size_mb = RDFGraphParser.parse_ttl_file(
+    "ontology.ttl",
+    force_large_file=False
+)
+```
+
+#### `ClassExtractor`
+
+Extracts OWL/RDFS classes as entity types.
+
+```python
+from rdf import ClassExtractor
+
+entity_types, uri_to_id = ClassExtractor.extract_classes(
+    graph,
+    id_prefix,
+    uri_to_name=lambda uri: uri.split('/')[-1]
+)
+```
+
+#### `DataPropertyExtractor`
+
+Extracts data properties and assigns them to entity types.
+
+```python
+from rdf import DataPropertyExtractor
+
+property_to_domain, uri_to_id = DataPropertyExtractor.extract_data_properties(
+    graph,
+    entity_types,
+    id_prefix,
+    uri_to_name
+)
+```
+
+#### `ObjectPropertyExtractor`
+
+Extracts object properties as relationship types.
+
+```python
+from rdf import ObjectPropertyExtractor
+
+relationship_types, uri_to_id = ObjectPropertyExtractor.extract_object_properties(
+    graph,
+    entity_types,
+    id_prefix,
+    uri_to_id_map,
+    uri_to_name,
+    skip_callback=lambda type, name, reason, uri: print(f"Skipped {name}: {reason}")
+)
+```
+
+#### `EntityIdentifierSetter`
+
+Sets entity ID parts and display name properties for entity types.
+
+```python
+from rdf import EntityIdentifierSetter
+
+# Modifies entity_types in place
+EntityIdentifierSetter.set_identifiers(entity_types)
+```
+
+#### Other Converter Utilities
+
+```python
+from rdf import TypeMapper, URIUtils, ClassResolver, FabricSerializer
+
+# Type mapping
+fabric_type = TypeMapper.get_fabric_type("http://www.w3.org/2001/XMLSchema#string")
+
+# URI utilities  
+name = URIUtils.uri_to_name(uri, fallback_counter=1)
+
+# Class resolution (for union/intersection types)
+targets = ClassResolver.resolve_class_targets(graph, node)
+
+# Fabric JSON serialization
+definition = FabricSerializer.create_definition(entity_types, relationship_types, "MyOntology")
+```
+
+---
+
+## DTDL Conversion
+
+Components for converting DTDL (Digital Twins Definition Language) v2/v3/v4 models to Fabric format.
+
+### DTDL Parser
+
+#### `DTDLParser`
 
 Parses DTDL v2, v3, and v4 JSON files into typed models.
 
@@ -741,7 +885,7 @@ result = parser.parse_string(json_content)
 
 ---
 
-### `DTDLScaledDecimal`
+#### `DTDLScaledDecimal`
 
 Represents a DTDL v4 scaled decimal schema with arbitrary precision.
 
@@ -770,7 +914,9 @@ json_schema = schema.get_json_schema()
 
 ---
 
-### `DTDLValidator`
+### DTDL Validator
+
+#### `DTDLValidator`
 
 Validates DTDL interfaces for correctness. Supports v4 validation limits.
 
@@ -797,7 +943,9 @@ else:
 
 ---
 
-### `DTDLToFabricConverter`
+### DTDL to Fabric Converter
+
+#### `DTDLToFabricConverter`
 
 Converts DTDL interfaces to Fabric format with configurable handling of Components, Commands, and scaledDecimal.
 
@@ -838,7 +986,7 @@ definition = converter.to_fabric_definition(result, "my_ontology")
 | `flatten_components` | `bool` | `False` | DEPRECATED: Use `component_mode=FLATTEN` |
 | `include_commands` | `bool` | `False` | DEPRECATED: Use `command_mode=PROPERTY` |
 
-#### `ComponentMode` Enum
+**`ComponentMode` Enum:**
 
 | Value | Behavior |
 |-------|----------|
@@ -846,7 +994,7 @@ definition = converter.to_fabric_definition(result, "my_ontology")
 | `FLATTEN` | Properties merged into parent with `{component}_` prefix |
 | `SEPARATE` | Creates separate EntityType with `has_{component}` relationship |
 
-#### `CommandMode` Enum
+**`CommandMode` Enum:**
 
 | Value | Behavior |
 |-------|----------|
@@ -854,7 +1002,7 @@ definition = converter.to_fabric_definition(result, "my_ontology")
 | `PROPERTY` | Creates `command_{name}` String property |
 | `ENTITY` | Creates `Command_{name}` EntityType with request/response properties |
 
-#### `ScaledDecimalMode` Enum
+**`ScaledDecimalMode` Enum:**
 
 | Value | Behavior |
 |-------|----------|
@@ -862,7 +1010,7 @@ definition = converter.to_fabric_definition(result, "my_ontology")
 | `STRUCTURED` | Creates `{prop}_scale` (BigInt) and `{prop}_value` (String) properties |
 | `CALCULATED` | Calculates `value × 10^scale` and stores as Double |
 
-#### `ScaledDecimalValue` Class
+**`ScaledDecimalValue` Class:**
 
 Helper class for working with scaledDecimal values.
 
@@ -895,6 +1043,8 @@ json_obj = sd.to_json_object()
 ---
 
 ## Fabric Client
+
+HTTP client for interacting with Microsoft Fabric Ontology API.
 
 ### `FabricOntologyClient`
 
@@ -934,168 +1084,38 @@ client.delete_ontology(ontology_id)
 
 ---
 
-## RDF Converter Components
-
-The RDF conversion functionality has been modularized for better maintainability. The following components are available in `src/rdf/`:
-
-### `MemoryManager`
-
-Manages memory usage during RDF parsing to prevent out-of-memory crashes.
-
-```python
-from rdf import MemoryManager
-
-# Check if enough memory is available to parse a file
-can_proceed, message = MemoryManager.check_memory_available(
-    file_size_mb=100.0,
-    force=False
-)
-
-if can_proceed:
-    print(f"Memory OK: {message}")
-else:
-    print(f"Insufficient memory: {message}")
-
-# Get current memory status
-available_mb = MemoryManager.get_available_memory_mb()
-process_mb = MemoryManager.get_memory_usage_mb()
-
-# Log memory status for debugging
-MemoryManager.log_memory_status("After parsing")
-```
-
-### `RDFGraphParser`
-
-Handles TTL/RDF parsing with memory safety checks.
-
-```python
-from rdf import RDFGraphParser
-
-# Parse TTL content with memory safety
-graph, triple_count, size_mb = RDFGraphParser.parse_ttl_content(
-    ttl_content,
-    force_large_file=False
-)
-
-# Parse TTL file with memory safety
-graph, triple_count, size_mb = RDFGraphParser.parse_ttl_file(
-    "ontology.ttl",
-    force_large_file=False
-)
-```
-
-### `ClassExtractor`
-
-Extracts OWL/RDFS classes as entity types.
-
-```python
-from rdf import ClassExtractor
-
-entity_types, uri_to_id = ClassExtractor.extract_classes(
-    graph,
-    id_generator=lambda: str(counter := counter + 1),
-    uri_to_name=lambda uri: uri.split('/')[-1]
-)
-```
-
-### `DataPropertyExtractor`
-
-Extracts data properties and assigns them to entity types.
-
-```python
-from rdf import DataPropertyExtractor
-
-property_to_domain, uri_to_id = DataPropertyExtractor.extract_data_properties(
-    graph,
-    entity_types,
-    id_generator,
-    uri_to_name
-)
-```
-
-### `ObjectPropertyExtractor`
-
-Extracts object properties as relationship types.
-
-```python
-from rdf import ObjectPropertyExtractor
-
-relationship_types, uri_to_id = ObjectPropertyExtractor.extract_object_properties(
-    graph,
-    entity_types,
-    property_to_domain,
-    id_generator,
-    uri_to_name,
-    skip_callback=lambda type, name, reason, uri: print(f"Skipped {name}: {reason}")
-)
-```
-
-### `EntityIdentifierSetter`
-
-Sets entity ID parts and display name properties for entity types.
-
-```python
-from rdf import EntityIdentifierSetter
-
-# Modifies entity_types in place
-EntityIdentifierSetter.set_identifiers(entity_types)
-```
-
-### Other Converter Utilities
-
-```python
-from rdf import TypeMapper, URIUtils, ClassResolver, FabricSerializer
-
-# Type mapping
-fabric_type = TypeMapper.get_fabric_type("http://www.w3.org/2001/XMLSchema#string")
-
-# URI utilities  
-name = URIUtils.uri_to_name(uri, fallback_counter=1)
-
-# Class resolution (for union/intersection types)
-targets = ClassResolver.resolve_class_targets(graph, node)
-
-# Fabric JSON serialization
-definition = FabricSerializer.create_definition(entity_types, relationship_types, "MyOntology")
-```
-
----
-
 ## CLI Commands
 
-### Import RDF
+The converter provides a comprehensive command-line interface for importing, validating, and managing ontologies. For detailed documentation on all available commands, options, and usage patterns, see [COMMANDS.md](COMMANDS.md).
 
+### Quick Reference
+
+**RDF/OWL Operations:**
 ```bash
-python -m src.main import <ttl_file> [options]
+# Import TTL/RDF ontology
+python -m src.main import <ttl_file> [--name NAME] [--streaming]
 
-Options:
-  --name NAME           Ontology name (default: extracted from file)
-  --description DESC    Description
-  --config PATH         Configuration file path
-  --force               Skip confirmations
-  --streaming           Use streaming mode for large files
-  --skip-validation     Skip pre-flight validation
-```
-
-### Import DTDL
-
-```bash
-python -m src.main dtdl-upload <path> [options]
-
-Options:
-  --ontology-name NAME  Ontology name
-  --namespace NS        Target namespace (default: usertypes)
-  --recursive           Parse subdirectories
-  --dry-run             Convert but don't upload
-  --config PATH         Configuration file
-```
-
-### Other Commands
-
-```bash
 # Validate TTL file
 python -m src.main rdf-validate <ttl_file>
 
+# Convert to JSON (without upload)
+python -m src.main rdf-convert <ttl_file> [--output FILE]
+
+# Export to TTL
+python -m src.main rdf-export <ontology_id> [--output FILE]
+```
+
+**DTDL Operations:**
+```bash
+# Import DTDL models
+python -m src.main dtdl-upload <path> [--ontology-name NAME] [--recursive]
+
+# Validate DTDL models
+python -m src.main dtdl-validate <path> [--recursive]
+```
+
+**Ontology Management:**
+```bash
 # List ontologies
 python -m src.main list
 
@@ -1104,16 +1124,9 @@ python -m src.main get <ontology_id> [--with-definition]
 
 # Delete ontology
 python -m src.main delete <ontology_id> [--force]
-
-# Export to TTL
-python -m src.main rdf-export <ontology_id> [--output FILE]
-
-# Convert to JSON (without upload)
-python -m src.main rdf-convert <ttl_file> [--output FILE]
 ```
 
-> **Note:** Legacy command names without the `rdf-` prefix (e.g., `validate`, `upload`, `convert`, `export`)
-> and `dtdl-import` are deprecated but still work for backward compatibility.
+> **Note:** See [COMMANDS.md](COMMANDS.md) for complete documentation including all options, examples, and advanced usage patterns.
 
 ---
 

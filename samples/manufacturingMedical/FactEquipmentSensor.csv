@@ -1,7 +1,0 @@
-MeasurementId,EquipmentId,MeasurementType,MeasurementValue,MeasurementUnit,MeasurementTimestamp
-SM1001,EQ01,BarrelTemperature,210.5,C,2025-01-10T06:10:00Z
-SM1002,EQ01,BarrelTemperature,212.0,C,2025-01-10T06:20:00Z
-SM1003,EQ02,VisionRejectRate,4.5,Percent,2025-01-11T10:20:00Z
-SM1004,EQ02,VisionRejectRate,5.0,Percent,2025-01-11T10:40:00Z
-SM2001,EQ04,ExtrusionPressure,120.0,Bar,2025-01-12T08:00:00Z
-SM3001,EQ05,SealTemperature,180.0,C,2025-01-13T09:15:00Z

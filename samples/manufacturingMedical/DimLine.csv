@@ -1,5 +1,0 @@
-LineId,LineName,LineType,PlantId
-LN01,Syringe Line 1,Assembly,PLT01
-LN02,Syringe Line 2,Assembly,PLT01
-LN03,Catheter Line A,Extrusion,PLT02
-LN04,Diagnostics Line D1,Packaging,PLT03

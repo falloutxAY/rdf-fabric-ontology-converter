@@ -1,6 +1,0 @@
-EquipmentId,EquipmentName,EquipmentType,Manufacturer,LineId
-EQ01,Injection Molder 1,Molding,OEM_A,LN01
-EQ02,Vision Inspection Cell 1,Inspection,OEM_B,LN01
-EQ03,Packaging Machine 2,Packaging,OEM_C,LN02
-EQ04,Extruder 3,Extrusion,OEM_D,LN03
-EQ05,Sealer D1,Sealing,OEM_E,LN04

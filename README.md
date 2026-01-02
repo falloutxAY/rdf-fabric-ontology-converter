@@ -16,8 +16,6 @@ This is a **personal project** and is **not an official Microsoft product**. It 
 - **DTDL Import** – Convert Azure Digital Twins models (v2/v3/v4)
 - **Export & Compare** – Export Fabric ontologies back to TTL for verification
 - **Pre-flight Validation** – Check compatibility before upload
-- **Streaming Support** – Memory-efficient processing for large files
-- **Resilience** – Rate limiting, circuit breaker, and retry logic
 
 ## Table of Contents
 
@@ -178,5 +176,4 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) for deta
 
 - [Microsoft Fabric Documentation](https://learn.microsoft.com/fabric/)
 - [Fabric Ontology REST API](https://learn.microsoft.com/rest/api/fabric/ontology/items)
-- [Azure Digital Twins DTDL](https://learn.microsoft.com/azure/digital-twins/concepts-models)
 - [RDFLib](https://github.com/RDFLib/rdflib)

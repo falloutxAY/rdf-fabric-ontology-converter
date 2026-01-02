@@ -1,4 +1,0 @@
-MaintenanceEventId,EquipmentId,MaintenanceType,MaintenanceStart,MaintenanceEnd
-MEQ1001,EQ01,Planned Preventive,2025-01-09T20:00:00Z,2025-01-09T22:00:00Z
-MEQ1002,EQ02,Unplanned Corrective,2025-01-11T11:00:00Z,2025-01-11T13:00:00Z
-MEQ2001,EQ04,Planned Preventive,2025-01-12T18:00:00Z,2025-01-12T20:00:00Z

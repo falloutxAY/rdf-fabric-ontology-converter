@@ -1,4 +1,0 @@
-QualityEventId,BatchId,EquipmentId,QualityEventType,Severity,NonConformanceRate,EventTimestamp
-QE1001,BATCH1002,EQ02,Visual Defect,High,0.045,2025-01-11T10:30:00Z
-QE1002,BATCH1001,EQ01,Dimensional Out-of-Spec,Medium,0.01,2025-01-10T09:15:00Z
-QE2001,BATCH2001,EQ04,Scrap Spike,Medium,0.02,2025-01-12T11:45:00Z

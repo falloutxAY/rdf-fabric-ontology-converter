@@ -32,8 +32,8 @@ This document provides a comprehensive reference for all CLI commands available 
 | **Conversion** | `rdf-convert` | `dtdl-convert` | Both support batch processing |
 | `--recursive` | ✓ | ✓ | Batch convert multiple files |
 | `--output` | ✓ | ✓ | Specify output path |
-| `--streaming` | ✓ | N/A | RDF-specific: memory-efficient mode |
-| `--force-memory` | ✓ | N/A | RDF-specific: skip memory checks |
+| `--streaming` | ✓ | ✓ | Memory-efficient mode for large files |
+| `--force-memory` | ✓ | ✓ | Skip memory checks |
 | `--ontology-name` | N/A | ✓ | DTDL-specific: set ontology name |
 | `--namespace` | N/A | ✓ | DTDL-specific: entity namespace |
 | `--flatten-components` | N/A | ✓ | DTDL-specific: flatten components |
@@ -47,7 +47,8 @@ This document provides a comprehensive reference for all CLI commands available 
 | `--force` | ✓ | N/A | Skip confirmation prompts |
 | `--dry-run` | N/A | ✓ | Convert without uploading |
 | `--skip-validation` | ✓ | N/A | Skip pre-flight validation |
-| `--streaming` | ✓ | N/A | Memory-efficient mode |
+| `--streaming` | ✓ | ✓ | Memory-efficient mode |
+| `--force-memory` | ✓ | ✓ | Skip memory safety checks |
 | **Export** | `rdf-export` | N/A | Export from Fabric to TTL |
 
 ## RDF Commands
@@ -203,6 +204,9 @@ python -m src.main dtdl-convert ./models/ --save-mapping
 
 # Flatten components into parent entities
 python -m src.main dtdl-convert ./models/ --flatten-components
+
+# Use streaming mode for large files
+python -m src.main dtdl-convert large_models.json --streaming
 ```
 
 **Options:**
@@ -214,6 +218,8 @@ python -m src.main dtdl-convert ./models/ --flatten-components
 | `--recursive` | `-r` | Recursively search directories |
 | `--flatten-components` | | Flatten component properties into parent |
 | `--save-mapping` | | Save DTMI to Fabric ID mapping file |
+| `--streaming` | `-s` | Use streaming mode for large files (>100MB) |
+| `--force-memory` | | Skip memory safety checks |
 
 ### dtdl-upload
 
@@ -240,6 +246,8 @@ python -m src.main dtdl-upload ./models/ --namespace custom_ns
 | `--flatten-components` | | Flatten component properties into parent |
 | `--dry-run` | | Convert but do not upload |
 | `--output` | `-o` | Output file path for dry-run mode |
+| `--streaming` | `-s` | Use streaming mode for large files |
+| `--force-memory` | | Skip memory safety checks |
 
 ## Common Commands
 
@@ -310,6 +318,19 @@ python -m src.main rdf-upload large_ontology.ttl --streaming
 
 # Force memory checks off (use with caution)
 python -m src.main rdf-convert huge_ontology.ttl --force-memory
+```
+
+### Streaming for DTDL Files
+
+```bash
+# Convert large DTDL file with streaming
+python -m src.main dtdl-convert large_models.json --streaming
+
+# Upload with streaming mode
+python -m src.main dtdl-upload ./large_models/ --ontology-name MyOntology --streaming
+
+# Force memory checks off (use with caution)
+python -m src.main dtdl-convert huge_models.json --force-memory
 ```
 
 ### Streaming Architecture

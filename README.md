@@ -107,11 +107,15 @@ python src\main.py dtdl-upload <path> --recursive --ontology-name "MyDTDL"
 ### Large File Support
 
 ```powershell
-# Use streaming mode for files >100MB
+# Use streaming mode for files >100MB (RDF)
 python src\main.py rdf-upload <large_file.ttl> --streaming
+
+# Use streaming mode for files >100MB (DTDL)
+python src\main.py dtdl-upload <path> --streaming --ontology-name "MyDTDL"
 
 # Force processing for files >500MB (bypass memory checks)
 python src\main.py rdf-upload <huge_file.ttl> --force-memory
+python src\main.py dtdl-convert <large_models> --force-memory
 ```
 
 For the complete command reference, see [docs/COMMANDS.md](docs/COMMANDS.md).

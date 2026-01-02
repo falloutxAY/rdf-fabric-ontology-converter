@@ -111,6 +111,21 @@ def convert_command(args: argparse.Namespace) -> int:
     from .dtdl_converter import DTDLToFabricConverter
     
     path = Path(args.path)
+    use_streaming = getattr(args, 'streaming', False)
+    force_memory = getattr(args, 'force_memory', False)
+    
+    # Check file size for streaming suggestion
+    if path.is_file():
+        file_size_mb = path.stat().st_size / (1024 * 1024)
+        if file_size_mb > 100 and not use_streaming and not force_memory:
+            logger.warning(f"Large file detected ({file_size_mb:.1f} MB). Consider using --streaming.")
+    
+    logger.info(f"Converting DTDL at: {path}")
+    
+    # Use streaming mode if requested
+    if use_streaming:
+        return _convert_with_streaming(args, path)
+    
     parser = DTDLParser()
     validator = DTDLValidator()
     converter = DTDLToFabricConverter(
@@ -118,8 +133,6 @@ def convert_command(args: argparse.Namespace) -> int:
         flatten_components=args.flatten_components,
         include_commands=args.include_commands,
     )
-    
-    logger.info(f"Converting DTDL at: {path}")
     
     # Parse
     try:
@@ -171,6 +184,86 @@ def convert_command(args: argparse.Namespace) -> int:
         logger.info(f"  DTMI mapping saved to: {mapping_path}")
     
     return 0
+
+
+def _convert_with_streaming(args: argparse.Namespace, path: Path) -> int:
+    """
+    Convert DTDL files using streaming mode for memory efficiency.
+    
+    Args:
+        args: Command arguments
+        path: Path to DTDL file or directory
+        
+    Returns:
+        0 on success, non-zero on error
+    """
+    try:
+        from ..core.streaming import (
+            StreamingEngine,
+            DTDLStreamReader,
+            DTDLChunkProcessor,
+            StreamConfig,
+        )
+    except ImportError:
+        try:
+            from core.streaming import (
+                StreamingEngine,
+                DTDLStreamReader,
+                DTDLChunkProcessor,
+                StreamConfig,
+            )
+        except ImportError:
+            logger.error("Streaming module not available. Try without --streaming.")
+            return 1
+    
+    logger.info("Using streaming mode for conversion...")
+    
+    # Configure streaming
+    config = StreamConfig(
+        chunk_size=10000,
+        memory_threshold_mb=100.0,
+        enable_progress=True,
+    )
+    
+    # Create streaming engine
+    engine = StreamingEngine(
+        reader=DTDLStreamReader(),
+        processor=DTDLChunkProcessor(
+            namespace=args.namespace,
+            flatten_components=args.flatten_components,
+        ),
+        config=config
+    )
+    
+    def progress_callback(items_processed: int) -> None:
+        if items_processed % 1000 == 0:
+            logger.info(f"  Processed {items_processed:,} items...")
+    
+    try:
+        result = engine.process_file(
+            str(path),
+            progress_callback=progress_callback
+        )
+        
+        if not result.success:
+            logger.error(f"Streaming conversion failed: {result.error}")
+            return 1
+        
+        # Generate output
+        output_path = Path(args.output) if args.output else Path("fabric_ontology.json")
+        
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(result.data, f, indent=2)
+        
+        logger.info(f"Streaming conversion complete!")
+        logger.info(result.stats.get_summary())
+        logger.info(f"  Output: {output_path}")
+        
+        return 0
+        
+    except Exception as e:
+        logger.error(f"Streaming conversion error: {e}")
+        return 1
 
 
 def upload_command(args: argparse.Namespace) -> int:
@@ -245,8 +338,20 @@ def import_command(args: argparse.Namespace) -> int:
     from .dtdl_converter import DTDLToFabricConverter
     
     path = Path(args.path)
+    use_streaming = getattr(args, 'streaming', False)
+    force_memory = getattr(args, 'force_memory', False)
     
     logger.info(f"=== DTDL Import: {path} ===")
+    
+    # Check file size for streaming suggestion
+    if path.is_file():
+        file_size_mb = path.stat().st_size / (1024 * 1024)
+        if file_size_mb > 100 and not use_streaming and not force_memory:
+            logger.warning(f"Large file detected ({file_size_mb:.1f} MB). Consider using --streaming.")
+    
+    # Use streaming mode if requested
+    if use_streaming:
+        return _import_with_streaming(args, path)
     
     # Step 1: Parse
     logger.info("Step 1: Parsing DTDL files...")
@@ -349,6 +454,124 @@ def import_command(args: argparse.Namespace) -> int:
     return 0
 
 
+def _import_with_streaming(args: argparse.Namespace, path: Path) -> int:
+    """
+    Import DTDL files using streaming mode for memory efficiency.
+    
+    Args:
+        args: Command arguments
+        path: Path to DTDL file or directory
+        
+    Returns:
+        0 on success, non-zero on error
+    """
+    try:
+        from ..core.streaming import (
+            StreamingEngine,
+            DTDLStreamReader,
+            DTDLChunkProcessor,
+            StreamConfig,
+        )
+    except ImportError:
+        try:
+            from core.streaming import (
+                StreamingEngine,
+                DTDLStreamReader,
+                DTDLChunkProcessor,
+                StreamConfig,
+            )
+        except ImportError:
+            logger.error("Streaming module not available. Try without --streaming.")
+            return 1
+    
+    logger.info("Using streaming mode for import...")
+    
+    # Configure streaming
+    config = StreamConfig(
+        chunk_size=10000,
+        memory_threshold_mb=100.0,
+        enable_progress=True,
+    )
+    
+    # Create streaming engine
+    engine = StreamingEngine(
+        reader=DTDLStreamReader(),
+        processor=DTDLChunkProcessor(
+            namespace=getattr(args, 'namespace', 'usertypes') or 'usertypes',
+            flatten_components=getattr(args, 'flatten_components', False),
+        ),
+        config=config
+    )
+    
+    def progress_callback(items_processed: int) -> None:
+        if items_processed % 1000 == 0:
+            logger.info(f"  Processed {items_processed:,} items...")
+    
+    try:
+        result = engine.process_file(
+            str(path),
+            progress_callback=progress_callback
+        )
+        
+        if not result.success:
+            logger.error(f"Streaming conversion failed: {result.error}")
+            return 1
+        
+        definition = result.data
+        logger.info(f"Streaming conversion complete!")
+        logger.info(result.stats.get_summary())
+        
+    except Exception as e:
+        logger.error(f"Streaming conversion error: {e}")
+        return 1
+    
+    # Handle dry-run or upload
+    if getattr(args, 'dry_run', False):
+        logger.info("Dry run - skipping upload")
+        output_path = Path(args.output or f"{args.ontology_name or path.stem}_fabric.json")
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(definition, f, indent=2)
+        logger.info(f"  Definition saved to: {output_path}")
+    else:
+        logger.info("Uploading to Fabric...")
+        
+        try:
+            from ..core.fabric_client import FabricOntologyClient, FabricConfig
+        except ImportError:
+            try:
+                from core import FabricOntologyClient, FabricConfig
+            except ImportError:
+                logger.error("Could not import FabricOntologyClient")
+                return 1
+        
+        config_path = args.config if hasattr(args, 'config') and args.config else str(Path(__file__).parent.parent / "config.json")
+        try:
+            fabric_config = FabricConfig.from_file(config_path)
+        except FileNotFoundError:
+            logger.error(f"Config file not found: {config_path}")
+            return 1
+        except Exception as e:
+            logger.error(f"Error loading config: {e}")
+            return 1
+        
+        client = FabricOntologyClient(fabric_config)
+        
+        try:
+            result = client.create_ontology(
+                display_name=args.ontology_name or path.stem,
+                description=f"Imported from DTDL: {path.name}",
+                definition=definition
+            )
+            ontology_id = result.get('id') if isinstance(result, dict) else result
+            logger.info(f"  Upload successful! Ontology ID: {ontology_id}")
+        except Exception as e:
+            logger.error(f"  Upload failed: {e}")
+            return 1
+    
+    logger.info("=== Import complete ===")
+    return 0
+
+
 def create_parser() -> argparse.ArgumentParser:
     """Create the argument parser with all subcommands."""
     parser = argparse.ArgumentParser(
@@ -430,6 +653,16 @@ def create_parser() -> argparse.ArgumentParser:
         action='store_true',
         help='Save DTMI to Fabric ID mapping file'
     )
+    convert_parser.add_argument(
+        '--streaming', '-s',
+        action='store_true',
+        help='Use streaming mode for large files (>100MB)'
+    )
+    convert_parser.add_argument(
+        '--force-memory',
+        action='store_true',
+        help='Skip memory safety checks'
+    )
     
     # dtdl-upload command
     upload_parser = subparsers.add_parser(
@@ -499,6 +732,16 @@ def create_parser() -> argparse.ArgumentParser:
     import_parser.add_argument(
         '--config', '-c',
         help='Path to config.json file (default: src/config.json)'
+    )
+    import_parser.add_argument(
+        '--streaming', '-s',
+        action='store_true',
+        help='Use streaming mode for large files (>100MB)'
+    )
+    import_parser.add_argument(
+        '--force-memory',
+        action='store_true',
+        help='Skip memory safety checks'
     )
     
     return parser

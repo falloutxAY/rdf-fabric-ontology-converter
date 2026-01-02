@@ -178,6 +178,18 @@ class DTDLConvertCommand(BaseCommand):
             return 1
         
         path = Path(args.path)
+        use_streaming = getattr(args, 'streaming', False)
+        force_memory = getattr(args, 'force_memory', False)
+        
+        # Check file size for streaming suggestion
+        if path.is_file():
+            file_size_mb = path.stat().st_size / (1024 * 1024)
+            if file_size_mb > 100 and not use_streaming and not force_memory:
+                print(f"⚠️  Large file detected ({file_size_mb:.1f} MB). Consider using --streaming.")
+        
+        # Use streaming mode if requested
+        if use_streaming:
+            return self._convert_with_streaming(args, path)
         
         # Parse
         print(f"Parsing DTDL files from: {path}")
@@ -235,6 +247,66 @@ class DTDLConvertCommand(BaseCommand):
             print(f"  DTMI mapping: {mapping_path}")
         
         return 0
+    
+    def _convert_with_streaming(self, args, path) -> int:
+        """Convert DTDL files using streaming mode."""
+        import json
+        from pathlib import Path
+        
+        try:
+            from core.streaming import (
+                StreamingEngine,
+                DTDLStreamReader,
+                DTDLChunkProcessor,
+                StreamConfig,
+            )
+        except ImportError:
+            print("Error: Streaming module not available. Try without --streaming.")
+            return 1
+        
+        print("Using streaming mode for conversion...")
+        
+        config = StreamConfig(
+            chunk_size=10000,
+            memory_threshold_mb=100.0,
+            enable_progress=True,
+        )
+        
+        engine = StreamingEngine(
+            reader=DTDLStreamReader(),
+            processor=DTDLChunkProcessor(
+                namespace=getattr(args, 'namespace', 'usertypes'),
+                flatten_components=getattr(args, 'flatten_components', False),
+            ),
+            config=config
+        )
+        
+        def progress_callback(items_processed: int) -> None:
+            if items_processed % 1000 == 0:
+                print(f"  Processed {items_processed:,} items...")
+        
+        try:
+            result = engine.process_file(str(path), progress_callback=progress_callback)
+            
+            if not result.success:
+                print(f"Streaming conversion failed: {result.error}")
+                return 1
+            
+            ontology_name = getattr(args, 'ontology_name', None) or path.stem
+            output_path = Path(getattr(args, 'output', None) or f"{ontology_name}_fabric.json")
+            
+            with open(output_path, 'w', encoding='utf-8') as f:
+                json.dump(result.data, f, indent=2)
+            
+            print(f"Streaming conversion complete!")
+            print(result.stats.get_summary())
+            print(f"  Output: {output_path}")
+            
+            return 0
+            
+        except Exception as e:
+            print(f"Streaming conversion error: {e}")
+            return 1
 
 
 class DTDLImportCommand(BaseCommand):
@@ -256,8 +328,20 @@ class DTDLImportCommand(BaseCommand):
         
         path = Path(args.path)
         ontology_name = getattr(args, 'ontology_name', None) or path.stem
+        use_streaming = getattr(args, 'streaming', False)
+        force_memory = getattr(args, 'force_memory', False)
         
         print(f"=== DTDL Import: {path} ===")
+        
+        # Check file size for streaming suggestion
+        if path.is_file():
+            file_size_mb = path.stat().st_size / (1024 * 1024)
+            if file_size_mb > 100 and not use_streaming and not force_memory:
+                print(f"⚠️  Large file detected ({file_size_mb:.1f} MB). Consider using --streaming.")
+        
+        # Use streaming mode if requested
+        if use_streaming:
+            return self._import_with_streaming(args, path, ontology_name)
         
         # Step 1: Parse
         print("\nStep 1: Parsing DTDL files...")
@@ -342,6 +426,101 @@ class DTDLImportCommand(BaseCommand):
                     definition=definition
                 )
                 ontology_id = result.get('id') if isinstance(result, dict) else result
+                print(f"  ✓ Upload successful! Ontology ID: {ontology_id}")
+            except Exception as e:
+                print(f"  ✗ Upload failed: {e}")
+                return 1
+        
+        print("\n=== Import complete ===")
+        return 0
+    
+    def _import_with_streaming(self, args, path, ontology_name: str) -> int:
+        """Import DTDL files using streaming mode."""
+        import json
+        from pathlib import Path
+        
+        try:
+            from core.streaming import (
+                StreamingEngine,
+                DTDLStreamReader,
+                DTDLChunkProcessor,
+                StreamConfig,
+            )
+        except ImportError:
+            print("Error: Streaming module not available. Try without --streaming.")
+            return 1
+        
+        print("Using streaming mode for import...")
+        
+        config = StreamConfig(
+            chunk_size=10000,
+            memory_threshold_mb=100.0,
+            enable_progress=True,
+        )
+        
+        engine = StreamingEngine(
+            reader=DTDLStreamReader(),
+            processor=DTDLChunkProcessor(
+                namespace=getattr(args, 'namespace', 'usertypes'),
+                flatten_components=getattr(args, 'flatten_components', False),
+            ),
+            config=config
+        )
+        
+        def progress_callback(items_processed: int) -> None:
+            if items_processed % 1000 == 0:
+                print(f"  Processed {items_processed:,} items...")
+        
+        try:
+            result = engine.process_file(str(path), progress_callback=progress_callback)
+            
+            if not result.success:
+                print(f"Streaming conversion failed: {result.error}")
+                return 1
+            
+            definition = result.data
+            print(f"Streaming conversion complete!")
+            print(result.stats.get_summary())
+            
+        except Exception as e:
+            print(f"Streaming conversion error: {e}")
+            return 1
+        
+        # Handle dry-run or upload
+        if getattr(args, 'dry_run', False):
+            print("\nDry run - saving to file...")
+            output_path = Path(getattr(args, 'output', None) or f"{ontology_name}_fabric.json")
+            with open(output_path, 'w', encoding='utf-8') as f:
+                json.dump(definition, f, indent=2)
+            print(f"  ✓ Definition saved to: {output_path}")
+        else:
+            print("\nUploading to Fabric...")
+            
+            try:
+                from core import FabricOntologyClient, FabricConfig
+            except ImportError:
+                print("  ✗ Could not import FabricOntologyClient")
+                return 1
+            
+            config_path = getattr(args, 'config', None) or str(Path(__file__).parent.parent.parent / "config.json")
+            try:
+                fabric_config = FabricConfig.from_file(config_path)
+            except FileNotFoundError:
+                print(f"  ✗ Config file not found: {config_path}")
+                return 1
+            except Exception as e:
+                print(f"  ✗ Error loading config: {e}")
+                return 1
+            
+            client = FabricOntologyClient(fabric_config)
+            
+            try:
+                upload_result = client.create_ontology(
+                    display_name=ontology_name,
+                    description=f"Imported from DTDL: {path.name}",
+                    definition=definition
+                )
+                ontology_id = upload_result.get('id') if isinstance(upload_result, dict) else upload_result
                 print(f"  ✓ Upload successful! Ontology ID: {ontology_id}")
             except Exception as e:
                 print(f"  ✗ Upload failed: {e}")

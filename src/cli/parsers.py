@@ -360,6 +360,16 @@ def _add_dtdl_convert_parser(subparsers: argparse._SubParsersAction) -> None:
         action='store_true',
         help='Save DTMI to Fabric ID mapping file'
     )
+    parser.add_argument(
+        '--streaming', '-s',
+        action='store_true',
+        help='Use streaming mode for large files (>100MB)'
+    )
+    parser.add_argument(
+        '--force-memory',
+        action='store_true',
+        help='Skip memory safety checks for very large files'
+    )
 
 
 def _add_dtdl_upload_parser(subparsers: argparse._SubParsersAction) -> None:
@@ -402,4 +412,14 @@ def _configure_dtdl_upload_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         '--output', '-o',
         help='Output file path for dry-run mode'
+    )
+    parser.add_argument(
+        '--streaming', '-s',
+        action='store_true',
+        help='Use streaming mode for large files (>100MB)'
+    )
+    parser.add_argument(
+        '--force-memory',
+        action='store_true',
+        help='Skip memory safety checks for very large files'
     )

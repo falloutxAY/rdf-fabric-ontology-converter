@@ -60,10 +60,13 @@ python src\main.py dtdl-upload ./models/ --recursive --ontology-name "MyDigitalT
 - `--namespace` - Custom namespace (default: `usertypes`)
 - `--flatten-components` - Flatten component properties into parent entities
 - `--dry-run` - Convert without uploading
+- `--streaming` - Use memory-efficient mode for large files (>100MB)
+- `--force-memory` - Skip memory safety checks for very large files
 
 **See [COMMANDS.md](COMMANDS.md#dtdl-commands) for:**
 - Complete command syntax and all options
 - Component and command handling modes
+- Streaming mode details for large files
 - Advanced configuration examples
 - Batch processing details
 

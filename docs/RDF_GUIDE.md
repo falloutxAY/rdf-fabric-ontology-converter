@@ -62,6 +62,7 @@ python src\main.py rdf-export <ontology-id> --output exported.ttl
 - `--verbose` - Show detailed output
 - `--output` - Specify output file path
 - `--streaming` - Use memory-efficient mode for large files (>100MB)
+- `--force-memory` - Skip memory safety checks for very large files
 - `--config` - Use custom configuration file
 
 **See [COMMANDS.md](COMMANDS.md#rdf-commands) for:**

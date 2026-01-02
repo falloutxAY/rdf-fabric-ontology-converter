@@ -113,7 +113,7 @@ def _add_validate_parser_alias(subparsers: argparse._SubParsersAction) -> None:
 
 def _configure_validate_parser(parser: argparse.ArgumentParser) -> None:
     """Configure common arguments for validate command."""
-    parser.add_argument('ttl_file', help='Path to the TTL file to validate')
+    parser.add_argument('ttl_file', help='Path to the TTL file or directory to validate')
     parser.add_argument(
         '--output', '-o',
         help='Output JSON report file path'
@@ -127,6 +127,11 @@ def _configure_validate_parser(parser: argparse.ArgumentParser) -> None:
         '--verbose', '-v',
         action='store_true',
         help='Show detailed human-readable report'
+    )
+    parser.add_argument(
+        '--recursive', '-r',
+        action='store_true',
+        help='Recursively search directories for TTL files'
     )
     parser.add_argument(
         '--allow-relative-up',
@@ -155,7 +160,7 @@ def _add_upload_parser_alias(subparsers: argparse._SubParsersAction) -> None:
 
 def _configure_upload_parser(parser: argparse.ArgumentParser) -> None:
     """Configure common arguments for upload command."""
-    parser.add_argument('ttl_file', help='Path to the TTL file to upload')
+    parser.add_argument('ttl_file', help='Path to the TTL file or directory to upload')
     parser.add_argument('--config', '-c', help='Path to configuration file')
     parser.add_argument('--name', '-n', help='Override ontology name')
     parser.add_argument('--description', '-d', help='Ontology description')
@@ -188,6 +193,11 @@ def _configure_upload_parser(parser: argparse.ArgumentParser) -> None:
         '--save-validation-report',
         action='store_true',
         help='Save validation report even if import is cancelled'
+    )
+    parser.add_argument(
+        '--recursive', '-r',
+        action='store_true',
+        help='Recursively search directories for TTL files (batch upload)'
     )
     parser.add_argument(
         '--allow-relative-up',
@@ -269,8 +279,8 @@ def _add_convert_parser_alias(subparsers: argparse._SubParsersAction) -> None:
 
 def _configure_convert_parser(parser: argparse.ArgumentParser) -> None:
     """Configure common arguments for convert command."""
-    parser.add_argument('ttl_file', help='Path to the TTL file to convert')
-    parser.add_argument('--output', '-o', help='Output JSON file path')
+    parser.add_argument('ttl_file', help='Path to the TTL file or directory to convert')
+    parser.add_argument('--output', '-o', help='Output JSON file path or directory')
     parser.add_argument(
         '--streaming', '-s',
         action='store_true',
@@ -280,6 +290,11 @@ def _configure_convert_parser(parser: argparse.ArgumentParser) -> None:
         '--force-memory',
         action='store_true',
         help='Skip memory safety checks for very large files (use with caution)'
+    )
+    parser.add_argument(
+        '--recursive', '-r',
+        action='store_true',
+        help='Recursively search directories for TTL files (batch conversion)'
     )
     parser.add_argument(
         '--allow-relative-up',
@@ -358,6 +373,15 @@ def _add_dtdl_validate_parser(subparsers: argparse._SubParsersAction) -> None:
         '--verbose', '-v',
         action='store_true',
         help='Show detailed interface information'
+    )
+    parser.add_argument(
+        '--output', '-o',
+        help='Output JSON report file path'
+    )
+    parser.add_argument(
+        '--save-report', '-s',
+        action='store_true',
+        help='Save detailed report to <path>.validation.json'
     )
 
 

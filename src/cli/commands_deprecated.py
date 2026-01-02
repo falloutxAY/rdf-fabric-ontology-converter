@@ -1,16 +1,17 @@
 """
-CLI module for RDF to Fabric Ontology Converter.
+CLI command handlers.
 
-This module provides a clean separation of concerns for the CLI:
-- commands/: Command implementations split by format
-  - base.py: Base command class and protocols
-  - common.py: Common commands (list, get, delete, test, compare)
-  - rdf.py: RDF/TTL commands (validate, upload, convert, export)
-  - dtdl.py: DTDL commands (validate, convert, upload/import)
-- parsers.py: Argument parsing configuration
-- helpers.py: Shared CLI utilities
+DEPRECATED: This module re-exports from the new commands/ package structure.
+Import directly from cli.commands.* for new code.
+
+The command implementations have been reorganized into:
+- cli/commands/base.py: Base command class and protocols
+- cli/commands/common.py: Common commands (list, get, delete, test, compare)
+- cli/commands/rdf.py: RDF/TTL commands (validate, upload, convert, export)
+- cli/commands/dtdl.py: DTDL commands (validate, convert, upload/import)
 """
 
+# Re-export everything from the new package for backward compatibility
 from .commands import (
     # Base
     BaseCommand,
@@ -35,13 +36,6 @@ from .commands import (
     DTDLImportCommand,
 )
 
-from .parsers import create_argument_parser
-
-from .helpers import (
-    load_config,
-    get_default_config_path,
-    setup_logging,
-)
 
 __all__ = [
     # Base
@@ -50,25 +44,19 @@ __all__ = [
     'IConverter',
     'IFabricClient',
     'print_conversion_summary',
-    # Common Commands
+    # Common
     'ListCommand',
     'GetCommand',
     'DeleteCommand',
     'TestCommand',
     'CompareCommand',
-    # RDF Commands
+    # RDF
     'ValidateCommand',
     'UploadCommand',
     'ConvertCommand',
     'ExportCommand',
-    # DTDL Commands
+    # DTDL
     'DTDLValidateCommand',
     'DTDLConvertCommand',
     'DTDLImportCommand',
-    # Parsers
-    'create_argument_parser',
-    # Helpers
-    'load_config',
-    'get_default_config_path',
-    'setup_logging',
 ]

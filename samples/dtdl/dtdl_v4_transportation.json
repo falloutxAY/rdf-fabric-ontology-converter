@@ -1,0 +1,372 @@
+[
+  {
+    "@context": "dtmi:dtdl:context;4",
+    "@id": "dtmi:example:transportation:TransitNetwork;1",
+    "@type": "Interface",
+    "displayName": "Transit Network",
+    "description": "A public transportation network",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "networkId",
+        "displayName": "Network ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "name",
+        "displayName": "Network Name",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "city",
+        "displayName": "City",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "operatingHours",
+        "displayName": "Operating Hours",
+        "schema": {
+          "@type": "Object",
+          "fields": [
+            {"name": "weekdayStart", "schema": "time"},
+            {"name": "weekdayEnd", "schema": "time"},
+            {"name": "weekendStart", "schema": "time"},
+            {"name": "weekendEnd", "schema": "time"}
+          ]
+        }
+      },
+      {
+        "@type": "Telemetry",
+        "name": "totalRidership",
+        "displayName": "Total Daily Ridership",
+        "schema": "integer"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "activeVehicles",
+        "displayName": "Active Vehicles",
+        "schema": "integer"
+      },
+      {
+        "@type": "Relationship",
+        "name": "hasLine",
+        "displayName": "Has Transit Line",
+        "target": "dtmi:example:transportation:TransitLine;1",
+        "maxMultiplicity": 50
+      }
+    ]
+  },
+  {
+    "@context": "dtmi:dtdl:context;4",
+    "@id": "dtmi:example:transportation:TransitLine;1",
+    "@type": "Interface",
+    "displayName": "Transit Line",
+    "description": "A transit line (bus, metro, etc.)",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "lineId",
+        "displayName": "Line ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "name",
+        "displayName": "Line Name",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "lineType",
+        "displayName": "Line Type",
+        "schema": {
+          "@type": "Enum",
+          "valueSchema": "string",
+          "enumValues": [
+            {"name": "metro", "displayName": "Metro/Subway", "enumValue": "metro"},
+            {"name": "bus", "displayName": "Bus", "enumValue": "bus"},
+            {"name": "tram", "displayName": "Tram/Light Rail", "enumValue": "tram"},
+            {"name": "commuter", "displayName": "Commuter Rail", "enumValue": "commuter"},
+            {"name": "ferry", "displayName": "Ferry", "enumValue": "ferry"}
+          ]
+        }
+      },
+      {
+        "@type": "Property",
+        "name": "color",
+        "displayName": "Line Color",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "length",
+        "displayName": "Total Length (km)",
+        "schema": "double"
+      },
+      {
+        "@type": "Property",
+        "name": "headwayMinutes",
+        "displayName": "Headway (minutes)",
+        "schema": "integer"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "onTimePerformance",
+        "displayName": "On-Time Performance",
+        "schema": "double",
+        "unit": "percent"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "currentRidership",
+        "displayName": "Current Ridership",
+        "schema": "integer"
+      },
+      {
+        "@type": "Relationship",
+        "name": "hasStation",
+        "displayName": "Has Station",
+        "target": "dtmi:example:transportation:Station;1",
+        "maxMultiplicity": 100
+      },
+      {
+        "@type": "Relationship",
+        "name": "hasVehicle",
+        "displayName": "Has Vehicle",
+        "target": "dtmi:example:transportation:TransitVehicle;1"
+      }
+    ]
+  },
+  {
+    "@context": "dtmi:dtdl:context;4",
+    "@id": "dtmi:example:transportation:Station;1",
+    "@type": "Interface",
+    "displayName": "Station",
+    "description": "A transit station or stop",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "stationId",
+        "displayName": "Station ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "name",
+        "displayName": "Station Name",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "location",
+        "displayName": "Location",
+        "schema": {
+          "@type": "Object",
+          "fields": [
+            {"name": "latitude", "schema": "double"},
+            {"name": "longitude", "schema": "double"}
+          ]
+        }
+      },
+      {
+        "@type": "Property",
+        "name": "stationType",
+        "displayName": "Station Type",
+        "schema": {
+          "@type": "Enum",
+          "valueSchema": "string",
+          "enumValues": [
+            {"name": "terminal", "displayName": "Terminal", "enumValue": "terminal"},
+            {"name": "transfer", "displayName": "Transfer Hub", "enumValue": "transfer"},
+            {"name": "regular", "displayName": "Regular", "enumValue": "regular"}
+          ]
+        }
+      },
+      {
+        "@type": "Property",
+        "name": "platforms",
+        "displayName": "Number of Platforms",
+        "schema": "integer"
+      },
+      {
+        "@type": "Property",
+        "name": "isAccessible",
+        "displayName": "Is Accessible",
+        "schema": "boolean"
+      },
+      {
+        "@type": "Property",
+        "name": "amenities",
+        "displayName": "Amenities",
+        "schema": {
+          "@type": "Array",
+          "elementSchema": "string"
+        }
+      },
+      {
+        "@type": "Telemetry",
+        "name": "crowdingLevel",
+        "displayName": "Crowding Level",
+        "schema": {
+          "@type": "Enum",
+          "valueSchema": "string",
+          "enumValues": [
+            {"name": "low", "enumValue": "low"},
+            {"name": "moderate", "enumValue": "moderate"},
+            {"name": "high", "enumValue": "high"},
+            {"name": "veryHigh", "enumValue": "very-high"}
+          ]
+        }
+      },
+      {
+        "@type": "Telemetry",
+        "name": "passengerCount",
+        "displayName": "Current Passenger Count",
+        "schema": "integer"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "nextArrival",
+        "displayName": "Next Arrival (minutes)",
+        "schema": "integer"
+      },
+      {
+        "@type": "Command",
+        "name": "announceDelay",
+        "displayName": "Announce Delay",
+        "request": {
+          "name": "message",
+          "schema": "string"
+        }
+      }
+    ]
+  },
+  {
+    "@context": "dtmi:dtdl:context;4",
+    "@id": "dtmi:example:transportation:TransitVehicle;1",
+    "@type": "Interface",
+    "displayName": "Transit Vehicle",
+    "description": "A public transit vehicle",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "vehicleId",
+        "displayName": "Vehicle ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "fleetNumber",
+        "displayName": "Fleet Number",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "vehicleType",
+        "displayName": "Vehicle Type",
+        "schema": {
+          "@type": "Enum",
+          "valueSchema": "string",
+          "enumValues": [
+            {"name": "bus", "displayName": "Bus", "enumValue": "bus"},
+            {"name": "articulatedBus", "displayName": "Articulated Bus", "enumValue": "articulated-bus"},
+            {"name": "metroTrain", "displayName": "Metro Train", "enumValue": "metro-train"},
+            {"name": "tram", "displayName": "Tram", "enumValue": "tram"},
+            {"name": "electricBus", "displayName": "Electric Bus", "enumValue": "electric-bus"}
+          ]
+        }
+      },
+      {
+        "@type": "Property",
+        "name": "capacity",
+        "displayName": "Passenger Capacity",
+        "schema": "integer"
+      },
+      {
+        "@type": "Property",
+        "name": "manufacturer",
+        "displayName": "Manufacturer",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "yearManufactured",
+        "displayName": "Year Manufactured",
+        "schema": "integer"
+      },
+      {
+        "@type": "Property",
+        "name": "isAccessible",
+        "displayName": "Is Accessible",
+        "schema": "boolean"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "currentLocation",
+        "displayName": "Current Location",
+        "schema": {
+          "@type": "Object",
+          "fields": [
+            {"name": "latitude", "schema": "double"},
+            {"name": "longitude", "schema": "double"},
+            {"name": "heading", "schema": "double"}
+          ]
+        }
+      },
+      {
+        "@type": "Telemetry",
+        "name": "speed",
+        "displayName": "Current Speed",
+        "schema": "double",
+        "unit": "kilometrePerHour"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "passengerLoad",
+        "displayName": "Current Passengers",
+        "schema": "integer"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "fuelLevel",
+        "displayName": "Fuel/Battery Level",
+        "schema": "double",
+        "unit": "percent"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "delayMinutes",
+        "displayName": "Current Delay (minutes)",
+        "schema": "integer"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "nextStopId",
+        "displayName": "Next Stop ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Command",
+        "name": "openDoors",
+        "displayName": "Open Doors"
+      },
+      {
+        "@type": "Command",
+        "name": "closeDoors",
+        "displayName": "Close Doors"
+      },
+      {
+        "@type": "Command",
+        "name": "announceStop",
+        "displayName": "Announce Stop",
+        "request": {
+          "name": "stopName",
+          "schema": "string"
+        }
+      }
+    ]
+  }
+]

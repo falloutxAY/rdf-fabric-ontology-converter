@@ -1,0 +1,268 @@
+[
+  {
+    "@context": "dtmi:dtdl:context;3",
+    "@id": "dtmi:example:retail:Store;1",
+    "@type": "Interface",
+    "displayName": "Retail Store",
+    "description": "A retail store with inventory and customer tracking",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "storeId",
+        "displayName": "Store ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "name",
+        "displayName": "Store Name",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "address",
+        "displayName": "Address",
+        "schema": {
+          "@type": "Object",
+          "fields": [
+            {"name": "street", "schema": "string"},
+            {"name": "city", "schema": "string"},
+            {"name": "state", "schema": "string"},
+            {"name": "postalCode", "schema": "string"},
+            {"name": "country", "schema": "string"}
+          ]
+        }
+      },
+      {
+        "@type": "Property",
+        "name": "storeType",
+        "displayName": "Store Type",
+        "schema": {
+          "@type": "Enum",
+          "valueSchema": "string",
+          "enumValues": [
+            {"name": "flagship", "displayName": "Flagship", "enumValue": "flagship"},
+            {"name": "standard", "displayName": "Standard", "enumValue": "standard"},
+            {"name": "outlet", "displayName": "Outlet", "enumValue": "outlet"},
+            {"name": "popup", "displayName": "Pop-up", "enumValue": "popup"}
+          ]
+        }
+      },
+      {
+        "@type": "Property",
+        "name": "squareFootage",
+        "displayName": "Square Footage",
+        "schema": "double"
+      },
+      {
+        "@type": "Property",
+        "name": "operatingHours",
+        "displayName": "Operating Hours",
+        "schema": {
+          "@type": "Map",
+          "mapKey": {"name": "day", "schema": "string"},
+          "mapValue": {"name": "hours", "schema": "string"}
+        }
+      },
+      {
+        "@type": "Telemetry",
+        "name": "currentFootTraffic",
+        "displayName": "Current Foot Traffic",
+        "schema": "integer"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "dailySales",
+        "displayName": "Daily Sales",
+        "schema": "double"
+      },
+      {
+        "@type": "Relationship",
+        "name": "hasSection",
+        "displayName": "Has Section",
+        "target": "dtmi:example:retail:Section;1",
+        "maxMultiplicity": 50
+      },
+      {
+        "@type": "Relationship",
+        "name": "hasCheckout",
+        "displayName": "Has Checkout",
+        "target": "dtmi:example:retail:Checkout;1",
+        "maxMultiplicity": 20
+      }
+    ]
+  },
+  {
+    "@context": "dtmi:dtdl:context;3",
+    "@id": "dtmi:example:retail:Section;1",
+    "@type": "Interface",
+    "displayName": "Store Section",
+    "description": "A section within a retail store",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "sectionId",
+        "displayName": "Section ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "name",
+        "displayName": "Section Name",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "category",
+        "displayName": "Product Category",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "area",
+        "displayName": "Area (sq ft)",
+        "schema": "double"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "customerCount",
+        "displayName": "Customer Count",
+        "schema": "integer"
+      },
+      {
+        "@type": ["Telemetry", "Temperature"],
+        "name": "temperature",
+        "displayName": "Temperature",
+        "schema": "double",
+        "unit": "degreeCelsius"
+      },
+      {
+        "@type": "Relationship",
+        "name": "hasShelf",
+        "displayName": "Has Shelf",
+        "target": "dtmi:example:retail:Shelf;1",
+        "maxMultiplicity": 100
+      }
+    ]
+  },
+  {
+    "@context": "dtmi:dtdl:context;3",
+    "@id": "dtmi:example:retail:Shelf;1",
+    "@type": "Interface",
+    "displayName": "Shelf",
+    "description": "A product shelf with inventory tracking",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "shelfId",
+        "displayName": "Shelf ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "location",
+        "displayName": "Location Code",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "capacity",
+        "displayName": "Capacity",
+        "schema": "integer"
+      },
+      {
+        "@type": "Property",
+        "name": "productSKUs",
+        "displayName": "Product SKUs",
+        "schema": {
+          "@type": "Array",
+          "elementSchema": "string"
+        }
+      },
+      {
+        "@type": "Telemetry",
+        "name": "stockLevel",
+        "displayName": "Stock Level",
+        "schema": "integer"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "weight",
+        "displayName": "Current Weight (kg)",
+        "schema": "double"
+      },
+      {
+        "@type": "Command",
+        "name": "requestRestock",
+        "displayName": "Request Restock",
+        "request": {
+          "name": "quantity",
+          "schema": "integer"
+        }
+      }
+    ]
+  },
+  {
+    "@context": "dtmi:dtdl:context;3",
+    "@id": "dtmi:example:retail:Checkout;1",
+    "@type": "Interface",
+    "displayName": "Checkout",
+    "description": "A checkout station",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "checkoutId",
+        "displayName": "Checkout ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "checkoutType",
+        "displayName": "Checkout Type",
+        "schema": {
+          "@type": "Enum",
+          "valueSchema": "string",
+          "enumValues": [
+            {"name": "staffed", "displayName": "Staffed", "enumValue": "staffed"},
+            {"name": "selfService", "displayName": "Self-Service", "enumValue": "self-service"},
+            {"name": "express", "displayName": "Express", "enumValue": "express"}
+          ]
+        }
+      },
+      {
+        "@type": "Property",
+        "name": "isOpen",
+        "displayName": "Is Open",
+        "schema": "boolean"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "queueLength",
+        "displayName": "Queue Length",
+        "schema": "integer"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "transactionsToday",
+        "displayName": "Transactions Today",
+        "schema": "integer"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "averageWaitTime",
+        "displayName": "Average Wait Time (seconds)",
+        "schema": "double"
+      },
+      {
+        "@type": "Command",
+        "name": "openLane",
+        "displayName": "Open Lane"
+      },
+      {
+        "@type": "Command",
+        "name": "closeLane",
+        "displayName": "Close Lane"
+      }
+    ]
+  }
+]

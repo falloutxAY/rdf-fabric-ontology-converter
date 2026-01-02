@@ -1,0 +1,121 @@
+@prefix : <http://example.org/music#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<http://example.org/music> a owl:Ontology ;
+    rdfs:label "Music Ontology"@en ;
+    rdfs:comment "An ontology for music, artists, and albums"@en .
+
+# Core Classes
+:Artist a owl:Class ;
+    rdfs:label "Artist"@en .
+
+:SoloArtist a owl:Class ;
+    rdfs:subClassOf :Artist ;
+    rdfs:label "Solo Artist"@en .
+
+:Band a owl:Class ;
+    rdfs:subClassOf :Artist ;
+    rdfs:label "Band"@en .
+
+:Album a owl:Class ;
+    rdfs:label "Album"@en .
+
+:Track a owl:Class ;
+    rdfs:label "Track"@en .
+
+:Genre a owl:Class ;
+    rdfs:label "Genre"@en .
+
+:Label a owl:Class ;
+    rdfs:label "Record Label"@en .
+
+:Instrument a owl:Class ;
+    rdfs:label "Instrument"@en .
+
+# Instrument Types
+:StringInstrument a owl:Class ;
+    rdfs:subClassOf :Instrument ;
+    rdfs:label "String Instrument"@en .
+
+:WindInstrument a owl:Class ;
+    rdfs:subClassOf :Instrument ;
+    rdfs:label "Wind Instrument"@en .
+
+:PercussionInstrument a owl:Class ;
+    rdfs:subClassOf :Instrument ;
+    rdfs:label "Percussion Instrument"@en .
+
+# Data Properties
+:hasTitle a owl:DatatypeProperty ;
+    rdfs:domain :Track, :Album ;
+    rdfs:range xsd:string ;
+    rdfs:label "title"@en .
+
+:hasName a owl:DatatypeProperty ;
+    rdfs:domain :Artist, :Genre, :Label ;
+    rdfs:range xsd:string ;
+    rdfs:label "name"@en .
+
+:hasDuration a owl:DatatypeProperty ;
+    rdfs:domain :Track ;
+    rdfs:range xsd:integer ;
+    rdfs:label "duration (seconds)"@en .
+
+:hasReleaseDate a owl:DatatypeProperty ;
+    rdfs:domain :Album ;
+    rdfs:range xsd:date ;
+    rdfs:label "release date"@en .
+
+:hasTrackNumber a owl:DatatypeProperty ;
+    rdfs:domain :Track ;
+    rdfs:range xsd:integer ;
+    rdfs:label "track number"@en .
+
+:hasBPM a owl:DatatypeProperty ;
+    rdfs:domain :Track ;
+    rdfs:range xsd:integer ;
+    rdfs:label "BPM"@en .
+
+:hasRating a owl:DatatypeProperty ;
+    rdfs:domain :Album ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "rating"@en .
+
+# Object Properties
+:performedBy a owl:ObjectProperty ;
+    rdfs:domain :Track ;
+    rdfs:range :Artist ;
+    rdfs:label "performed by"@en .
+
+:composedBy a owl:ObjectProperty ;
+    rdfs:domain :Track ;
+    rdfs:range :Artist ;
+    rdfs:label "composed by"@en .
+
+:containsTrack a owl:ObjectProperty ;
+    rdfs:domain :Album ;
+    rdfs:range :Track ;
+    rdfs:label "contains track"@en .
+
+:hasGenre a owl:ObjectProperty ;
+    rdfs:domain :Album, :Track ;
+    rdfs:range :Genre ;
+    rdfs:label "has genre"@en .
+
+:signedTo a owl:ObjectProperty ;
+    rdfs:domain :Artist ;
+    rdfs:range :Label ;
+    rdfs:label "signed to"@en .
+
+:plays a owl:ObjectProperty ;
+    rdfs:domain :Artist ;
+    rdfs:range :Instrument ;
+    rdfs:label "plays"@en .
+
+:memberOf a owl:ObjectProperty ;
+    rdfs:domain :SoloArtist ;
+    rdfs:range :Band ;
+    rdfs:label "member of"@en .

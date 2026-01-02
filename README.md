@@ -58,10 +58,10 @@ pip install -e .
 copy config.sample.json src\config.json
 
 # 2. Validate an RDF/TTL ontology
-python src\main.py rdf-validate samples/sample_supply_chain_ontology.ttl
+python src\main.py rdf-validate samples/rdf/sample_supply_chain_ontology.ttl
 
 # 3. Upload to Fabric
-python src\main.py rdf-upload samples/sample_supply_chain_ontology.ttl --name "MyOntology"
+python src\main.py rdf-upload samples/rdf/sample_supply_chain_ontology.ttl --name "MyOntology"
 
 # 4. Import DTDL models
 python src\main.py dtdl-upload samples/dtdl/ --recursive --ontology-name "MyDTDL"

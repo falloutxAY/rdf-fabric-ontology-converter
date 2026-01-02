@@ -1,0 +1,198 @@
+@prefix : <http://example.org/library#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<http://example.org/library> a owl:Ontology ;
+    rdfs:label "Library Ontology"@en ;
+    rdfs:comment "An ontology for library resources and management"@en .
+
+# Resource Classes
+:Resource a owl:Class ;
+    rdfs:label "Library Resource"@en .
+
+:Book a owl:Class ;
+    rdfs:subClassOf :Resource ;
+    rdfs:label "Book"@en .
+
+:Periodical a owl:Class ;
+    rdfs:subClassOf :Resource ;
+    rdfs:label "Periodical"@en .
+
+:Journal a owl:Class ;
+    rdfs:subClassOf :Periodical ;
+    rdfs:label "Journal"@en .
+
+:Magazine a owl:Class ;
+    rdfs:subClassOf :Periodical ;
+    rdfs:label "Magazine"@en .
+
+:MultimediaResource a owl:Class ;
+    rdfs:subClassOf :Resource ;
+    rdfs:label "Multimedia Resource"@en .
+
+:DVD a owl:Class ;
+    rdfs:subClassOf :MultimediaResource ;
+    rdfs:label "DVD"@en .
+
+:AudioBook a owl:Class ;
+    rdfs:subClassOf :MultimediaResource ;
+    rdfs:label "Audio Book"@en .
+
+# Person Classes
+:Person a owl:Class ;
+    rdfs:label "Person"@en .
+
+:Author a owl:Class ;
+    rdfs:subClassOf :Person ;
+    rdfs:label "Author"@en .
+
+:Patron a owl:Class ;
+    rdfs:subClassOf :Person ;
+    rdfs:label "Patron"@en .
+
+:Librarian a owl:Class ;
+    rdfs:subClassOf :Person ;
+    rdfs:label "Librarian"@en .
+
+# Other Classes
+:Publisher a owl:Class ;
+    rdfs:label "Publisher"@en .
+
+:Genre a owl:Class ;
+    rdfs:label "Genre"@en .
+
+:Loan a owl:Class ;
+    rdfs:label "Loan"@en .
+
+:Reservation a owl:Class ;
+    rdfs:label "Reservation"@en .
+
+:Library a owl:Class ;
+    rdfs:label "Library"@en .
+
+:Shelf a owl:Class ;
+    rdfs:label "Shelf"@en .
+
+# Data Properties
+:hasTitle a owl:DatatypeProperty ;
+    rdfs:domain :Resource ;
+    rdfs:range xsd:string ;
+    rdfs:label "title"@en .
+
+:hasISBN a owl:DatatypeProperty ;
+    rdfs:domain :Book ;
+    rdfs:range xsd:string ;
+    rdfs:label "ISBN"@en .
+
+:hasISSN a owl:DatatypeProperty ;
+    rdfs:domain :Periodical ;
+    rdfs:range xsd:string ;
+    rdfs:label "ISSN"@en .
+
+:hasPublicationDate a owl:DatatypeProperty ;
+    rdfs:domain :Resource ;
+    rdfs:range xsd:date ;
+    rdfs:label "publication date"@en .
+
+:hasPageCount a owl:DatatypeProperty ;
+    rdfs:domain :Book ;
+    rdfs:range xsd:integer ;
+    rdfs:label "page count"@en .
+
+:hasDuration a owl:DatatypeProperty ;
+    rdfs:domain :MultimediaResource ;
+    rdfs:range xsd:integer ;
+    rdfs:label "duration (minutes)"@en .
+
+:hasName a owl:DatatypeProperty ;
+    rdfs:domain :Person, :Publisher, :Genre, :Library ;
+    rdfs:range xsd:string ;
+    rdfs:label "name"@en .
+
+:hasEmail a owl:DatatypeProperty ;
+    rdfs:domain :Person ;
+    rdfs:range xsd:string ;
+    rdfs:label "email"@en .
+
+:hasCardNumber a owl:DatatypeProperty ;
+    rdfs:domain :Patron ;
+    rdfs:range xsd:string ;
+    rdfs:label "card number"@en .
+
+:hasLoanDate a owl:DatatypeProperty ;
+    rdfs:domain :Loan ;
+    rdfs:range xsd:date ;
+    rdfs:label "loan date"@en .
+
+:hasDueDate a owl:DatatypeProperty ;
+    rdfs:domain :Loan ;
+    rdfs:range xsd:date ;
+    rdfs:label "due date"@en .
+
+:hasReturnDate a owl:DatatypeProperty ;
+    rdfs:domain :Loan ;
+    rdfs:range xsd:date ;
+    rdfs:label "return date"@en .
+
+:hasShelfLocation a owl:DatatypeProperty ;
+    rdfs:domain :Shelf ;
+    rdfs:range xsd:string ;
+    rdfs:label "shelf location"@en .
+
+:hasCallNumber a owl:DatatypeProperty ;
+    rdfs:domain :Resource ;
+    rdfs:range xsd:string ;
+    rdfs:label "call number"@en .
+
+# Object Properties
+:writtenBy a owl:ObjectProperty ;
+    rdfs:domain :Resource ;
+    rdfs:range :Author ;
+    rdfs:label "written by"@en .
+
+:publishedBy a owl:ObjectProperty ;
+    rdfs:domain :Resource ;
+    rdfs:range :Publisher ;
+    rdfs:label "published by"@en .
+
+:hasGenre a owl:ObjectProperty ;
+    rdfs:domain :Resource ;
+    rdfs:range :Genre ;
+    rdfs:label "has genre"@en .
+
+:borrowedResource a owl:ObjectProperty ;
+    rdfs:domain :Loan ;
+    rdfs:range :Resource ;
+    rdfs:label "borrowed resource"@en .
+
+:borrowedBy a owl:ObjectProperty ;
+    rdfs:domain :Loan ;
+    rdfs:range :Patron ;
+    rdfs:label "borrowed by"@en .
+
+:processedBy a owl:ObjectProperty ;
+    rdfs:domain :Loan ;
+    rdfs:range :Librarian ;
+    rdfs:label "processed by"@en .
+
+:reservedResource a owl:ObjectProperty ;
+    rdfs:domain :Reservation ;
+    rdfs:range :Resource ;
+    rdfs:label "reserved resource"@en .
+
+:reservedBy a owl:ObjectProperty ;
+    rdfs:domain :Reservation ;
+    rdfs:range :Patron ;
+    rdfs:label "reserved by"@en .
+
+:locatedOn a owl:ObjectProperty ;
+    rdfs:domain :Resource ;
+    rdfs:range :Shelf ;
+    rdfs:label "located on"@en .
+
+:partOf a owl:ObjectProperty ;
+    rdfs:domain :Shelf ;
+    rdfs:range :Library ;
+    rdfs:label "part of"@en .

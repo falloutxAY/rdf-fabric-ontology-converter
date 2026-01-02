@@ -1,0 +1,199 @@
+[
+  {
+    "@context": "dtmi:dtdl:context;2",
+    "@id": "dtmi:example:energy:SolarPanel;1",
+    "@type": "Interface",
+    "displayName": "Solar Panel",
+    "description": "A solar panel for energy generation",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "panelId",
+        "displayName": "Panel ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "manufacturer",
+        "displayName": "Manufacturer",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "capacity",
+        "displayName": "Capacity (kW)",
+        "schema": "double"
+      },
+      {
+        "@type": "Property",
+        "name": "installDate",
+        "displayName": "Installation Date",
+        "schema": "date"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "currentOutput",
+        "displayName": "Current Output",
+        "schema": "double",
+        "unit": "kilowatt"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "efficiency",
+        "displayName": "Efficiency",
+        "schema": "double",
+        "unit": "percent"
+      },
+      {
+        "@type": ["Telemetry", "Temperature"],
+        "name": "panelTemperature",
+        "displayName": "Panel Temperature",
+        "schema": "double",
+        "unit": "degreeCelsius"
+      },
+      {
+        "@type": "Relationship",
+        "name": "connectedTo",
+        "displayName": "Connected To",
+        "target": "dtmi:example:energy:Inverter;1"
+      }
+    ]
+  },
+  {
+    "@context": "dtmi:dtdl:context;2",
+    "@id": "dtmi:example:energy:Inverter;1",
+    "@type": "Interface",
+    "displayName": "Inverter",
+    "description": "A power inverter for solar systems",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "inverterId",
+        "displayName": "Inverter ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "model",
+        "displayName": "Model",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "ratedPower",
+        "displayName": "Rated Power (kW)",
+        "schema": "double"
+      },
+      {
+        "@type": "Property",
+        "name": "isOnline",
+        "displayName": "Is Online",
+        "schema": "boolean"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "inputVoltage",
+        "displayName": "Input Voltage",
+        "schema": "double",
+        "unit": "volt"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "outputVoltage",
+        "displayName": "Output Voltage",
+        "schema": "double",
+        "unit": "volt"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "conversionEfficiency",
+        "displayName": "Conversion Efficiency",
+        "schema": "double",
+        "unit": "percent"
+      },
+      {
+        "@type": "Command",
+        "name": "reset",
+        "displayName": "Reset Inverter"
+      },
+      {
+        "@type": "Relationship",
+        "name": "feedsTo",
+        "displayName": "Feeds To",
+        "target": "dtmi:example:energy:Battery;1"
+      }
+    ]
+  },
+  {
+    "@context": "dtmi:dtdl:context;2",
+    "@id": "dtmi:example:energy:Battery;1",
+    "@type": "Interface",
+    "displayName": "Battery",
+    "description": "An energy storage battery",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "batteryId",
+        "displayName": "Battery ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "capacity",
+        "displayName": "Capacity (kWh)",
+        "schema": "double"
+      },
+      {
+        "@type": "Property",
+        "name": "chemistry",
+        "displayName": "Chemistry",
+        "schema": {
+          "@type": "Enum",
+          "valueSchema": "string",
+          "enumValues": [
+            {"name": "lithiumIon", "enumValue": "lithium-ion"},
+            {"name": "leadAcid", "enumValue": "lead-acid"},
+            {"name": "solidState", "enumValue": "solid-state"}
+          ]
+        }
+      },
+      {
+        "@type": "Telemetry",
+        "name": "chargeLevel",
+        "displayName": "Charge Level",
+        "schema": "double",
+        "unit": "percent"
+      },
+      {
+        "@type": ["Telemetry", "Temperature"],
+        "name": "temperature",
+        "displayName": "Temperature",
+        "schema": "double",
+        "unit": "degreeCelsius"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "cycleCount",
+        "displayName": "Cycle Count",
+        "schema": "integer"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "healthStatus",
+        "displayName": "Health Status",
+        "schema": "double",
+        "unit": "percent"
+      },
+      {
+        "@type": "Command",
+        "name": "startCharging",
+        "displayName": "Start Charging"
+      },
+      {
+        "@type": "Command",
+        "name": "stopCharging",
+        "displayName": "Stop Charging"
+      }
+    ]
+  }
+]

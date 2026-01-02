@@ -243,10 +243,10 @@ Validate files before import to identify compatibility issues:
 
 ```powershell
 # Quick RDF validation
-python src\main.py rdf-validate samples\sample_foaf_ontology.ttl --verbose
+python src\main.py rdf-validate samples\rdf\sample_foaf_ontology.ttl --verbose
 
 # Save detailed report
-python src\main.py rdf-validate samples\sample_foaf_ontology.ttl --output report.json
+python src\main.py rdf-validate samples\rdf\sample_foaf_ontology.ttl --output report.json
 
 # DTDL validation
 python src\main.py dtdl-validate samples\dtdl\thermostat.json --version v3
@@ -305,7 +305,7 @@ from src.rdf_converter import RDFToFabricConverter
 
 # Convert RDF with compliance report
 converter = RDFToFabricConverter()
-with open("samples/sample_foaf_ontology.ttl") as f:
+with open("samples/rdf/sample_foaf_ontology.ttl") as f:
     result, report = converter.parse_ttl_with_compliance_report(f.read())
 
 if report:

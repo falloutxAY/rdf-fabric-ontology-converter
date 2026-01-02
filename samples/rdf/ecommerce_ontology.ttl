@@ -1,0 +1,178 @@
+@prefix : <http://example.org/ecommerce#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<http://example.org/ecommerce> a owl:Ontology ;
+    rdfs:label "E-Commerce Ontology"@en ;
+    rdfs:comment "An ontology for e-commerce products and orders"@en .
+
+# Core Classes
+:Customer a owl:Class ;
+    rdfs:label "Customer"@en .
+
+:Product a owl:Class ;
+    rdfs:label "Product"@en .
+
+:Order a owl:Class ;
+    rdfs:label "Order"@en .
+
+:OrderItem a owl:Class ;
+    rdfs:label "Order Item"@en .
+
+:Category a owl:Class ;
+    rdfs:label "Category"@en .
+
+:Review a owl:Class ;
+    rdfs:label "Review"@en .
+
+:Address a owl:Class ;
+    rdfs:label "Address"@en .
+
+:Payment a owl:Class ;
+    rdfs:label "Payment"@en .
+
+# Product Types
+:PhysicalProduct a owl:Class ;
+    rdfs:subClassOf :Product ;
+    rdfs:label "Physical Product"@en .
+
+:DigitalProduct a owl:Class ;
+    rdfs:subClassOf :Product ;
+    rdfs:label "Digital Product"@en .
+
+:SubscriptionProduct a owl:Class ;
+    rdfs:subClassOf :Product ;
+    rdfs:label "Subscription Product"@en .
+
+# Payment Types
+:CreditCardPayment a owl:Class ;
+    rdfs:subClassOf :Payment ;
+    rdfs:label "Credit Card Payment"@en .
+
+:PayPalPayment a owl:Class ;
+    rdfs:subClassOf :Payment ;
+    rdfs:label "PayPal Payment"@en .
+
+# Data Properties
+:hasName a owl:DatatypeProperty ;
+    rdfs:domain :Customer, :Product, :Category ;
+    rdfs:range xsd:string ;
+    rdfs:label "name"@en .
+
+:hasEmail a owl:DatatypeProperty ;
+    rdfs:domain :Customer ;
+    rdfs:range xsd:string ;
+    rdfs:label "email"@en .
+
+:hasPrice a owl:DatatypeProperty ;
+    rdfs:domain :Product ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "price"@en .
+
+:hasSKU a owl:DatatypeProperty ;
+    rdfs:domain :Product ;
+    rdfs:range xsd:string ;
+    rdfs:label "SKU"@en .
+
+:hasQuantity a owl:DatatypeProperty ;
+    rdfs:domain :OrderItem, :Product ;
+    rdfs:range xsd:integer ;
+    rdfs:label "quantity"@en .
+
+:hasOrderDate a owl:DatatypeProperty ;
+    rdfs:domain :Order ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "order date"@en .
+
+:hasStatus a owl:DatatypeProperty ;
+    rdfs:domain :Order ;
+    rdfs:range xsd:string ;
+    rdfs:label "status"@en .
+
+:hasRating a owl:DatatypeProperty ;
+    rdfs:domain :Review ;
+    rdfs:range xsd:integer ;
+    rdfs:label "rating"@en .
+
+:hasComment a owl:DatatypeProperty ;
+    rdfs:domain :Review ;
+    rdfs:range xsd:string ;
+    rdfs:label "comment"@en .
+
+:hasStreet a owl:DatatypeProperty ;
+    rdfs:domain :Address ;
+    rdfs:range xsd:string ;
+    rdfs:label "street"@en .
+
+:hasCity a owl:DatatypeProperty ;
+    rdfs:domain :Address ;
+    rdfs:range xsd:string ;
+    rdfs:label "city"@en .
+
+:hasPostalCode a owl:DatatypeProperty ;
+    rdfs:domain :Address ;
+    rdfs:range xsd:string ;
+    rdfs:label "postal code"@en .
+
+:hasWeight a owl:DatatypeProperty ;
+    rdfs:domain :PhysicalProduct ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "weight (kg)"@en .
+
+:hasDownloadURL a owl:DatatypeProperty ;
+    rdfs:domain :DigitalProduct ;
+    rdfs:range xsd:anyURI ;
+    rdfs:label "download URL"@en .
+
+# Object Properties
+:placedBy a owl:ObjectProperty ;
+    rdfs:domain :Order ;
+    rdfs:range :Customer ;
+    rdfs:label "placed by"@en .
+
+:containsItem a owl:ObjectProperty ;
+    rdfs:domain :Order ;
+    rdfs:range :OrderItem ;
+    rdfs:label "contains item"@en .
+
+:forProduct a owl:ObjectProperty ;
+    rdfs:domain :OrderItem ;
+    rdfs:range :Product ;
+    rdfs:label "for product"@en .
+
+:hasCategory a owl:ObjectProperty ;
+    rdfs:domain :Product ;
+    rdfs:range :Category ;
+    rdfs:label "has category"@en .
+
+:hasReview a owl:ObjectProperty ;
+    rdfs:domain :Product ;
+    rdfs:range :Review ;
+    rdfs:label "has review"@en .
+
+:writtenBy a owl:ObjectProperty ;
+    rdfs:domain :Review ;
+    rdfs:range :Customer ;
+    rdfs:label "written by"@en .
+
+:shippingAddress a owl:ObjectProperty ;
+    rdfs:domain :Order ;
+    rdfs:range :Address ;
+    rdfs:label "shipping address"@en .
+
+:billingAddress a owl:ObjectProperty ;
+    rdfs:domain :Order ;
+    rdfs:range :Address ;
+    rdfs:label "billing address"@en .
+
+:paidWith a owl:ObjectProperty ;
+    rdfs:domain :Order ;
+    rdfs:range :Payment ;
+    rdfs:label "paid with"@en .
+
+:parentCategory a owl:ObjectProperty ;
+    rdfs:domain :Category ;
+    rdfs:range :Category ;
+    rdfs:label "parent category"@en .

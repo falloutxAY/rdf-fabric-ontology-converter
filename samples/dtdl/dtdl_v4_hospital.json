@@ -1,0 +1,332 @@
+[
+  {
+    "@context": "dtmi:dtdl:context;4",
+    "@id": "dtmi:example:hospital:Hospital;1",
+    "@type": "Interface",
+    "displayName": "Hospital",
+    "description": "A smart hospital facility with patient and equipment tracking",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "hospitalId",
+        "displayName": "Hospital ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "name",
+        "displayName": "Hospital Name",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "address",
+        "displayName": "Address",
+        "schema": {
+          "@type": "Object",
+          "fields": [
+            {"name": "street", "schema": "string"},
+            {"name": "city", "schema": "string"},
+            {"name": "state", "schema": "string"},
+            {"name": "postalCode", "schema": "string"}
+          ]
+        }
+      },
+      {
+        "@type": "Property",
+        "name": "totalBeds",
+        "displayName": "Total Beds",
+        "schema": "integer"
+      },
+      {
+        "@type": "Property",
+        "name": "accreditations",
+        "displayName": "Accreditations",
+        "schema": {
+          "@type": "Array",
+          "elementSchema": "string"
+        }
+      },
+      {
+        "@type": "Telemetry",
+        "name": "currentOccupancy",
+        "displayName": "Current Occupancy",
+        "schema": "integer"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "emergencyWaitTime",
+        "displayName": "Emergency Wait Time (minutes)",
+        "schema": "integer"
+      },
+      {
+        "@type": "Relationship",
+        "name": "hasDepartment",
+        "displayName": "Has Department",
+        "target": "dtmi:example:hospital:Department;1",
+        "maxMultiplicity": 50
+      },
+      {
+        "@type": "Relationship",
+        "name": "hasEquipment",
+        "displayName": "Has Equipment",
+        "target": "dtmi:example:hospital:MedicalEquipment;1"
+      }
+    ]
+  },
+  {
+    "@context": "dtmi:dtdl:context;4",
+    "@id": "dtmi:example:hospital:Department;1",
+    "@type": "Interface",
+    "displayName": "Hospital Department",
+    "description": "A department within the hospital",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "departmentId",
+        "displayName": "Department ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "name",
+        "displayName": "Department Name",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "departmentType",
+        "displayName": "Department Type",
+        "schema": {
+          "@type": "Enum",
+          "valueSchema": "string",
+          "enumValues": [
+            {"name": "emergency", "displayName": "Emergency", "enumValue": "emergency"},
+            {"name": "surgery", "displayName": "Surgery", "enumValue": "surgery"},
+            {"name": "icu", "displayName": "ICU", "enumValue": "icu"},
+            {"name": "radiology", "displayName": "Radiology", "enumValue": "radiology"},
+            {"name": "laboratory", "displayName": "Laboratory", "enumValue": "laboratory"},
+            {"name": "pharmacy", "displayName": "Pharmacy", "enumValue": "pharmacy"},
+            {"name": "general", "displayName": "General Ward", "enumValue": "general"}
+          ]
+        }
+      },
+      {
+        "@type": "Property",
+        "name": "floor",
+        "displayName": "Floor",
+        "schema": "integer"
+      },
+      {
+        "@type": "Property",
+        "name": "bedCount",
+        "displayName": "Bed Count",
+        "schema": "integer"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "occupiedBeds",
+        "displayName": "Occupied Beds",
+        "schema": "integer"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "staffOnDuty",
+        "displayName": "Staff On Duty",
+        "schema": "integer"
+      },
+      {
+        "@type": "Relationship",
+        "name": "hasRoom",
+        "displayName": "Has Room",
+        "target": "dtmi:example:hospital:PatientRoom;1",
+        "maxMultiplicity": 100
+      }
+    ]
+  },
+  {
+    "@context": "dtmi:dtdl:context;4",
+    "@id": "dtmi:example:hospital:PatientRoom;1",
+    "@type": "Interface",
+    "displayName": "Patient Room",
+    "description": "A patient room with monitoring capabilities",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "roomId",
+        "displayName": "Room ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "roomNumber",
+        "displayName": "Room Number",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "roomType",
+        "displayName": "Room Type",
+        "schema": {
+          "@type": "Enum",
+          "valueSchema": "string",
+          "enumValues": [
+            {"name": "private", "displayName": "Private", "enumValue": "private"},
+            {"name": "semiprivate", "displayName": "Semi-Private", "enumValue": "semi-private"},
+            {"name": "ward", "displayName": "Ward", "enumValue": "ward"},
+            {"name": "isolation", "displayName": "Isolation", "enumValue": "isolation"}
+          ]
+        }
+      },
+      {
+        "@type": "Property",
+        "name": "beds",
+        "displayName": "Number of Beds",
+        "schema": "integer"
+      },
+      {
+        "@type": "Property",
+        "name": "isOccupied",
+        "displayName": "Is Occupied",
+        "schema": "boolean"
+      },
+      {
+        "@type": ["Telemetry", "Temperature"],
+        "name": "roomTemperature",
+        "displayName": "Room Temperature",
+        "schema": "double",
+        "unit": "degreeCelsius"
+      },
+      {
+        "@type": ["Telemetry", "RelativeHumidity"],
+        "name": "humidity",
+        "displayName": "Humidity",
+        "schema": "double",
+        "unit": "percent"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "airQualityIndex",
+        "displayName": "Air Quality Index",
+        "schema": "integer"
+      },
+      {
+        "@type": "Command",
+        "name": "callNurse",
+        "displayName": "Call Nurse",
+        "request": {
+          "name": "urgency",
+          "schema": {
+            "@type": "Enum",
+            "valueSchema": "string",
+            "enumValues": [
+              {"name": "routine", "enumValue": "routine"},
+              {"name": "urgent", "enumValue": "urgent"},
+              {"name": "emergency", "enumValue": "emergency"}
+            ]
+          }
+        }
+      },
+      {
+        "@type": "Command",
+        "name": "adjustTemperature",
+        "displayName": "Adjust Temperature",
+        "request": {
+          "name": "targetTemp",
+          "schema": "double"
+        }
+      }
+    ]
+  },
+  {
+    "@context": "dtmi:dtdl:context;4",
+    "@id": "dtmi:example:hospital:MedicalEquipment;1",
+    "@type": "Interface",
+    "displayName": "Medical Equipment",
+    "description": "Trackable medical equipment",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "equipmentId",
+        "displayName": "Equipment ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "name",
+        "displayName": "Equipment Name",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "manufacturer",
+        "displayName": "Manufacturer",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "model",
+        "displayName": "Model",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "serialNumber",
+        "displayName": "Serial Number",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "equipmentType",
+        "displayName": "Equipment Type",
+        "schema": {
+          "@type": "Enum",
+          "valueSchema": "string",
+          "enumValues": [
+            {"name": "monitor", "displayName": "Patient Monitor", "enumValue": "monitor"},
+            {"name": "ventilator", "displayName": "Ventilator", "enumValue": "ventilator"},
+            {"name": "infusionPump", "displayName": "Infusion Pump", "enumValue": "infusion-pump"},
+            {"name": "defibrillator", "displayName": "Defibrillator", "enumValue": "defibrillator"},
+            {"name": "imaging", "displayName": "Imaging Device", "enumValue": "imaging"}
+          ]
+        }
+      },
+      {
+        "@type": "Property",
+        "name": "lastMaintenanceDate",
+        "displayName": "Last Maintenance Date",
+        "schema": "date"
+      },
+      {
+        "@type": "Property",
+        "name": "isAvailable",
+        "displayName": "Is Available",
+        "schema": "boolean"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "batteryLevel",
+        "displayName": "Battery Level",
+        "schema": "double",
+        "unit": "percent"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "operatingHours",
+        "displayName": "Operating Hours",
+        "schema": "double"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "location",
+        "displayName": "Current Location",
+        "schema": "string"
+      },
+      {
+        "@type": "Command",
+        "name": "runDiagnostics",
+        "displayName": "Run Diagnostics"
+      }
+    ]
+  }
+]

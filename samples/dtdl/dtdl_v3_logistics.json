@@ -1,0 +1,277 @@
+[
+  {
+    "@context": "dtmi:dtdl:context;3",
+    "@id": "dtmi:example:logistics:Warehouse;1",
+    "@type": "Interface",
+    "displayName": "Warehouse",
+    "description": "A logistics warehouse with inventory management",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "warehouseId",
+        "displayName": "Warehouse ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "name",
+        "displayName": "Warehouse Name",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "totalCapacity",
+        "displayName": "Total Capacity (pallets)",
+        "schema": "integer"
+      },
+      {
+        "@type": "Property",
+        "name": "location",
+        "displayName": "Location",
+        "schema": {
+          "@type": "Object",
+          "fields": [
+            {"name": "latitude", "schema": "double"},
+            {"name": "longitude", "schema": "double"},
+            {"name": "address", "schema": "string"}
+          ]
+        }
+      },
+      {
+        "@type": "Property",
+        "name": "operationalStatus",
+        "displayName": "Operational Status",
+        "schema": {
+          "@type": "Enum",
+          "valueSchema": "string",
+          "enumValues": [
+            {"name": "operational", "displayName": "Operational", "enumValue": "operational"},
+            {"name": "maintenance", "displayName": "Under Maintenance", "enumValue": "maintenance"},
+            {"name": "closed", "displayName": "Closed", "enumValue": "closed"}
+          ]
+        }
+      },
+      {
+        "@type": "Telemetry",
+        "name": "currentOccupancy",
+        "displayName": "Current Occupancy",
+        "schema": "integer"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "inboundShipments",
+        "displayName": "Inbound Shipments Today",
+        "schema": "integer"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "outboundShipments",
+        "displayName": "Outbound Shipments Today",
+        "schema": "integer"
+      },
+      {
+        "@type": "Relationship",
+        "name": "hasZone",
+        "displayName": "Has Zone",
+        "target": "dtmi:example:logistics:Zone;1",
+        "maxMultiplicity": 20
+      },
+      {
+        "@type": "Relationship",
+        "name": "hasDock",
+        "displayName": "Has Loading Dock",
+        "target": "dtmi:example:logistics:LoadingDock;1",
+        "maxMultiplicity": 10
+      }
+    ]
+  },
+  {
+    "@context": "dtmi:dtdl:context;3",
+    "@id": "dtmi:example:logistics:Zone;1",
+    "@type": "Interface",
+    "displayName": "Warehouse Zone",
+    "description": "A zone within a warehouse",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "zoneId",
+        "displayName": "Zone ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "name",
+        "displayName": "Zone Name",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "zoneType",
+        "displayName": "Zone Type",
+        "schema": {
+          "@type": "Enum",
+          "valueSchema": "string",
+          "enumValues": [
+            {"name": "receiving", "displayName": "Receiving", "enumValue": "receiving"},
+            {"name": "storage", "displayName": "Storage", "enumValue": "storage"},
+            {"name": "picking", "displayName": "Picking", "enumValue": "picking"},
+            {"name": "packing", "displayName": "Packing", "enumValue": "packing"},
+            {"name": "shipping", "displayName": "Shipping", "enumValue": "shipping"},
+            {"name": "coldStorage", "displayName": "Cold Storage", "enumValue": "cold-storage"}
+          ]
+        }
+      },
+      {
+        "@type": "Property",
+        "name": "capacity",
+        "displayName": "Capacity (pallets)",
+        "schema": "integer"
+      },
+      {
+        "@type": ["Telemetry", "Temperature"],
+        "name": "temperature",
+        "displayName": "Temperature",
+        "schema": "double",
+        "unit": "degreeCelsius"
+      },
+      {
+        "@type": ["Telemetry", "RelativeHumidity"],
+        "name": "humidity",
+        "displayName": "Humidity",
+        "schema": "double",
+        "unit": "percent"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "occupancy",
+        "displayName": "Current Occupancy",
+        "schema": "integer"
+      },
+      {
+        "@type": "Relationship",
+        "name": "hasRack",
+        "displayName": "Has Rack",
+        "target": "dtmi:example:logistics:Rack;1",
+        "maxMultiplicity": 100
+      }
+    ]
+  },
+  {
+    "@context": "dtmi:dtdl:context;3",
+    "@id": "dtmi:example:logistics:Rack;1",
+    "@type": "Interface",
+    "displayName": "Storage Rack",
+    "description": "A storage rack in the warehouse",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "rackId",
+        "displayName": "Rack ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "aisle",
+        "displayName": "Aisle",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "bay",
+        "displayName": "Bay",
+        "schema": "integer"
+      },
+      {
+        "@type": "Property",
+        "name": "levels",
+        "displayName": "Number of Levels",
+        "schema": "integer"
+      },
+      {
+        "@type": "Property",
+        "name": "maxWeight",
+        "displayName": "Max Weight per Level (kg)",
+        "schema": "double"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "currentWeight",
+        "displayName": "Current Weight (kg)",
+        "schema": "double"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "slotsOccupied",
+        "displayName": "Slots Occupied",
+        "schema": "integer"
+      }
+    ]
+  },
+  {
+    "@context": "dtmi:dtdl:context;3",
+    "@id": "dtmi:example:logistics:LoadingDock;1",
+    "@type": "Interface",
+    "displayName": "Loading Dock",
+    "description": "A loading dock for shipments",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "dockId",
+        "displayName": "Dock ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "dockType",
+        "displayName": "Dock Type",
+        "schema": {
+          "@type": "Enum",
+          "valueSchema": "string",
+          "enumValues": [
+            {"name": "inbound", "displayName": "Inbound", "enumValue": "inbound"},
+            {"name": "outbound", "displayName": "Outbound", "enumValue": "outbound"},
+            {"name": "dual", "displayName": "Dual Purpose", "enumValue": "dual"}
+          ]
+        }
+      },
+      {
+        "@type": "Property",
+        "name": "isAvailable",
+        "displayName": "Is Available",
+        "schema": "boolean"
+      },
+      {
+        "@type": "Property",
+        "name": "hasDockLeveler",
+        "displayName": "Has Dock Leveler",
+        "schema": "boolean"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "currentVehicle",
+        "displayName": "Current Vehicle ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "shipmentsProcessed",
+        "displayName": "Shipments Processed Today",
+        "schema": "integer"
+      },
+      {
+        "@type": "Command",
+        "name": "assignVehicle",
+        "displayName": "Assign Vehicle",
+        "request": {
+          "name": "vehicleId",
+          "schema": "string"
+        }
+      },
+      {
+        "@type": "Command",
+        "name": "releaseVehicle",
+        "displayName": "Release Vehicle"
+      }
+    ]
+  }
+]

@@ -1,0 +1,188 @@
+@prefix : <http://example.org/geography#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<http://example.org/geography> a owl:Ontology ;
+    rdfs:label "Geography Ontology"@en ;
+    rdfs:comment "An ontology for geographic entities and features"@en .
+
+# Location Classes
+:Location a owl:Class ;
+    rdfs:label "Location"@en .
+
+:Continent a owl:Class ;
+    rdfs:subClassOf :Location ;
+    rdfs:label "Continent"@en .
+
+:Country a owl:Class ;
+    rdfs:subClassOf :Location ;
+    rdfs:label "Country"@en .
+
+:Region a owl:Class ;
+    rdfs:subClassOf :Location ;
+    rdfs:label "Region"@en .
+
+:City a owl:Class ;
+    rdfs:subClassOf :Location ;
+    rdfs:label "City"@en .
+
+:Capital a owl:Class ;
+    rdfs:subClassOf :City ;
+    rdfs:label "Capital City"@en .
+
+# Natural Features
+:NaturalFeature a owl:Class ;
+    rdfs:label "Natural Feature"@en .
+
+:WaterBody a owl:Class ;
+    rdfs:subClassOf :NaturalFeature ;
+    rdfs:label "Water Body"@en .
+
+:Ocean a owl:Class ;
+    rdfs:subClassOf :WaterBody ;
+    rdfs:label "Ocean"@en .
+
+:Sea a owl:Class ;
+    rdfs:subClassOf :WaterBody ;
+    rdfs:label "Sea"@en .
+
+:River a owl:Class ;
+    rdfs:subClassOf :WaterBody ;
+    rdfs:label "River"@en .
+
+:Lake a owl:Class ;
+    rdfs:subClassOf :WaterBody ;
+    rdfs:label "Lake"@en .
+
+:LandForm a owl:Class ;
+    rdfs:subClassOf :NaturalFeature ;
+    rdfs:label "Land Form"@en .
+
+:Mountain a owl:Class ;
+    rdfs:subClassOf :LandForm ;
+    rdfs:label "Mountain"@en .
+
+:MountainRange a owl:Class ;
+    rdfs:subClassOf :LandForm ;
+    rdfs:label "Mountain Range"@en .
+
+:Desert a owl:Class ;
+    rdfs:subClassOf :LandForm ;
+    rdfs:label "Desert"@en .
+
+:Island a owl:Class ;
+    rdfs:subClassOf :LandForm ;
+    rdfs:label "Island"@en .
+
+# Climate
+:Climate a owl:Class ;
+    rdfs:label "Climate"@en .
+
+# Data Properties
+:hasName a owl:DatatypeProperty ;
+    rdfs:domain :Location, :NaturalFeature ;
+    rdfs:range xsd:string ;
+    rdfs:label "name"@en .
+
+:hasPopulation a owl:DatatypeProperty ;
+    rdfs:domain :Country, :City ;
+    rdfs:range xsd:long ;
+    rdfs:label "population"@en .
+
+:hasArea a owl:DatatypeProperty ;
+    rdfs:domain :Location, :WaterBody, :LandForm ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "area (sq km)"@en .
+
+:hasLatitude a owl:DatatypeProperty ;
+    rdfs:domain :Location ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "latitude"@en .
+
+:hasLongitude a owl:DatatypeProperty ;
+    rdfs:domain :Location ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "longitude"@en .
+
+:hasElevation a owl:DatatypeProperty ;
+    rdfs:domain :Location, :Mountain ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "elevation (meters)"@en .
+
+:hasLength a owl:DatatypeProperty ;
+    rdfs:domain :River, :MountainRange ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "length (km)"@en .
+
+:hasDepth a owl:DatatypeProperty ;
+    rdfs:domain :WaterBody ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "depth (meters)"@en .
+
+:hasISOCode a owl:DatatypeProperty ;
+    rdfs:domain :Country ;
+    rdfs:range xsd:string ;
+    rdfs:label "ISO code"@en .
+
+:hasTimezone a owl:DatatypeProperty ;
+    rdfs:domain :Location ;
+    rdfs:range xsd:string ;
+    rdfs:label "timezone"@en .
+
+:hasClimateType a owl:DatatypeProperty ;
+    rdfs:domain :Climate ;
+    rdfs:range xsd:string ;
+    rdfs:label "climate type"@en .
+
+:hasAverageTemperature a owl:DatatypeProperty ;
+    rdfs:domain :Climate ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "average temperature (C)"@en .
+
+# Object Properties
+:locatedIn a owl:ObjectProperty ;
+    rdfs:domain :Location ;
+    rdfs:range :Location ;
+    rdfs:label "located in"@en .
+
+:partOfContinent a owl:ObjectProperty ;
+    rdfs:domain :Country ;
+    rdfs:range :Continent ;
+    rdfs:label "part of continent"@en .
+
+:hasCapital a owl:ObjectProperty ;
+    rdfs:domain :Country ;
+    rdfs:range :Capital ;
+    rdfs:label "has capital"@en .
+
+:borderedBy a owl:ObjectProperty ;
+    rdfs:domain :Country ;
+    rdfs:range :Country ;
+    rdfs:label "bordered by"@en .
+
+:flowsThrough a owl:ObjectProperty ;
+    rdfs:domain :River ;
+    rdfs:range :Country ;
+    rdfs:label "flows through"@en .
+
+:flowsInto a owl:ObjectProperty ;
+    rdfs:domain :River ;
+    rdfs:range :WaterBody ;
+    rdfs:label "flows into"@en .
+
+:containsFeature a owl:ObjectProperty ;
+    rdfs:domain :Location ;
+    rdfs:range :NaturalFeature ;
+    rdfs:label "contains feature"@en .
+
+:hasClimate a owl:ObjectProperty ;
+    rdfs:domain :Location ;
+    rdfs:range :Climate ;
+    rdfs:label "has climate"@en .
+
+:partOfRange a owl:ObjectProperty ;
+    rdfs:domain :Mountain ;
+    rdfs:range :MountainRange ;
+    rdfs:label "part of range"@en .

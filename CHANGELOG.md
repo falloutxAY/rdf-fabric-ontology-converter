@@ -25,6 +25,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
   - `fabric_client.py` moved into `src/core/` (shared infrastructure)
   - Removed duplicate `cancellation.py`, `circuit_breaker.py`, `rate_limiter.py` from `src/` root
   - Removed redundant `src/formats/` package
+- **Samples Reorganization**: Consistent folder structure with format-specific subfolders
+  - Created `samples/rdf/` for all RDF/TTL ontology samples
+  - Moved `samples/sample_*.ttl` files to `samples/rdf/`
+  - Consolidated samples from `review/samples/` into main samples folder
+  - DTDL samples remain in `samples/dtdl/`
+  - Mixed-format use case examples stay in `samples/manufacturingMedical/`
 - Updated import paths throughout codebase to use new package structure
 - RDF and DTDL converters now import shared models to avoid duplication.
 - `DTDLPrimitiveSchema` enum now includes all v4 primitive types including `scaledDecimal`

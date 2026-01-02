@@ -16,8 +16,8 @@ class TestRDFConversionPipeline:
 
     @pytest.fixture
     def samples_dir(self) -> Path:
-        """Get the samples directory path."""
-        return Path(__file__).parent.parent.parent / "samples"
+        """Get the samples/rdf directory path for RDF tests."""
+        return Path(__file__).parent.parent.parent / "samples" / "rdf"
 
     def test_foaf_ontology_conversion(self, samples_dir: Path):
         """Test converting the FOAF sample ontology."""

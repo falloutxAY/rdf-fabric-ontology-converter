@@ -1,0 +1,408 @@
+[
+  {
+    "@context": "dtmi:dtdl:context;4",
+    "@id": "dtmi:example:datacenter:DataCenter;1",
+    "@type": "Interface",
+    "displayName": "Data Center",
+    "description": "A data center facility with infrastructure monitoring",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "datacenterId",
+        "displayName": "Data Center ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "name",
+        "displayName": "Data Center Name",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "tier",
+        "displayName": "Tier Level",
+        "schema": {
+          "@type": "Enum",
+          "valueSchema": "string",
+          "enumValues": [
+            {"name": "tier1", "displayName": "Tier I", "enumValue": "tier-1"},
+            {"name": "tier2", "displayName": "Tier II", "enumValue": "tier-2"},
+            {"name": "tier3", "displayName": "Tier III", "enumValue": "tier-3"},
+            {"name": "tier4", "displayName": "Tier IV", "enumValue": "tier-4"}
+          ]
+        }
+      },
+      {
+        "@type": "Property",
+        "name": "totalPowerCapacity",
+        "displayName": "Total Power Capacity (MW)",
+        "schema": "double"
+      },
+      {
+        "@type": "Property",
+        "name": "location",
+        "displayName": "Location",
+        "schema": {
+          "@type": "Object",
+          "fields": [
+            {"name": "latitude", "schema": "double"},
+            {"name": "longitude", "schema": "double"},
+            {"name": "address", "schema": "string"},
+            {"name": "region", "schema": "string"}
+          ]
+        }
+      },
+      {
+        "@type": "Telemetry",
+        "name": "currentPowerUsage",
+        "displayName": "Current Power Usage (MW)",
+        "schema": "double"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "pue",
+        "displayName": "Power Usage Effectiveness",
+        "schema": "double"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "uptime",
+        "displayName": "Uptime Percentage",
+        "schema": "double",
+        "unit": "percent"
+      },
+      {
+        "@type": "Relationship",
+        "name": "hasHall",
+        "displayName": "Has Data Hall",
+        "target": "dtmi:example:datacenter:DataHall;1",
+        "maxMultiplicity": 20
+      },
+      {
+        "@type": "Relationship",
+        "name": "hasCoolingSystem",
+        "displayName": "Has Cooling System",
+        "target": "dtmi:example:datacenter:CoolingSystem;1"
+      }
+    ]
+  },
+  {
+    "@context": "dtmi:dtdl:context;4",
+    "@id": "dtmi:example:datacenter:DataHall;1",
+    "@type": "Interface",
+    "displayName": "Data Hall",
+    "description": "A data hall containing server racks",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "hallId",
+        "displayName": "Hall ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "name",
+        "displayName": "Hall Name",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "area",
+        "displayName": "Area (sq m)",
+        "schema": "double"
+      },
+      {
+        "@type": "Property",
+        "name": "rackCapacity",
+        "displayName": "Rack Capacity",
+        "schema": "integer"
+      },
+      {
+        "@type": "Property",
+        "name": "powerCapacity",
+        "displayName": "Power Capacity (kW)",
+        "schema": "double"
+      },
+      {
+        "@type": ["Telemetry", "Temperature"],
+        "name": "ambientTemperature",
+        "displayName": "Ambient Temperature",
+        "schema": "double",
+        "unit": "degreeCelsius"
+      },
+      {
+        "@type": ["Telemetry", "RelativeHumidity"],
+        "name": "humidity",
+        "displayName": "Humidity",
+        "schema": "double",
+        "unit": "percent"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "rackUtilization",
+        "displayName": "Rack Utilization",
+        "schema": "double",
+        "unit": "percent"
+      },
+      {
+        "@type": "Relationship",
+        "name": "hasRack",
+        "displayName": "Has Server Rack",
+        "target": "dtmi:example:datacenter:ServerRack;1",
+        "maxMultiplicity": 200
+      }
+    ]
+  },
+  {
+    "@context": "dtmi:dtdl:context;4",
+    "@id": "dtmi:example:datacenter:ServerRack;1",
+    "@type": "Interface",
+    "displayName": "Server Rack",
+    "description": "A server rack with power and thermal monitoring",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "rackId",
+        "displayName": "Rack ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "row",
+        "displayName": "Row",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "position",
+        "displayName": "Position",
+        "schema": "integer"
+      },
+      {
+        "@type": "Property",
+        "name": "rackUnits",
+        "displayName": "Total Rack Units",
+        "schema": "integer"
+      },
+      {
+        "@type": "Property",
+        "name": "maxPower",
+        "displayName": "Max Power (kW)",
+        "schema": "double"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "currentPower",
+        "displayName": "Current Power (kW)",
+        "schema": "double"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "usedRackUnits",
+        "displayName": "Used Rack Units",
+        "schema": "integer"
+      },
+      {
+        "@type": ["Telemetry", "Temperature"],
+        "name": "inletTemperature",
+        "displayName": "Inlet Temperature",
+        "schema": "double",
+        "unit": "degreeCelsius"
+      },
+      {
+        "@type": ["Telemetry", "Temperature"],
+        "name": "outletTemperature",
+        "displayName": "Outlet Temperature",
+        "schema": "double",
+        "unit": "degreeCelsius"
+      },
+      {
+        "@type": "Relationship",
+        "name": "hasServer",
+        "displayName": "Has Server",
+        "target": "dtmi:example:datacenter:Server;1",
+        "maxMultiplicity": 42
+      }
+    ]
+  },
+  {
+    "@context": "dtmi:dtdl:context;4",
+    "@id": "dtmi:example:datacenter:Server;1",
+    "@type": "Interface",
+    "displayName": "Server",
+    "description": "A server with resource monitoring",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "serverId",
+        "displayName": "Server ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "hostname",
+        "displayName": "Hostname",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "manufacturer",
+        "displayName": "Manufacturer",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "model",
+        "displayName": "Model",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "cpuCores",
+        "displayName": "CPU Cores",
+        "schema": "integer"
+      },
+      {
+        "@type": "Property",
+        "name": "ramGB",
+        "displayName": "RAM (GB)",
+        "schema": "integer"
+      },
+      {
+        "@type": "Property",
+        "name": "storageConfig",
+        "displayName": "Storage Configuration",
+        "schema": {
+          "@type": "Array",
+          "elementSchema": {
+            "@type": "Object",
+            "fields": [
+              {"name": "type", "schema": "string"},
+              {"name": "capacityGB", "schema": "integer"}
+            ]
+          }
+        }
+      },
+      {
+        "@type": "Telemetry",
+        "name": "cpuUtilization",
+        "displayName": "CPU Utilization",
+        "schema": "double",
+        "unit": "percent"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "memoryUtilization",
+        "displayName": "Memory Utilization",
+        "schema": "double",
+        "unit": "percent"
+      },
+      {
+        "@type": ["Telemetry", "Temperature"],
+        "name": "cpuTemperature",
+        "displayName": "CPU Temperature",
+        "schema": "double",
+        "unit": "degreeCelsius"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "networkThroughput",
+        "displayName": "Network Throughput (Gbps)",
+        "schema": "double"
+      },
+      {
+        "@type": "Command",
+        "name": "reboot",
+        "displayName": "Reboot Server",
+        "request": {
+          "name": "graceful",
+          "schema": "boolean"
+        }
+      },
+      {
+        "@type": "Command",
+        "name": "powerOff",
+        "displayName": "Power Off"
+      }
+    ]
+  },
+  {
+    "@context": "dtmi:dtdl:context;4",
+    "@id": "dtmi:example:datacenter:CoolingSystem;1",
+    "@type": "Interface",
+    "displayName": "Cooling System",
+    "description": "A data center cooling system",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "systemId",
+        "displayName": "System ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "coolingType",
+        "displayName": "Cooling Type",
+        "schema": {
+          "@type": "Enum",
+          "valueSchema": "string",
+          "enumValues": [
+            {"name": "airCooled", "displayName": "Air Cooled", "enumValue": "air-cooled"},
+            {"name": "liquidCooled", "displayName": "Liquid Cooled", "enumValue": "liquid-cooled"},
+            {"name": "immersion", "displayName": "Immersion", "enumValue": "immersion"},
+            {"name": "freeAir", "displayName": "Free Air", "enumValue": "free-air"}
+          ]
+        }
+      },
+      {
+        "@type": "Property",
+        "name": "capacity",
+        "displayName": "Cooling Capacity (kW)",
+        "schema": "double"
+      },
+      {
+        "@type": "Property",
+        "name": "isRedundant",
+        "displayName": "Is Redundant",
+        "schema": "boolean"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "currentLoad",
+        "displayName": "Current Load",
+        "schema": "double",
+        "unit": "percent"
+      },
+      {
+        "@type": ["Telemetry", "Temperature"],
+        "name": "supplyTemperature",
+        "displayName": "Supply Temperature",
+        "schema": "double",
+        "unit": "degreeCelsius"
+      },
+      {
+        "@type": ["Telemetry", "Temperature"],
+        "name": "returnTemperature",
+        "displayName": "Return Temperature",
+        "schema": "double",
+        "unit": "degreeCelsius"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "flowRate",
+        "displayName": "Flow Rate (L/min)",
+        "schema": "double"
+      },
+      {
+        "@type": "Command",
+        "name": "setTargetTemperature",
+        "displayName": "Set Target Temperature",
+        "request": {
+          "name": "targetTemp",
+          "schema": "double"
+        }
+      }
+    ]
+  }
+]

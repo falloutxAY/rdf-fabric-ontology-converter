@@ -1,0 +1,178 @@
+@prefix : <http://example.org/healthcare#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<http://example.org/healthcare> a owl:Ontology ;
+    rdfs:label "Healthcare Ontology"@en ;
+    rdfs:comment "An ontology for healthcare entities and relationships"@en .
+
+# Person Classes
+:Person a owl:Class ;
+    rdfs:label "Person"@en .
+
+:Patient a owl:Class ;
+    rdfs:subClassOf :Person ;
+    rdfs:label "Patient"@en .
+
+:HealthcareProvider a owl:Class ;
+    rdfs:subClassOf :Person ;
+    rdfs:label "Healthcare Provider"@en .
+
+:Physician a owl:Class ;
+    rdfs:subClassOf :HealthcareProvider ;
+    rdfs:label "Physician"@en .
+
+:Nurse a owl:Class ;
+    rdfs:subClassOf :HealthcareProvider ;
+    rdfs:label "Nurse"@en .
+
+:Specialist a owl:Class ;
+    rdfs:subClassOf :Physician ;
+    rdfs:label "Specialist"@en .
+
+# Medical Classes
+:Diagnosis a owl:Class ;
+    rdfs:label "Diagnosis"@en .
+
+:Treatment a owl:Class ;
+    rdfs:label "Treatment"@en .
+
+:Medication a owl:Class ;
+    rdfs:label "Medication"@en .
+
+:Procedure a owl:Class ;
+    rdfs:label "Procedure"@en .
+
+:Appointment a owl:Class ;
+    rdfs:label "Appointment"@en .
+
+:MedicalRecord a owl:Class ;
+    rdfs:label "Medical Record"@en .
+
+:Facility a owl:Class ;
+    rdfs:label "Healthcare Facility"@en .
+
+:Hospital a owl:Class ;
+    rdfs:subClassOf :Facility ;
+    rdfs:label "Hospital"@en .
+
+:Clinic a owl:Class ;
+    rdfs:subClassOf :Facility ;
+    rdfs:label "Clinic"@en .
+
+:Insurance a owl:Class ;
+    rdfs:label "Insurance"@en .
+
+# Data Properties
+:hasName a owl:DatatypeProperty ;
+    rdfs:domain :Person, :Facility, :Medication ;
+    rdfs:range xsd:string ;
+    rdfs:label "name"@en .
+
+:hasDateOfBirth a owl:DatatypeProperty ;
+    rdfs:domain :Person ;
+    rdfs:range xsd:date ;
+    rdfs:label "date of birth"@en .
+
+:hasPatientID a owl:DatatypeProperty ;
+    rdfs:domain :Patient ;
+    rdfs:range xsd:string ;
+    rdfs:label "patient ID"@en .
+
+:hasLicenseNumber a owl:DatatypeProperty ;
+    rdfs:domain :HealthcareProvider ;
+    rdfs:range xsd:string ;
+    rdfs:label "license number"@en .
+
+:hasSpecialty a owl:DatatypeProperty ;
+    rdfs:domain :Specialist ;
+    rdfs:range xsd:string ;
+    rdfs:label "specialty"@en .
+
+:hasDiagnosisCode a owl:DatatypeProperty ;
+    rdfs:domain :Diagnosis ;
+    rdfs:range xsd:string ;
+    rdfs:label "ICD code"@en .
+
+:hasDosage a owl:DatatypeProperty ;
+    rdfs:domain :Medication ;
+    rdfs:range xsd:string ;
+    rdfs:label "dosage"@en .
+
+:hasAppointmentDate a owl:DatatypeProperty ;
+    rdfs:domain :Appointment ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "appointment date"@en .
+
+:hasDescription a owl:DatatypeProperty ;
+    rdfs:domain :Diagnosis, :Treatment, :Procedure ;
+    rdfs:range xsd:string ;
+    rdfs:label "description"@en .
+
+:hasPolicyNumber a owl:DatatypeProperty ;
+    rdfs:domain :Insurance ;
+    rdfs:range xsd:string ;
+    rdfs:label "policy number"@en .
+
+:hasAddress a owl:DatatypeProperty ;
+    rdfs:domain :Facility ;
+    rdfs:range xsd:string ;
+    rdfs:label "address"@en .
+
+# Object Properties
+:hasDiagnosis a owl:ObjectProperty ;
+    rdfs:domain :MedicalRecord ;
+    rdfs:range :Diagnosis ;
+    rdfs:label "has diagnosis"@en .
+
+:hasTreatment a owl:ObjectProperty ;
+    rdfs:domain :Diagnosis ;
+    rdfs:range :Treatment ;
+    rdfs:label "has treatment"@en .
+
+:prescribedMedication a owl:ObjectProperty ;
+    rdfs:domain :Treatment ;
+    rdfs:range :Medication ;
+    rdfs:label "prescribed medication"@en .
+
+:performedProcedure a owl:ObjectProperty ;
+    rdfs:domain :Treatment ;
+    rdfs:range :Procedure ;
+    rdfs:label "performed procedure"@en .
+
+:treatedBy a owl:ObjectProperty ;
+    rdfs:domain :Patient ;
+    rdfs:range :HealthcareProvider ;
+    rdfs:label "treated by"@en .
+
+:primaryPhysician a owl:ObjectProperty ;
+    rdfs:domain :Patient ;
+    rdfs:range :Physician ;
+    rdfs:label "primary physician"@en .
+
+:scheduledWith a owl:ObjectProperty ;
+    rdfs:domain :Appointment ;
+    rdfs:range :HealthcareProvider ;
+    rdfs:label "scheduled with"@en .
+
+:forPatient a owl:ObjectProperty ;
+    rdfs:domain :Appointment, :MedicalRecord ;
+    rdfs:range :Patient ;
+    rdfs:label "for patient"@en .
+
+:worksAt a owl:ObjectProperty ;
+    rdfs:domain :HealthcareProvider ;
+    rdfs:range :Facility ;
+    rdfs:label "works at"@en .
+
+:coveredBy a owl:ObjectProperty ;
+    rdfs:domain :Patient ;
+    rdfs:range :Insurance ;
+    rdfs:label "covered by"@en .
+
+:atFacility a owl:ObjectProperty ;
+    rdfs:domain :Appointment ;
+    rdfs:range :Facility ;
+    rdfs:label "at facility"@en .

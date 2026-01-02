@@ -1,0 +1,131 @@
+@prefix : <http://example.org/vehicle#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<http://example.org/vehicle> a owl:Ontology ;
+    rdfs:label "Vehicle Ontology"@en ;
+    rdfs:comment "An ontology for vehicles and transportation"@en .
+
+# Base Classes
+:Vehicle a owl:Class ;
+    rdfs:label "Vehicle"@en .
+
+:LandVehicle a owl:Class ;
+    rdfs:subClassOf :Vehicle ;
+    rdfs:label "Land Vehicle"@en .
+
+:WaterVehicle a owl:Class ;
+    rdfs:subClassOf :Vehicle ;
+    rdfs:label "Water Vehicle"@en .
+
+:AirVehicle a owl:Class ;
+    rdfs:subClassOf :Vehicle ;
+    rdfs:label "Air Vehicle"@en .
+
+# Land Vehicle Types
+:Car a owl:Class ;
+    rdfs:subClassOf :LandVehicle ;
+    rdfs:label "Car"@en .
+
+:Motorcycle a owl:Class ;
+    rdfs:subClassOf :LandVehicle ;
+    rdfs:label "Motorcycle"@en .
+
+:Truck a owl:Class ;
+    rdfs:subClassOf :LandVehicle ;
+    rdfs:label "Truck"@en .
+
+:Bus a owl:Class ;
+    rdfs:subClassOf :LandVehicle ;
+    rdfs:label "Bus"@en .
+
+# Car Types
+:Sedan a owl:Class ;
+    rdfs:subClassOf :Car ;
+    rdfs:label "Sedan"@en .
+
+:SUV a owl:Class ;
+    rdfs:subClassOf :Car ;
+    rdfs:label "SUV"@en .
+
+:Hatchback a owl:Class ;
+    rdfs:subClassOf :Car ;
+    rdfs:label "Hatchback"@en .
+
+:ElectricCar a owl:Class ;
+    rdfs:subClassOf :Car ;
+    rdfs:label "Electric Car"@en .
+
+# Components
+:Engine a owl:Class ;
+    rdfs:label "Engine"@en .
+
+:Wheel a owl:Class ;
+    rdfs:label "Wheel"@en .
+
+:Manufacturer a owl:Class ;
+    rdfs:label "Manufacturer"@en .
+
+# Data Properties
+:hasVIN a owl:DatatypeProperty ;
+    rdfs:domain :Vehicle ;
+    rdfs:range xsd:string ;
+    rdfs:label "VIN"@en .
+
+:hasModelYear a owl:DatatypeProperty ;
+    rdfs:domain :Vehicle ;
+    rdfs:range xsd:integer ;
+    rdfs:label "model year"@en .
+
+:hasPrice a owl:DatatypeProperty ;
+    rdfs:domain :Vehicle ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "price"@en .
+
+:hasMileage a owl:DatatypeProperty ;
+    rdfs:domain :Vehicle ;
+    rdfs:range xsd:integer ;
+    rdfs:label "mileage"@en .
+
+:hasHorsepower a owl:DatatypeProperty ;
+    rdfs:domain :Engine ;
+    rdfs:range xsd:integer ;
+    rdfs:label "horsepower"@en .
+
+:hasFuelType a owl:DatatypeProperty ;
+    rdfs:domain :Engine ;
+    rdfs:range xsd:string ;
+    rdfs:label "fuel type"@en .
+
+:hasColor a owl:DatatypeProperty ;
+    rdfs:domain :Vehicle ;
+    rdfs:range xsd:string ;
+    rdfs:label "color"@en .
+
+:hasSeats a owl:DatatypeProperty ;
+    rdfs:domain :LandVehicle ;
+    rdfs:range xsd:integer ;
+    rdfs:label "seats"@en .
+
+:isElectric a owl:DatatypeProperty ;
+    rdfs:domain :Vehicle ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "is electric"@en .
+
+# Object Properties
+:hasEngine a owl:ObjectProperty ;
+    rdfs:domain :LandVehicle ;
+    rdfs:range :Engine ;
+    rdfs:label "has engine"@en .
+
+:hasWheel a owl:ObjectProperty ;
+    rdfs:domain :LandVehicle ;
+    rdfs:range :Wheel ;
+    rdfs:label "has wheel"@en .
+
+:manufacturedBy a owl:ObjectProperty ;
+    rdfs:domain :Vehicle ;
+    rdfs:range :Manufacturer ;
+    rdfs:label "manufactured by"@en .

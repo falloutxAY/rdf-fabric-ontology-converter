@@ -1,0 +1,125 @@
+@prefix : <http://example.org/university#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<http://example.org/university> a owl:Ontology ;
+    rdfs:label "University Ontology"@en ;
+    rdfs:comment "An ontology describing academic institutions"@en .
+
+# Core Classes
+:Person a owl:Class ;
+    rdfs:label "Person"@en .
+
+:Student a owl:Class ;
+    rdfs:subClassOf :Person ;
+    rdfs:label "Student"@en .
+
+:Faculty a owl:Class ;
+    rdfs:subClassOf :Person ;
+    rdfs:label "Faculty"@en .
+
+:Professor a owl:Class ;
+    rdfs:subClassOf :Faculty ;
+    rdfs:label "Professor"@en .
+
+:Lecturer a owl:Class ;
+    rdfs:subClassOf :Faculty ;
+    rdfs:label "Lecturer"@en .
+
+:GraduateStudent a owl:Class ;
+    rdfs:subClassOf :Student ;
+    rdfs:label "Graduate Student"@en .
+
+:UndergraduateStudent a owl:Class ;
+    rdfs:subClassOf :Student ;
+    rdfs:label "Undergraduate Student"@en .
+
+# Academic Entities
+:Course a owl:Class ;
+    rdfs:label "Course"@en .
+
+:Department a owl:Class ;
+    rdfs:label "Department"@en .
+
+:Building a owl:Class ;
+    rdfs:label "Building"@en .
+
+:Room a owl:Class ;
+    rdfs:label "Room"@en .
+
+:Degree a owl:Class ;
+    rdfs:label "Degree"@en .
+
+# Data Properties
+:hasStudentId a owl:DatatypeProperty ;
+    rdfs:domain :Student ;
+    rdfs:range xsd:string ;
+    rdfs:label "student ID"@en .
+
+:hasFacultyId a owl:DatatypeProperty ;
+    rdfs:domain :Faculty ;
+    rdfs:range xsd:string ;
+    rdfs:label "faculty ID"@en .
+
+:hasName a owl:DatatypeProperty ;
+    rdfs:domain :Person ;
+    rdfs:range xsd:string ;
+    rdfs:label "name"@en .
+
+:hasEmail a owl:DatatypeProperty ;
+    rdfs:domain :Person ;
+    rdfs:range xsd:string ;
+    rdfs:label "email"@en .
+
+:hasCourseCode a owl:DatatypeProperty ;
+    rdfs:domain :Course ;
+    rdfs:range xsd:string ;
+    rdfs:label "course code"@en .
+
+:hasCredits a owl:DatatypeProperty ;
+    rdfs:domain :Course ;
+    rdfs:range xsd:integer ;
+    rdfs:label "credits"@en .
+
+:hasCapacity a owl:DatatypeProperty ;
+    rdfs:domain :Room ;
+    rdfs:range xsd:integer ;
+    rdfs:label "capacity"@en .
+
+:hasGPA a owl:DatatypeProperty ;
+    rdfs:domain :Student ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "GPA"@en .
+
+# Object Properties
+:enrolledIn a owl:ObjectProperty ;
+    rdfs:domain :Student ;
+    rdfs:range :Course ;
+    rdfs:label "enrolled in"@en .
+
+:teaches a owl:ObjectProperty ;
+    rdfs:domain :Faculty ;
+    rdfs:range :Course ;
+    rdfs:label "teaches"@en .
+
+:belongsTo a owl:ObjectProperty ;
+    rdfs:domain :Course ;
+    rdfs:range :Department ;
+    rdfs:label "belongs to"@en .
+
+:locatedIn a owl:ObjectProperty ;
+    rdfs:domain :Room ;
+    rdfs:range :Building ;
+    rdfs:label "located in"@en .
+
+:pursuingDegree a owl:ObjectProperty ;
+    rdfs:domain :Student ;
+    rdfs:range :Degree ;
+    rdfs:label "pursuing degree"@en .
+
+:advisedBy a owl:ObjectProperty ;
+    rdfs:domain :GraduateStudent ;
+    rdfs:range :Professor ;
+    rdfs:label "advised by"@en .

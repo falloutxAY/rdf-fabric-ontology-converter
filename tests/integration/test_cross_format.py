@@ -16,7 +16,8 @@ class TestCrossFormatCompatibility:
 
     @pytest.fixture
     def samples_dir(self) -> Path:
-        return Path(__file__).parent.parent.parent / "samples"
+        """Get the samples/rdf directory path for RDF tests."""
+        return Path(__file__).parent.parent.parent / "samples" / "rdf"
 
     @pytest.fixture
     def dtdl_parser(self) -> DTDLParser:

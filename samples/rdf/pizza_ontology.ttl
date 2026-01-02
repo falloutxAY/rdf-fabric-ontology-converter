@@ -1,0 +1,95 @@
+@prefix : <http://example.org/pizza#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<http://example.org/pizza> a owl:Ontology ;
+    rdfs:label "Pizza Ontology"@en ;
+    rdfs:comment "A sample pizza ontology for testing"@en .
+
+# Classes
+:Pizza a owl:Class ;
+    rdfs:label "Pizza"@en ;
+    rdfs:comment "A pizza food item"@en .
+
+:PizzaTopping a owl:Class ;
+    rdfs:label "Pizza Topping"@en ;
+    rdfs:comment "A topping for pizza"@en .
+
+:PizzaBase a owl:Class ;
+    rdfs:label "Pizza Base"@en ;
+    rdfs:comment "The base of a pizza"@en .
+
+# Pizza Types (subclasses)
+:MargheritaPizza a owl:Class ;
+    rdfs:subClassOf :Pizza ;
+    rdfs:label "Margherita Pizza"@en .
+
+:PepperoniPizza a owl:Class ;
+    rdfs:subClassOf :Pizza ;
+    rdfs:label "Pepperoni Pizza"@en .
+
+:VegetarianPizza a owl:Class ;
+    rdfs:subClassOf :Pizza ;
+    rdfs:label "Vegetarian Pizza"@en .
+
+# Toppings
+:MozzarellaTopping a owl:Class ;
+    rdfs:subClassOf :PizzaTopping ;
+    rdfs:label "Mozzarella"@en .
+
+:TomatoTopping a owl:Class ;
+    rdfs:subClassOf :PizzaTopping ;
+    rdfs:label "Tomato"@en .
+
+:PepperoniTopping a owl:Class ;
+    rdfs:subClassOf :PizzaTopping ;
+    rdfs:label "Pepperoni"@en .
+
+# Base Types
+:ThinCrustBase a owl:Class ;
+    rdfs:subClassOf :PizzaBase ;
+    rdfs:label "Thin Crust"@en .
+
+:ThickCrustBase a owl:Class ;
+    rdfs:subClassOf :PizzaBase ;
+    rdfs:label "Thick Crust"@en .
+
+# Data Properties
+:hasName a owl:DatatypeProperty ;
+    rdfs:domain :Pizza ;
+    rdfs:range xsd:string ;
+    rdfs:label "has name"@en .
+
+:hasPrice a owl:DatatypeProperty ;
+    rdfs:domain :Pizza ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "has price"@en .
+
+:hasCalories a owl:DatatypeProperty ;
+    rdfs:domain :Pizza ;
+    rdfs:range xsd:integer ;
+    rdfs:label "has calories"@en .
+
+:isSpicy a owl:DatatypeProperty ;
+    rdfs:domain :PizzaTopping ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "is spicy"@en .
+
+# Object Properties
+:hasTopping a owl:ObjectProperty ;
+    rdfs:domain :Pizza ;
+    rdfs:range :PizzaTopping ;
+    rdfs:label "has topping"@en .
+
+:hasBase a owl:ObjectProperty ;
+    rdfs:domain :Pizza ;
+    rdfs:range :PizzaBase ;
+    rdfs:label "has base"@en .
+
+:isToppingOf a owl:ObjectProperty ;
+    owl:inverseOf :hasTopping ;
+    rdfs:domain :PizzaTopping ;
+    rdfs:range :Pizza ;
+    rdfs:label "is topping of"@en .

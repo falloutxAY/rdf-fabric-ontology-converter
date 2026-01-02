@@ -1,0 +1,192 @@
+[
+  {
+    "@context": "dtmi:dtdl:context;2",
+    "@id": "dtmi:example:fleet:Vehicle;1",
+    "@type": "Interface",
+    "displayName": "Vehicle",
+    "description": "A fleet vehicle with tracking capabilities",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "vehicleId",
+        "displayName": "Vehicle ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "make",
+        "displayName": "Make",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "model",
+        "displayName": "Model",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "year",
+        "displayName": "Year",
+        "schema": "integer"
+      },
+      {
+        "@type": "Property",
+        "name": "licensePlate",
+        "displayName": "License Plate",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "vehicleType",
+        "displayName": "Vehicle Type",
+        "schema": {
+          "@type": "Enum",
+          "valueSchema": "string",
+          "enumValues": [
+            {"name": "sedan", "enumValue": "sedan"},
+            {"name": "suv", "enumValue": "suv"},
+            {"name": "truck", "enumValue": "truck"},
+            {"name": "van", "enumValue": "van"}
+          ]
+        }
+      },
+      {
+        "@type": "Telemetry",
+        "name": "currentSpeed",
+        "displayName": "Current Speed",
+        "schema": "double",
+        "unit": "kilometrePerHour"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "fuelLevel",
+        "displayName": "Fuel Level",
+        "schema": "double",
+        "unit": "percent"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "odometer",
+        "displayName": "Odometer Reading",
+        "schema": "double",
+        "unit": "kilometre"
+      },
+      {
+        "@type": "Property",
+        "name": "location",
+        "displayName": "Location",
+        "schema": {
+          "@type": "Object",
+          "fields": [
+            {"name": "latitude", "schema": "double"},
+            {"name": "longitude", "schema": "double"}
+          ]
+        }
+      },
+      {
+        "@type": "Command",
+        "name": "lock",
+        "displayName": "Lock Vehicle"
+      },
+      {
+        "@type": "Command",
+        "name": "unlock",
+        "displayName": "Unlock Vehicle"
+      },
+      {
+        "@type": "Relationship",
+        "name": "assignedTo",
+        "displayName": "Assigned To",
+        "target": "dtmi:example:fleet:Driver;1"
+      },
+      {
+        "@type": "Relationship",
+        "name": "maintainedAt",
+        "displayName": "Maintained At",
+        "target": "dtmi:example:fleet:ServiceCenter;1"
+      }
+    ]
+  },
+  {
+    "@context": "dtmi:dtdl:context;2",
+    "@id": "dtmi:example:fleet:Driver;1",
+    "@type": "Interface",
+    "displayName": "Driver",
+    "description": "A fleet driver",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "driverId",
+        "displayName": "Driver ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "name",
+        "displayName": "Name",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "licenseNumber",
+        "displayName": "License Number",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "licenseExpiry",
+        "displayName": "License Expiry",
+        "schema": "date"
+      },
+      {
+        "@type": "Property",
+        "name": "isActive",
+        "displayName": "Is Active",
+        "schema": "boolean"
+      }
+    ]
+  },
+  {
+    "@context": "dtmi:dtdl:context;2",
+    "@id": "dtmi:example:fleet:ServiceCenter;1",
+    "@type": "Interface",
+    "displayName": "Service Center",
+    "description": "A vehicle service center",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "centerId",
+        "displayName": "Center ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "name",
+        "displayName": "Name",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "address",
+        "displayName": "Address",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "phone",
+        "displayName": "Phone",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "serviceTypes",
+        "displayName": "Service Types",
+        "schema": {
+          "@type": "Array",
+          "elementSchema": "string"
+        }
+      }
+    ]
+  }
+]

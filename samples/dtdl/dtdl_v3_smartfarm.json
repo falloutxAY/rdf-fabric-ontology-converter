@@ -1,0 +1,277 @@
+[
+  {
+    "@context": "dtmi:dtdl:context;3",
+    "@id": "dtmi:example:smartfarm:Farm;1",
+    "@type": "Interface",
+    "displayName": "Farm",
+    "description": "A smart farm with agricultural monitoring",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "farmId",
+        "displayName": "Farm ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "name",
+        "displayName": "Farm Name",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "totalArea",
+        "displayName": "Total Area (hectares)",
+        "schema": "double"
+      },
+      {
+        "@type": "Property",
+        "name": "location",
+        "displayName": "Location",
+        "schema": {
+          "@type": "Object",
+          "fields": [
+            {"name": "latitude", "schema": "double"},
+            {"name": "longitude", "schema": "double"},
+            {"name": "altitude", "schema": "double"}
+          ]
+        }
+      },
+      {
+        "@type": "Relationship",
+        "name": "hasField",
+        "displayName": "Has Field",
+        "target": "dtmi:example:smartfarm:Field;1",
+        "maxMultiplicity": 100
+      },
+      {
+        "@type": "Relationship",
+        "name": "hasWeatherStation",
+        "displayName": "Has Weather Station",
+        "target": "dtmi:example:smartfarm:WeatherStation;1"
+      }
+    ]
+  },
+  {
+    "@context": "dtmi:dtdl:context;3",
+    "@id": "dtmi:example:smartfarm:Field;1",
+    "@type": "Interface",
+    "displayName": "Field",
+    "description": "An agricultural field with crop monitoring",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "fieldId",
+        "displayName": "Field ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "name",
+        "displayName": "Field Name",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "area",
+        "displayName": "Area (hectares)",
+        "schema": "double"
+      },
+      {
+        "@type": "Property",
+        "name": "cropType",
+        "displayName": "Crop Type",
+        "schema": {
+          "@type": "Enum",
+          "valueSchema": "string",
+          "enumValues": [
+            {"name": "wheat", "displayName": "Wheat", "enumValue": "wheat"},
+            {"name": "corn", "displayName": "Corn", "enumValue": "corn"},
+            {"name": "soybean", "displayName": "Soybean", "enumValue": "soybean"},
+            {"name": "rice", "displayName": "Rice", "enumValue": "rice"},
+            {"name": "vegetables", "displayName": "Vegetables", "enumValue": "vegetables"}
+          ]
+        }
+      },
+      {
+        "@type": "Property",
+        "name": "plantingDate",
+        "displayName": "Planting Date",
+        "schema": "date"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "soilMoisture",
+        "displayName": "Soil Moisture",
+        "schema": "double",
+        "unit": "percent"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "soilTemperature",
+        "displayName": "Soil Temperature",
+        "schema": "double",
+        "unit": "degreeCelsius"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "soilPH",
+        "displayName": "Soil pH",
+        "schema": "double"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "ndviIndex",
+        "displayName": "NDVI Index",
+        "description": "Normalized Difference Vegetation Index",
+        "schema": "double"
+      },
+      {
+        "@type": "Command",
+        "name": "startIrrigation",
+        "displayName": "Start Irrigation",
+        "request": {
+          "name": "duration",
+          "displayName": "Duration (minutes)",
+          "schema": "integer"
+        }
+      },
+      {
+        "@type": "Relationship",
+        "name": "hasSensor",
+        "displayName": "Has Sensor",
+        "target": "dtmi:example:smartfarm:SoilSensor;1",
+        "maxMultiplicity": 50
+      }
+    ]
+  },
+  {
+    "@context": "dtmi:dtdl:context;3",
+    "@id": "dtmi:example:smartfarm:SoilSensor;1",
+    "@type": "Interface",
+    "displayName": "Soil Sensor",
+    "description": "A soil monitoring sensor",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "sensorId",
+        "displayName": "Sensor ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "depth",
+        "displayName": "Installation Depth (cm)",
+        "schema": "double"
+      },
+      {
+        "@type": "Property",
+        "name": "installDate",
+        "displayName": "Installation Date",
+        "schema": "date"
+      },
+      {
+        "@type": "Property",
+        "name": "isActive",
+        "displayName": "Is Active",
+        "schema": "boolean"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "moistureReading",
+        "displayName": "Moisture Reading",
+        "schema": "double",
+        "unit": "percent"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "temperatureReading",
+        "displayName": "Temperature Reading",
+        "schema": "double",
+        "unit": "degreeCelsius"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "batteryLevel",
+        "displayName": "Battery Level",
+        "schema": "double",
+        "unit": "percent"
+      },
+      {
+        "@type": "Command",
+        "name": "calibrate",
+        "displayName": "Calibrate Sensor"
+      }
+    ]
+  },
+  {
+    "@context": "dtmi:dtdl:context;3",
+    "@id": "dtmi:example:smartfarm:WeatherStation;1",
+    "@type": "Interface",
+    "displayName": "Weather Station",
+    "description": "A farm weather monitoring station",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "stationId",
+        "displayName": "Station ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "elevation",
+        "displayName": "Elevation (m)",
+        "schema": "double"
+      },
+      {
+        "@type": ["Telemetry", "Temperature"],
+        "name": "airTemperature",
+        "displayName": "Air Temperature",
+        "schema": "double",
+        "unit": "degreeCelsius"
+      },
+      {
+        "@type": ["Telemetry", "RelativeHumidity"],
+        "name": "humidity",
+        "displayName": "Humidity",
+        "schema": "double",
+        "unit": "percent"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "windSpeed",
+        "displayName": "Wind Speed",
+        "schema": "double",
+        "unit": "metrePerSecond"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "windDirection",
+        "displayName": "Wind Direction",
+        "schema": "double",
+        "unit": "degreeOfArc"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "rainfall",
+        "displayName": "Rainfall",
+        "schema": "double",
+        "unit": "millimetre"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "solarRadiation",
+        "displayName": "Solar Radiation",
+        "schema": "double",
+        "unit": "wattPerSquareMetre"
+      },
+      {
+        "@type": ["Telemetry", "Pressure"],
+        "name": "barometricPressure",
+        "displayName": "Barometric Pressure",
+        "schema": "double",
+        "unit": "hectopascal"
+      }
+    ]
+  }
+]

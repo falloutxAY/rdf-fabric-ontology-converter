@@ -167,13 +167,13 @@ Examples (Windows PowerShell):
 
 ```powershell
 # Blocked: resolves outside the cwd
-python src\main.py rdf-validate ..\samples\sample_foaf_ontology.ttl --allow-relative-up --verbose
+python src\main.py rdf-validate ..\samples\rdf\sample_foaf_ontology.ttl --allow-relative-up --verbose
 
 # Allowed: remains inside the cwd after resolution
-python src\main.py rdf-validate .\samples\..\samples\sample_foaf_ontology.ttl --allow-relative-up --verbose
+python src\main.py rdf-validate .\samples\..\samples\rdf\sample_foaf_ontology.ttl --allow-relative-up --verbose
 
 # Tip: Always quote absolute paths with spaces
-python src\main.py rdf-validate "C:\Users\me\Projects\rdf-fabric-ontology-converter\samples\sample_foaf_ontology.ttl" --verbose
+python src\main.py rdf-validate "C:\Users\me\Projects\rdf-fabric-ontology-converter\samples\rdf\sample_foaf_ontology.ttl" --verbose
 ```
 
 Notes:

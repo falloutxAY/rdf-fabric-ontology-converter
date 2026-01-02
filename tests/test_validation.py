@@ -1161,10 +1161,10 @@ class TestSampleFilesValidation:
 
     @pytest.fixture
     def samples_dir(self):
-        """Get the samples directory path."""
-        samples = Path(__file__).parent.parent / "samples"
+        """Get the samples/rdf directory path for RDF tests."""
+        samples = Path(__file__).parent.parent / "samples" / "rdf"
         if not samples.exists():
-            pytest.skip("samples directory not found")
+            pytest.skip("samples/rdf directory not found")
         return samples
 
     def test_validate_sample_ontology(self, samples_dir):
@@ -1207,10 +1207,10 @@ class TestSampleFilesRoundTrip:
     
     @pytest.fixture
     def samples_dir(self):
-        """Get the samples directory path."""
-        samples = Path(__file__).parent.parent / "samples"
+        """Get the samples/rdf directory path for RDF tests."""
+        samples = Path(__file__).parent.parent / "samples" / "rdf"
         if not samples.exists():
-            pytest.skip("samples directory not found")
+            pytest.skip("samples/rdf directory not found")
         return samples
     
     def test_foaf_roundtrip(self, samples_dir):
@@ -1262,8 +1262,8 @@ class TestEndToEnd:
     
     @pytest.fixture
     def samples_dir(self):
-        """Get samples directory"""
-        return Path(__file__).parent.parent / "samples"
+        """Get samples/rdf directory for RDF tests"""
+        return Path(__file__).parent.parent / "samples" / "rdf"
     
     def test_parse_sample_ontology_complete(self, samples_dir):
         """Complete test of parsing sample_supply_chain_ontology.ttl"""

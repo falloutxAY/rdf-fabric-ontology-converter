@@ -318,8 +318,8 @@ class TestSampleOntologies:
     
     @pytest.fixture
     def samples_dir(self):
-        """Get the samples directory path"""
-        return Path(__file__).parent.parent / "samples"
+        """Get the samples/rdf directory path for RDF tests"""
+        return Path(__file__).parent.parent / "samples" / "rdf"
     
     def test_sample_ontology_ttl(self, samples_dir):
         """Test parsing sample_supply_chain_ontology.ttl"""

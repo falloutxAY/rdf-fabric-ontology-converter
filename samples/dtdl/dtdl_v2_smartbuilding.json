@@ -1,0 +1,199 @@
+[
+  {
+    "@context": "dtmi:dtdl:context;2",
+    "@id": "dtmi:example:smartbuilding:Building;1",
+    "@type": "Interface",
+    "displayName": "Building",
+    "description": "A smart building with environmental monitoring",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "buildingName",
+        "displayName": "Building Name",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "address",
+        "displayName": "Address",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "floorCount",
+        "displayName": "Floor Count",
+        "schema": "integer"
+      },
+      {
+        "@type": "Property",
+        "name": "yearBuilt",
+        "displayName": "Year Built",
+        "schema": "integer"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "totalEnergyConsumption",
+        "displayName": "Total Energy Consumption",
+        "schema": "double",
+        "unit": "kilowattHour"
+      },
+      {
+        "@type": "Relationship",
+        "name": "hasFloor",
+        "displayName": "Has Floor",
+        "target": "dtmi:example:smartbuilding:Floor;1"
+      }
+    ]
+  },
+  {
+    "@context": "dtmi:dtdl:context;2",
+    "@id": "dtmi:example:smartbuilding:Floor;1",
+    "@type": "Interface",
+    "displayName": "Floor",
+    "description": "A floor within a building",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "floorNumber",
+        "displayName": "Floor Number",
+        "schema": "integer"
+      },
+      {
+        "@type": "Property",
+        "name": "area",
+        "displayName": "Area (sq m)",
+        "schema": "double"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "occupancy",
+        "displayName": "Current Occupancy",
+        "schema": "integer"
+      },
+      {
+        "@type": "Relationship",
+        "name": "hasRoom",
+        "displayName": "Has Room",
+        "target": "dtmi:example:smartbuilding:Room;1"
+      }
+    ]
+  },
+  {
+    "@context": "dtmi:dtdl:context;2",
+    "@id": "dtmi:example:smartbuilding:Room;1",
+    "@type": "Interface",
+    "displayName": "Room",
+    "description": "A room with environmental sensors",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "roomName",
+        "displayName": "Room Name",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "roomType",
+        "displayName": "Room Type",
+        "schema": {
+          "@type": "Enum",
+          "valueSchema": "string",
+          "enumValues": [
+            {"name": "office", "enumValue": "office"},
+            {"name": "conference", "enumValue": "conference"},
+            {"name": "storage", "enumValue": "storage"},
+            {"name": "common", "enumValue": "common"}
+          ]
+        }
+      },
+      {
+        "@type": "Property",
+        "name": "capacity",
+        "displayName": "Capacity",
+        "schema": "integer"
+      },
+      {
+        "@type": ["Telemetry", "Temperature"],
+        "name": "temperature",
+        "displayName": "Temperature",
+        "schema": "double",
+        "unit": "degreeCelsius"
+      },
+      {
+        "@type": ["Telemetry", "RelativeHumidity"],
+        "name": "humidity",
+        "displayName": "Humidity",
+        "schema": "double",
+        "unit": "percent"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "co2Level",
+        "displayName": "CO2 Level",
+        "schema": "double",
+        "unit": "partsPerMillion"
+      },
+      {
+        "@type": "Command",
+        "name": "setTemperature",
+        "displayName": "Set Temperature",
+        "request": {
+          "name": "targetTemp",
+          "schema": "double"
+        }
+      },
+      {
+        "@type": "Relationship",
+        "name": "hasSensor",
+        "displayName": "Has Sensor",
+        "target": "dtmi:example:smartbuilding:Sensor;1"
+      }
+    ]
+  },
+  {
+    "@context": "dtmi:dtdl:context;2",
+    "@id": "dtmi:example:smartbuilding:Sensor;1",
+    "@type": "Interface",
+    "displayName": "Sensor",
+    "description": "A generic sensor device",
+    "contents": [
+      {
+        "@type": "Property",
+        "name": "sensorId",
+        "displayName": "Sensor ID",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "manufacturer",
+        "displayName": "Manufacturer",
+        "schema": "string"
+      },
+      {
+        "@type": "Property",
+        "name": "installDate",
+        "displayName": "Installation Date",
+        "schema": "date"
+      },
+      {
+        "@type": "Property",
+        "name": "isActive",
+        "displayName": "Is Active",
+        "schema": "boolean"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "lastReading",
+        "displayName": "Last Reading",
+        "schema": "double"
+      },
+      {
+        "@type": "Telemetry",
+        "name": "batteryLevel",
+        "displayName": "Battery Level",
+        "schema": "double",
+        "unit": "percent"
+      }
+    ]
+  }
+]

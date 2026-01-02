@@ -1302,10 +1302,10 @@ class TestSampleOntologiesStreaming:
     
     @pytest.fixture
     def samples_dir(self):
-        """Get path to samples directory."""
-        samples = Path(__file__).parent.parent / "samples"
+        """Get path to samples/rdf directory for RDF tests."""
+        samples = Path(__file__).parent.parent / "samples" / "rdf"
         if not samples.exists():
-            pytest.skip("samples directory not found")
+            pytest.skip("samples/rdf directory not found")
         return samples
     
     def test_supply_chain_ontology(self, samples_dir):

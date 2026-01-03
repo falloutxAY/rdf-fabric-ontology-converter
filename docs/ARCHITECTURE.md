@@ -639,22 +639,64 @@ class CustomValidator(PreflightValidator):
 
 ```
 tests/
-├── unit/                    # Fast, isolated tests
-│   ├── test_type_mapper.py
-│   ├── test_uri_utils.py
-│   └── ...
+├── conftest.py                       # Pytest configuration and markers
+├── run_tests.py                      # Test runner utility
 │
-├── integration/             # End-to-end workflows
-│   ├── test_rdf_pipeline.py
-│   ├── test_dtdl_pipeline.py
-│   └── test_cross_format.py
+├── test_converter.py                 # RDF conversion, type mapping (~90 tests)
+├── test_dtdl.py                      # DTDL parsing, validation, v4 features (~31 tests)
+├── test_resilience.py                # Rate limiter, circuit breaker, cancellation (~107 tests)
+├── test_fabric_client.py             # Fabric API client, streaming (~62 tests)
+├── test_validation.py                # Pre-flight validation, exporter, E2E (~74 tests)
+├── test_plugins.py                   # Plugin architecture, registry (~52 tests)
+├── test_compliance.py                # DTDL/RDF compliance validation
+├── test_edge_cases.py                # Edge cases and error conditions
+├── test_fabric_limits.py             # Fabric API limits and constraints
+├── test_ssrf_protection.py           # Security and SSRF protection
+├── test_streaming.py                 # Streaming engine for large files
+├── test_validation_rate_limiting.py  # Rate limiting validation
 │
-└── fixtures/                # Test data
-    ├── sample_ontologies/
-    └── mock_responses/
+├── fixtures/                         # Centralized test data
+│   ├── ttl_fixtures.py               # RDF/TTL sample content
+│   ├── dtdl_fixtures.py              # DTDL JSON samples
+│   └── config_fixtures.py            # Configuration samples
+│
+└── integration/                      # End-to-end integration tests
+    ├── test_rdf_pipeline.py
+    ├── test_dtdl_pipeline.py
+    └── test_cross_format.py
 ```
 
-**Coverage:** 354 tests passing, targeting 80%+ coverage
+**Test Coverage:**
+- **627 tests passing** (5 skipped for platform-specific features)
+- Targeting 80%+ code coverage
+- Pytest markers: `unit`, `integration`, `slow`, `security`, `resilience`, `samples`
+
+**Test Categories:**
+- **Core Conversion** - Entity/property extraction, type mapping, relationship handling
+- **DTDL v4** - scaledDecimal, new primitive types, inheritance/schema depth limits
+- **Resilience** - Rate limiting, circuit breakers, retry logic, cancellation
+- **Security** - Path validation, symlink detection, SSRF protection
+- **Plugin System** - Converter registration, context integration, discovery mechanisms
+- **Fabric Client** - API interactions, streaming mode, error handling
+- **End-to-End** - Complete workflows from input to Fabric upload
+
+**Running Tests:**
+```bash
+# Run all tests
+pytest tests/ -v
+
+# Run by category
+pytest -m unit              # Fast unit tests
+pytest -m integration       # Integration tests
+pytest -m resilience        # Fault tolerance tests
+pytest -m security          # Security tests
+
+# Run specific test file
+pytest tests/test_plugins.py -v
+
+# Run with coverage
+pytest tests/ --cov=src --cov-report=html
+```
 
 ---
 

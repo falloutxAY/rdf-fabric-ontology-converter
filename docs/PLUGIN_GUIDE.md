@@ -2,6 +2,44 @@
 
 This guide explains how to extend the Fabric Ontology Converter with custom format converters, validators, and exporters using the plugin architecture.
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Plugin Types](#plugin-types)
+- [Creating a Converter Plugin](#creating-a-converter-plugin)
+  - [1. Implement the Interface](#1-implement-the-interface)
+  - [2. Core Infrastructure Integration](#2-core-infrastructure-integration)
+  - [Core Infrastructure Features](#core-infrastructure-features)
+- [Registering Plugins](#registering-plugins)
+  - [Option A: Programmatic Registration](#option-a-programmatic-registration)
+  - [Option B: Entry Point Registration](#option-b-entry-point-registration)
+  - [Option C: Plugin Directory](#option-c-plugin-directory)
+- [Using Plugins](#using-plugins)
+  - [Basic Usage](#basic-usage)
+  - [With Core Infrastructure](#with-core-infrastructure)
+  - [Custom Progress Callback](#custom-progress-callback)
+  - [Cancellation Support](#cancellation-support)
+- [Plugin Discovery](#plugin-discovery)
+  - [1. Entry Points (Recommended)](#1-entry-points-recommended)
+  - [2. Directory Scanning](#2-directory-scanning)
+  - [3. Programmatic Registration](#3-programmatic-registration)
+- [Validator Plugins](#validator-plugins)
+- [Exporter Plugins](#exporter-plugins)
+- [Best Practices](#best-practices)
+  - [1. Error Handling](#1-error-handling)
+  - [2. Progress Reporting](#2-progress-reporting)
+  - [3. Memory Management](#3-memory-management)
+  - [4. Cancellation Support](#4-cancellation-support-1)
+  - [5. Documentation](#5-documentation)
+  - [6. Content Detection](#6-content-detection)
+- [Testing Plugins](#testing-plugins)
+  - [Basic Tests](#basic-tests)
+  - [Integration Tests](#integration-tests)
+- [Example: CSV Schema Converter](#example-csv-schema-converter)
+- [See Also](#see-also)
+
+---
+
 ## Overview
 
 The plugin system allows you to add support for new file formats without modifying the core codebase. Plugins integrate seamlessly with the converter's infrastructure, including rate limiting, circuit breakers, cancellation support, and memory management.

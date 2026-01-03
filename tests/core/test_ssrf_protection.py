@@ -14,6 +14,7 @@ Source: Task 11 from review/07_PLAN_UPDATES.md
 import pytest
 import sys
 from pathlib import Path
+from urllib.parse import urlparse
 
 # Add src to path for imports
 ROOT_DIR = Path(__file__).resolve().parents[2]
@@ -401,8 +402,9 @@ class TestURLValidatorUtilities:
         """Test that URL sanitization preserves hostname."""
         url = "https://example.com/path"
         sanitized = URLValidator.sanitize_url_for_logging(url)
-        
-        assert "example.com" in sanitized
+        parsed = urlparse(sanitized)
+
+        assert parsed.hostname == "example.com"
 
 
 # =============================================================================

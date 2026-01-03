@@ -637,66 +637,51 @@ class CustomValidator(PreflightValidator):
 
 ## Testing Architecture
 
+The project maintains a comprehensive test suite organized by functional area and test type.
+
+**Test Organization:**
+
 ```
 tests/
-├── conftest.py                       # Pytest configuration and markers
+├── conftest.py                       # Pytest configuration and shared fixtures
 ├── run_tests.py                      # Test runner utility
 │
-├── test_converter.py                 # RDF conversion, type mapping (~90 tests)
-├── test_dtdl.py                      # DTDL parsing, validation, v4 features (~31 tests)
-├── test_resilience.py                # Rate limiter, circuit breaker, cancellation (~107 tests)
-├── test_fabric_client.py             # Fabric API client, streaming (~62 tests)
-├── test_validation.py                # Pre-flight validation, exporter, E2E (~74 tests)
-├── test_plugins.py                   # Plugin architecture, registry (~52 tests)
-├── test_compliance.py                # DTDL/RDF compliance validation
-├── test_edge_cases.py                # Edge cases and error conditions
-├── test_fabric_limits.py             # Fabric API limits and constraints
-├── test_ssrf_protection.py           # Security and SSRF protection
-├── test_streaming.py                 # Streaming engine for large files
-├── test_validation_rate_limiting.py  # Rate limiting validation
+├── test_converter.py                 # RDF conversion pipeline
+├── test_dtdl.py                      # DTDL parsing and validation
+├── test_resilience.py                # Fault tolerance infrastructure
+├── test_fabric_client.py             # API client and streaming
+├── test_validation.py                # Pre-flight checks and E2E
+├── test_plugins.py                   # Plugin system
+├── test_compliance.py                # Format compliance
+├── test_edge_cases.py                # Edge cases
+├── test_fabric_limits.py             # API constraints
+├── test_ssrf_protection.py           # Security
+├── test_streaming.py                 # Large file handling
+├── test_validation_rate_limiting.py  # Rate limiting
 │
 ├── fixtures/                         # Centralized test data
-│   ├── ttl_fixtures.py               # RDF/TTL sample content
-│   ├── dtdl_fixtures.py              # DTDL JSON samples
-│   └── config_fixtures.py            # Configuration samples
-│
-└── integration/                      # End-to-end integration tests
-    ├── test_rdf_pipeline.py
-    ├── test_dtdl_pipeline.py
-    └── test_cross_format.py
+└── integration/                      # End-to-end workflows
 ```
 
-**Test Coverage:**
-- **627 tests passing** (5 skipped for platform-specific features)
-- Targeting 80%+ code coverage
-- Pytest markers: `unit`, `integration`, `slow`, `security`, `resilience`, `samples`
+**Test Strategy:**
 
-**Test Categories:**
+| Aspect | Approach |
+|--------|----------|
+| **Coverage** | 627 tests passing (5 skipped), targeting 80%+ code coverage |
+| **Organization** | Grouped by architectural component (converter, client, plugins) |
+| **Isolation** | Pytest markers for selective execution (`unit`, `integration`, `slow`, `security`, `resilience`) |
+| **Fixtures** | Centralized test data in `fixtures/` for consistency |
+| **Mocking** | API responses mocked to match official Fabric documentation |
+
+**Key Test Areas:**
 - **Core Conversion** - Entity/property extraction, type mapping, relationship handling
-- **DTDL v4** - scaledDecimal, new primitive types, inheritance/schema depth limits
-- **Resilience** - Rate limiting, circuit breakers, retry logic, cancellation
+- **Format Support** - RDF/OWL, DTDL v2/v3/v4 including new features (scaledDecimal, geospatial)
+- **Resilience** - Rate limiting, circuit breakers, retry logic, graceful cancellation
 - **Security** - Path validation, symlink detection, SSRF protection
 - **Plugin System** - Converter registration, context integration, discovery mechanisms
-- **Fabric Client** - API interactions, streaming mode, error handling
-- **End-to-End** - Complete workflows from input to Fabric upload
+- **Integration** - Complete workflows from input parsing to Fabric API upload
 
-**Running Tests:**
-```bash
-# Run all tests
-pytest tests/ -v
-
-# Run by category
-pytest -m unit              # Fast unit tests
-pytest -m integration       # Integration tests
-pytest -m resilience        # Fault tolerance tests
-pytest -m security          # Security tests
-
-# Run specific test file
-pytest tests/test_plugins.py -v
-
-# Run with coverage
-pytest tests/ --cov=src --cov-report=html
-```
+**For detailed testing instructions, see [TESTING.md](TESTING.md).**
 
 ---
 

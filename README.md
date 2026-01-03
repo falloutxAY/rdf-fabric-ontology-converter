@@ -14,8 +14,10 @@ This is a **personal project** and is **not an official Microsoft product**. It 
 
 - **RDF TTL Import** – Convert Turtle based RDF to Fabric format
 - **DTDL Import** – Convert Azure Digital Twins models (v2/v3/v4)
+- **Plugin Architecture** – Extend with custom format converters (CSV, JSON, XML, etc.)
 - **Export & Compare** – Export Fabric ontologies back to TTL for verification
 - **Pre-flight Validation** – Check compatibility before upload
+- **Enterprise Ready** – Rate limiting, circuit breakers, cancellation, memory management
 
 ## Table of Contents
 
@@ -63,6 +65,9 @@ python src\main.py rdf-upload samples/rdf/sample_supply_chain_ontology.ttl --nam
 
 # 4. Import DTDL models
 python src\main.py dtdl-upload samples/dtdl/ --recursive --ontology-name "MyDTDL"
+
+# 5. Use custom plugins (e.g., CSV schema converter)
+python -c "from src.core.plugins import PluginRegistry; from samples.plugins.csv_schema_converter import CSVSchemaConverter; PluginRegistry.register_converter(CSVSchemaConverter()); converter = PluginRegistry.get_converter('csvschema'); result = converter.convert('schema.csv'); print(f'Converted {len(result.entity_types)} entities')"
 ```
 
 See [docs/CONFIGURATION.md](docs/CONFIGURATION.md) for detailed configuration options.
@@ -133,6 +138,7 @@ For the complete command reference, see [docs/COMMANDS.md](docs/COMMANDS.md).
 ### 🛠️ Developer Guides  
 - **[API Reference](docs/API.md)** – Fabric Ontology REST API usage and examples
 - **[Architecture Overview](docs/ARCHITECTURE.md)** – System design, patterns, and module structure
+- **[Plugin Development Guide](docs/PLUGIN_GUIDE.md)** – Create custom format converters, validators, and exporters
 - **[Testing Guide](docs/TESTING.md)** – Running tests, markers, and coverage reports
 
 ### 📁 Project Structure
@@ -151,13 +157,16 @@ src/
 │   └── dtdl_validator.py     # DTDL validation
 ├── core/                     # Shared infrastructure
 │   ├── fabric_client.py      # Fabric API client
+│   ├── plugins.py            # Plugin architecture & registry
 │   ├── rate_limiter.py       # Token bucket rate limiting
 │   ├── circuit_breaker.py    # Fault tolerance
 │   ├── cancellation.py       # Graceful shutdown
 │   ├── validators.py         # Input validation, SSRF protection
 │   └── streaming.py          # Memory-efficient processing
 ├── models/                   # Shared data models
-└── cli/                      # Command handlers & parsers
+├── cli/                      # Command handlers & parsers
+samples/plugins/              # Sample custom converters
+└── csv_schema_converter.py   # CSV → Fabric converter example
 ```
 
 For detailed architecture, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

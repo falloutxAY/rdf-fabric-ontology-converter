@@ -38,6 +38,20 @@ Homepage = "https://github.com/your-org/fabric-ontology-importer"
 Documentation = "https://github.com/your-org/fabric-ontology-importer#readme"
 Issues = "https://github.com/your-org/fabric-ontology-importer/issues"
 
+# Plugin entry points for the converter
+# Third-party plugins can register converters, validators, and exporters
+# by adding their own entry points in these groups
+[project.entry-points."fabric_ontology.converters"]
+# Built-in converters are registered programmatically
+# Example for external plugins:
+# myformat = "mypackage.converters:MyFormatConverter"
+
+[project.entry-points."fabric_ontology.validators"]
+# Example: myformat = "mypackage.validators:MyFormatValidator"
+
+[project.entry-points."fabric_ontology.exporters"]
+# Example: myformat = "mypackage.exporters:MyFormatExporter"
+
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = "-ra -q"

@@ -384,6 +384,7 @@ src/
 │   ├── streaming.py           # Memory-efficient processing
 │   ├── validators.py          # Input validation, SSRF protection
 │   ├── compliance.py          # DTDL/RDF compliance validation
+│   ├── plugins.py             # Plugin architecture for custom converters
 │   ├── auth.py                # Azure authentication helpers
 │   ├── http_client.py         # HTTP utilities
 │   └── lro_handler.py         # Long-running operation handling
@@ -510,41 +511,100 @@ token.register_callback(close_connections)
 # On Ctrl+C, all callbacks execute
 ```
 
+### 6. Plugin Pattern (Extensibility)
+
+The plugin architecture allows extending the converter without modifying core code:
+
+```python
+from src.core.plugins import FormatConverter, PluginRegistry, ConversionOutput
+
+class MyConverter(FormatConverter):
+    format_name = "myformat"
+    file_extensions = [".myf"]
+    
+    def convert(self, source, context=None, **options):
+        output = ConversionOutput()
+        # Convert source to Fabric format
+        return output
+
+# Register and use
+PluginRegistry.register_converter(MyConverter())
+converter = PluginRegistry.get_converter("myformat")
+```
+
+**Discovery mechanisms:**
+- Programmatic registration
+- Entry points (pip packages)
+- Plugin directory scanning
+
 ---
 
 ## Extensibility
 
-### Adding a New Format Converter
+### Adding a New Format Converter (Plugin System)
 
-1. **Create converter module:**
+The recommended approach is to use the plugin architecture:
+
+1. **Create a plugin class:**
    ```python
-   # src/newformat/converter.py
-   from src.models.base import BaseConverter
-   from src.models.conversion import ConversionResult
+   # my_plugin/converter.py
+   from src.core.plugins import (
+       FormatConverter, 
+       ConversionOutput, 
+       ConversionStatus
+   )
    
-   class NewFormatConverter(BaseConverter):
-       @property
-       def supported_extensions(self) -> List[str]:
-           return ['.newext']
+   class NewFormatConverter(FormatConverter):
+       format_name = "newformat"
+       file_extensions = ['.newext']
+       format_description = "New Format to Fabric converter"
+       version = "1.0.0"
        
-       def convert_file(self, path: Path) -> ConversionResult:
-           # Implementation
-           pass
+       def convert(self, source, context=None, **options):
+           output = ConversionOutput()
+           try:
+               # Parse source and convert
+               # output.entity_types = [...]
+               # output.relationship_types = [...]
+               output.status = ConversionStatus.SUCCESS
+           except Exception as e:
+               output.status = ConversionStatus.FAILED
+               output.errors.append(str(e))
+           return output
    ```
 
-2. **Add CLI commands:**
-   ```python
-   # src/cli/commands.py
-   def newformat_import_command(args):
-       converter = NewFormatConverter()
-       result = converter.convert_file(args.file)
-       # Upload to Fabric
+2. **Register via entry point (pyproject.toml):**
+   ```toml
+   [project.entry-points."fabric_ontology.converters"]
+   newformat = "my_plugin.converter:NewFormatConverter"
    ```
 
-3. **Register command:**
+3. **Or register programmatically:**
    ```python
-   # src/cli/parsers.py
-   parser.add_parser('newformat-import', ...)
+   from src.core.plugins import PluginRegistry
+   from my_plugin.converter import NewFormatConverter
+   
+   PluginRegistry.register_converter(NewFormatConverter())
+   ```
+
+4. **Use the plugin:**
+   ```python
+   from src.core.plugins import PluginRegistry
+   
+   # Discover all plugins
+   PluginRegistry.discover_plugins()
+   
+   # Get and use converter
+   converter = PluginRegistry.get_converter("newformat")
+   result = converter.convert("data.newext")
+   
+   # Or auto-detect by extension
+   converter = PluginRegistry.get_converter_for_file("data.newext")
+   ```
+
+See [samples/plugins/](../samples/plugins/) for complete examples.
+
+### Legacy: Adding a Converter Without Plugins
    ```
 
 ### Adding Custom Type Mapping

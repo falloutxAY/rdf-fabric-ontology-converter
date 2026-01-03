@@ -146,6 +146,29 @@ from .streaming import (
     get_streaming_threshold,
 )
 
+# Plugin architecture for custom converters
+from .plugins import (
+    PluginType,
+    ConversionStatus,
+    PluginMetadata,
+    ConversionContext,
+    ConversionOutput,
+    ValidationOutput,
+    ExportOutput,
+    FormatConverter,
+    FormatValidator,
+    FormatExporter,
+    PluginRegistry,
+    RDFConverterPlugin,
+    DTDLConverterPlugin,
+    PluginError,
+    PluginLoadError,
+    PluginNotFoundError,
+    PluginValidationError,
+    register_builtin_plugins,
+    ensure_builtins_registered,
+)
+
 # Re-export constants from parent module
 try:
     from ..constants import (
@@ -255,6 +278,26 @@ __all__ = [
     "DTDLStreamAdapter",
     "should_use_streaming",
     "get_streaming_threshold",
+    # Plugin architecture
+    "PluginType",
+    "ConversionStatus",
+    "PluginMetadata",
+    "ConversionContext",
+    "ConversionOutput",
+    "ValidationOutput",
+    "ExportOutput",
+    "FormatConverter",
+    "FormatValidator",
+    "FormatExporter",
+    "PluginRegistry",
+    "RDFConverterPlugin",
+    "DTDLConverterPlugin",
+    "PluginError",
+    "PluginLoadError",
+    "PluginNotFoundError",
+    "PluginValidationError",
+    "register_builtin_plugins",
+    "ensure_builtins_registered",
     # Constants
     "ExitCode",
     "MemoryLimits",

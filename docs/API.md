@@ -9,6 +9,7 @@ This document provides detailed API documentation for the RDF/DTDL to Microsoft 
   - [Data Models](#data-models)
   - [Validators](#validators)
   - [Streaming Engine](#streaming-engine)
+  - [Plugin Architecture](#plugin-architecture)
 - [RDF/OWL Conversion](#rdfowl-conversion)
   - [RDF Converter](#rdf-converter)
   - [RDF Components](#rdf-components)
@@ -33,6 +34,9 @@ from rdf import RDFToFabricConverter, PreflightValidator, parse_ttl_content
 from dtdl import DTDLParser, DTDLValidator
 from core import FabricConfig, FabricOntologyClient, CircuitBreaker
 
+# Plugin-based imports
+from src.core.plugins import PluginRegistry, FormatConverter, ConversionOutput
+
 # Package imports
 from src.rdf import RDFToFabricConverter
 from src.dtdl import DTDLParser
@@ -45,8 +49,10 @@ from src.core import FabricConfig
 |---------|-------------|
 | `src.rdf` | RDF/OWL/TTL format support (converter, validator, exporter) |
 | `src.dtdl` | DTDL v2/v3/v4 format support (parser, validator, converter) |
-| `src.core` | Shared infrastructure (Fabric client, rate limiter, circuit breaker, cancellation) |
+| `src.core` | Shared infrastructure (Fabric client, rate limiter, circuit breaker, plugins) |
+| `src.core.plugins` | Plugin architecture for custom format converters |
 | `src.models` | Shared data models (EntityType, RelationshipType, ConversionResult) |
+
 
 ---
 
@@ -673,6 +679,252 @@ if should_use_streaming("large_file.json", threshold_mb=50):
 # Get configured threshold
 threshold = get_streaming_threshold()  # Default: 100 MB
 ```
+
+---
+
+### Plugin Architecture
+
+The plugin system allows extending the converter with custom format support. Plugins can be:
+- Registered programmatically
+- Discovered from entry points (pip-installable packages)
+- Loaded from a plugins directory
+
+#### Plugin Types
+
+| Type | Base Class | Purpose |
+|------|------------|---------|
+| Converter | `FormatConverter` | Convert source format → Fabric Ontology |
+| Validator | `FormatValidator` | Validate files before conversion |
+| Exporter | `FormatExporter` | Export Fabric Ontology → target format |
+
+#### `FormatConverter`
+
+Abstract base class for format converters.
+
+```python
+from src.core.plugins import FormatConverter, ConversionOutput, ConversionStatus
+
+class MyFormatConverter(FormatConverter):
+    # Required: format identifier
+    format_name = "myformat"
+    
+    # Required: file extensions this converter handles
+    file_extensions = [".myf", ".myformat"]
+    
+    # Optional metadata
+    format_description = "My Custom Format converter"
+    version = "1.0.0"
+    author = "Your Name"
+    
+    def convert(self, source, context=None, **options):
+        """
+        Convert source content to Fabric Ontology format.
+        
+        Args:
+            source: File path, content string, or bytes
+            context: ConversionContext with callbacks
+            **options: Format-specific options
+        
+        Returns:
+            ConversionOutput with entity_types and relationship_types
+        """
+        output = ConversionOutput()
+        
+        try:
+            # Parse and convert source content
+            # Populate output.entity_types and output.relationship_types
+            
+            output.status = ConversionStatus.SUCCESS
+        except Exception as e:
+            output.status = ConversionStatus.FAILED
+            output.errors.append(str(e))
+        
+        return output
+    
+    def can_convert(self, source):
+        """Optional: Content-based detection (default: extension-based)."""
+        return super().can_convert(source)
+```
+
+#### `FormatValidator`
+
+Abstract base class for format validators.
+
+```python
+from src.core.plugins import FormatValidator, ValidationOutput
+
+class MyFormatValidator(FormatValidator):
+    format_name = "myformat"
+    file_extensions = [".myf"]
+    
+    def validate(self, source, context=None, **options):
+        """Validate source content."""
+        output = ValidationOutput()
+        
+        # Perform validation
+        if is_valid:
+            output.is_valid = True
+        else:
+            output.is_valid = False
+            output.errors.append("Validation error message")
+        
+        return output
+```
+
+#### `FormatExporter`
+
+Abstract base class for format exporters.
+
+```python
+from src.core.plugins import FormatExporter, ExportOutput
+
+class MyFormatExporter(FormatExporter):
+    format_name = "myformat"
+    file_extensions = [".myf"]
+    
+    def export(self, entity_types, relationship_types, context=None, **options):
+        """Export Fabric definitions to target format."""
+        output = ExportOutput()
+        
+        # Generate output content
+        output.content = "exported content..."
+        output.success = True
+        
+        return output
+```
+
+#### `PluginRegistry`
+
+Central registry for managing plugins.
+
+```python
+from src.core.plugins import PluginRegistry, PluginNotFoundError
+
+# Register a converter
+PluginRegistry.register_converter(MyFormatConverter())
+
+# Discover plugins from entry points and directory
+discovered = PluginRegistry.discover_plugins()
+print(f"Found: {discovered}")
+# Output: {'converters': ['rdf', 'dtdl', 'myformat'], 'validators': [...], ...}
+
+# Get a converter by format name
+converter = PluginRegistry.get_converter("myformat")
+result = converter.convert("data.myf")
+
+# Get converter by file extension (auto-detect)
+converter = PluginRegistry.get_converter_for_file("data.myf")
+
+# List all registered converters
+for metadata in PluginRegistry.list_converters():
+    print(f"{metadata.format_name}: {metadata.description}")
+
+# Check availability
+if PluginRegistry.has_converter("myformat"):
+    converter = PluginRegistry.get_converter("myformat")
+
+# Get supported extensions
+extensions = PluginRegistry.get_supported_extensions()
+# ['.ttl', '.owl', '.rdf', '.json', '.myf', ...]
+
+# Unregister a plugin
+PluginRegistry.unregister("myformat")
+
+# Set plugins directory for discovery
+PluginRegistry.set_plugins_directory("/path/to/plugins")
+```
+
+#### `ConversionContext`
+
+Context passed to converters with configuration and callbacks.
+
+```python
+from src.core.plugins import ConversionContext
+
+# Create context with callbacks
+context = ConversionContext(
+    config={"option": "value"},
+    progress_callback=lambda cur, tot, msg: print(f"{cur}/{tot}: {msg}"),
+    cancel_check=lambda: False,  # Return True to cancel
+)
+
+# Use in converter
+def convert(self, source, context=None, **options):
+    for i, item in enumerate(items):
+        if context:
+            context.report_progress(i + 1, len(items), f"Processing {item}")
+            if context.is_cancelled():
+                break
+```
+
+#### `ConversionOutput`
+
+Output from a format converter.
+
+```python
+from src.core.plugins import ConversionOutput, ConversionStatus
+
+output = ConversionOutput(
+    status=ConversionStatus.SUCCESS,  # SUCCESS, PARTIAL, or FAILED
+    entity_types=[...],               # List of EntityType
+    relationship_types=[...],         # List of RelationshipType
+    warnings=["Warning message"],     # Non-fatal issues
+    errors=[],                        # Fatal errors
+    metadata={"custom": "data"},      # Format-specific metadata
+    statistics={"count": 42},         # Processing statistics
+)
+
+# Check status
+if output.is_success:
+    print("Conversion succeeded")
+if output.has_warnings:
+    for w in output.warnings:
+        print(f"Warning: {w}")
+```
+
+#### Entry Point Registration
+
+Register plugins via setuptools entry points in `pyproject.toml`:
+
+```toml
+[project.entry-points."fabric_ontology.converters"]
+myformat = "mypackage.converters:MyFormatConverter"
+
+[project.entry-points."fabric_ontology.validators"]
+myformat = "mypackage.validators:MyFormatValidator"
+
+[project.entry-points."fabric_ontology.exporters"]
+myformat = "mypackage.exporters:MyFormatExporter"
+```
+
+Then call `PluginRegistry.discover_plugins()` to load them automatically.
+
+#### Built-in Plugin Wrappers
+
+The existing RDF and DTDL converters are available as plugins:
+
+```python
+from src.core.plugins import RDFConverterPlugin, DTDLConverterPlugin, register_builtin_plugins
+
+# Register built-in plugins
+register_builtin_plugins()
+
+# Or use directly
+rdf_plugin = RDFConverterPlugin()
+result = rdf_plugin.convert("ontology.ttl")
+
+dtdl_plugin = DTDLConverterPlugin()
+result = dtdl_plugin.convert("models.json")
+```
+
+#### Sample Plugin
+
+See [samples/plugins/csv_schema_converter.py](../samples/plugins/csv_schema_converter.py) for a complete example showing:
+- Custom format parsing
+- Type mapping
+- Relationship inference
+- Progress reporting
+- Content-based detection
 
 ---
 

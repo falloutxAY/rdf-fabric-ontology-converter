@@ -16,7 +16,7 @@
 ## 🚀 Quick Start
 
 ```powershell
-# Run all tests (~367 tests)
+# Run all tests (~627 tests)
 python -m pytest tests/ -v
 
 # Or use the test runner
@@ -40,6 +40,7 @@ pytest -m slow           # Long-running tests
 | `test_resilience.py` | Rate limiter, circuit breaker, cancellation | ~107 |
 | `test_fabric_client.py` | Fabric API client, streaming converter | ~62 |
 | `test_validation.py` | Pre-flight validation, exporter, E2E | ~74 |
+| `test_plugins.py` | Plugin architecture, registry, core integration | ~52 |
 | `conftest.py` | Shared fixtures and pytest markers | - |
 | `run_tests.py` | Test runner utility | - |
 | `fixtures/` | Centralized test fixtures | - |
@@ -107,6 +108,15 @@ pytest tests/test_validation.py::TestPreflightValidator -v
 
 # End-to-end tests
 pytest tests/test_validation.py::TestEndToEnd -v
+
+# Plugin system tests
+pytest tests/test_plugins.py -v
+
+# Plugin registry tests
+pytest tests/test_plugins.py::TestPluginRegistry -v
+
+# Plugin core infrastructure integration
+pytest tests/test_plugins.py::TestConversionContext -v
 ```
 
 ### Specific tests
@@ -135,6 +145,7 @@ High-level coverage includes:
 - Resilience (rate limiter, circuit breaker, retries)
 - Fabric client behavior and streaming converter
 - Validation, exporter, and end-to-end flows
+- **Plugin architecture** (converters, validators, exporters, registry, core integration)
 - **DTDL v4 features** (scaledDecimal, new primitive types, validation limits)
 
 ### DTDL v4 Test Coverage

@@ -14,10 +14,8 @@ This is a **personal project** and is **not an official Microsoft product**. It 
 
 - **RDF TTL Import** – Convert Turtle based RDF to Fabric format
 - **DTDL Import** – Convert Azure Digital Twins models (v2/v3/v4)
-- **Plugin Architecture** – Extend with custom format converters (CSV, JSON, XML, etc.)
 - **Export & Compare** – Export Fabric ontologies back to TTL for verification
-- **Pre-flight Validation** – Check compatibility before upload
-- **Enterprise Ready** – Rate limiting, circuit breakers, cancellation, memory management
+- **Plugin Architecture** – Extend with custom format converters (CSV, JSON, XML, etc.)
 
 ## Table of Contents
 
@@ -74,7 +72,7 @@ See [docs/CONFIGURATION.md](docs/CONFIGURATION.md) for detailed configuration op
 
 ## Common Commands
 
-### RDF/TTL Operations
+### RDF TTL Operations
 
 ```powershell
 # Validate a TTL file before upload

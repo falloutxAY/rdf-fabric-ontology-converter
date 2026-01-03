@@ -8,6 +8,7 @@
 - [Upload Issues](#upload-issues)
 - [Circuit Breaker Issues](#circuit-breaker-issues)
 - [Memory Management](#memory-management)
+- [Plugin Issues](#plugin-issues)
 - [Valid TTL Example](#valid-ttl-example)
 - [Enable Debug Logging](#enable-debug-logging)
 - [Testing Issues](#testing-issues)
@@ -200,6 +201,66 @@ Additional error message you may see with `--allow-relative-up`:
 | Error | Cause | Solution |
 |-------|-------|----------|
 | `Path resolves outside the current directory` | `--allow-relative-up` used but the resolved path left the cwd | `cd` into the target folder or use an absolute path inside the workspace |
+
+## Plugin Issues
+
+### Plugin Not Found
+
+```python
+# Error: No converter found for format 'myformat'
+```
+
+**Solutions:**
+- Verify plugin is registered: `PluginRegistry.list_converters()`
+- Check plugin discovery: `PluginRegistry.discover_plugins()`
+- Ensure plugin file is in the plugins directory
+- Verify entry point configuration in `pyproject.toml`
+
+### Plugin Registration Errors
+
+```python
+# Error: Plugin format_name already registered
+```
+
+**Solutions:**
+- Use unique `format_name` for each plugin
+- Unregister existing plugin first: `PluginRegistry.unregister_converter("format_name")`
+- Check for duplicate plugin files in plugins directory
+
+### Plugin Conversion Errors
+
+```python
+# Error: ConversionStatus.FAILED
+```
+
+**Solutions:**
+- Check plugin's error messages: `result.errors`
+- Review plugin's warning messages: `result.warnings`
+- Enable verbose logging to see plugin execution details
+- Test plugin with sample data first
+- Verify plugin implements `convert()` method correctly
+
+### Core Infrastructure Issues
+
+If plugins don't integrate with core utilities:
+
+```python
+# Error: 'NoneType' object has no attribute 'acquire_rate_limit'
+```
+
+**Solutions:**
+- Create context with utilities enabled:
+  ```python
+  context = ConversionContext.create_with_defaults(
+      enable_rate_limiter=True,
+      enable_circuit_breaker=True,
+      enable_cancellation=True,
+      enable_memory_manager=True
+  )
+  ```
+- Check context before calling methods: `if context: context.check_memory()`
+
+For comprehensive plugin development guidance, see [Plugin Development Guide](PLUGIN_GUIDE.md).
 
 ## Additional Resources
 

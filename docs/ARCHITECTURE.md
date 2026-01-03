@@ -541,71 +541,46 @@ converter = PluginRegistry.get_converter("myformat")
 
 ## Extensibility
 
-### Adding a New Format Converter (Plugin System)
+### Plugin Architecture
 
-The recommended approach is to use the plugin architecture:
+The converter supports a flexible plugin system for adding custom format converters, validators, and exporters without modifying core code. 
 
-1. **Create a plugin class:**
-   ```python
-   # my_plugin/converter.py
-   from src.core.plugins import (
-       FormatConverter, 
-       ConversionOutput, 
-       ConversionStatus
-   )
-   
-   class NewFormatConverter(FormatConverter):
-       format_name = "newformat"
-       file_extensions = ['.newext']
-       format_description = "New Format to Fabric converter"
-       version = "1.0.0"
-       
-       def convert(self, source, context=None, **options):
-           output = ConversionOutput()
-           try:
-               # Parse source and convert
-               # output.entity_types = [...]
-               # output.relationship_types = [...]
-               output.status = ConversionStatus.SUCCESS
-           except Exception as e:
-               output.status = ConversionStatus.FAILED
-               output.errors.append(str(e))
-           return output
-   ```
+**Key Features:**
+- **Format Converters** - Convert custom formats to Fabric Ontology
+- **Validators** - Validate files before conversion
+- **Exporters** - Export Fabric Ontology to custom formats
+- **Discovery** - Automatic plugin discovery via entry points or directory scanning
+- **Infrastructure Integration** - Plugins leverage rate limiting, circuit breakers, cancellation, and memory management
 
-2. **Register via entry point (pyproject.toml):**
-   ```toml
-   [project.entry-points."fabric_ontology.converters"]
-   newformat = "my_plugin.converter:NewFormatConverter"
-   ```
+**Plugin Types:**
 
-3. **Or register programmatically:**
-   ```python
-   from src.core.plugins import PluginRegistry
-   from my_plugin.converter import NewFormatConverter
-   
-   PluginRegistry.register_converter(NewFormatConverter())
-   ```
+| Type | Base Class | Purpose |
+|------|------------|---------|
+| Converter | `FormatConverter` | Convert source format → Fabric Ontology |
+| Validator | `FormatValidator` | Validate files before conversion |
+| Exporter | `FormatExporter` | Export Fabric Ontology → target format |
 
-4. **Use the plugin:**
-   ```python
-   from src.core.plugins import PluginRegistry
-   
-   # Discover all plugins
-   PluginRegistry.discover_plugins()
-   
-   # Get and use converter
-   converter = PluginRegistry.get_converter("newformat")
-   result = converter.convert("data.newext")
-   
-   # Or auto-detect by extension
-   converter = PluginRegistry.get_converter_for_file("data.newext")
-   ```
+**Quick Example:**
+```python
+from src.core.plugins import FormatConverter, PluginRegistry
 
-See [samples/plugins/](../samples/plugins/) for complete examples.
+class MyConverter(FormatConverter):
+    format_name = "myformat"
+    file_extensions = [".myf"]
+    
+    def convert(self, source, context=None, **options):
+        # Implementation
+        pass
+
+# Register and use
+PluginRegistry.register_converter(MyConverter())
+converter = PluginRegistry.get_converter("myformat")
+result = converter.convert("data.myf")
+```
+
+**For comprehensive plugin development documentation, see [PLUGIN_GUIDE.md](PLUGIN_GUIDE.md).**
 
 ### Legacy: Adding a Converter Without Plugins
-   ```
 
 ### Adding Custom Type Mapping
 

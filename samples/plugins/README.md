@@ -2,6 +2,8 @@
 
 This directory contains sample plugins demonstrating how to extend the Fabric Ontology Converter with custom format converters.
 
+For complete documentation on creating plugins, see [Plugin Development Guide](../../docs/PLUGIN_GUIDE.md).
+
 ## Available Samples
 
 ### CSV Schema Converter (`csv_schema_converter.py`)
@@ -14,6 +16,7 @@ A complete example showing how to create a custom converter for CSV-based schema
 - Relationship inference from `_id` suffix columns
 - Progress reporting and cancellation support
 - Content-based file detection
+- Full integration with core infrastructure (rate limiting, circuit breaker, memory management)
 
 **CSV Format:**
 ```csv
@@ -26,197 +29,59 @@ Sensor,machine_id,String,false,Associated machine ID
 
 **Usage:**
 ```python
-from src.core.plugins import PluginRegistry
+from src.core.plugins import PluginRegistry, ConversionContext
 from samples.plugins.csv_schema_converter import CSVSchemaConverter
 
 # Register the plugin
 PluginRegistry.register_converter(CSVSchemaConverter())
 
-# Convert a file
-converter = PluginRegistry.get_converter("csvschema")
-result = converter.convert("schema.csv")
-
-print(f"Converted {len(result.entity_types)} entities")
-```
-
-## Creating Your Own Plugin
-
-### 1. Implement the Interface
-
-Create a class that extends `FormatConverter`:
-
-```python
-from src.core.plugins import FormatConverter, ConversionOutput, ConversionStatus
-
-class MyFormatConverter(FormatConverter):
-    # Required: format identifier
-    format_name = "myformat"
-    
-    # Required: file extensions this converter handles
-    file_extensions = [".myf", ".myformat"]
-    
-    # Optional: human-readable description
-    format_description = "My Custom Format converter"
-    version = "1.0.0"
-    author = "Your Name"
-    
-    def convert(self, source, context=None, **options):
-        output = ConversionOutput()
-        
-        try:
-            # Check memory availability (if memory manager is configured)
-            if context and not context.check_memory("my conversion"):
-                output.status = ConversionStatus.FAILED
-                output.errors.append("Insufficient memory")
-                return output
-            
-            # Your conversion logic here
-            for item in items:
-                # Check for cancellation
-                if context and context.is_cancelled():
-                    output.status = ConversionStatus.PARTIAL
-                    break
-                
-                # Report progress
-                if context:
-                    context.report_progress(idx, total, f"Processing {item}")
-                
-                # Process item...
-            
-            output.status = ConversionStatus.SUCCESS
-        except Exception as e:
-            output.status = ConversionStatus.FAILED
-            output.errors.append(str(e))
-        
-        return output
-```
-
-### 2. Register the Plugin
-
-**Option A: Programmatic Registration**
-```python
-from src.core.plugins import PluginRegistry
-
-PluginRegistry.register_converter(MyFormatConverter())
-```
-
-**Option B: Entry Point Registration**
-
-Add to `pyproject.toml`:
-```toml
-[project.entry-points."fabric_ontology.converters"]
-myformat = "mypackage.converters:MyFormatConverter"
-```
-
-**Option C: Plugin Directory**
-
-Place your plugin file in a plugins directory and configure:
-```python
-PluginRegistry.set_plugins_directory("/path/to/plugins")
-PluginRegistry.discover_plugins()
-```
-
-### 3. Use the Plugin
-
-```python
-from src.core.plugins import PluginRegistry, ConversionContext
-
-# Get converter by format name
-converter = PluginRegistry.get_converter("myformat")
-
-# Create context with core infrastructure enabled
+# Convert a file with core infrastructure support
 context = ConversionContext.create_with_defaults(
-    enable_rate_limiter=True,      # Token bucket rate limiting
-    enable_circuit_breaker=True,   # Fault tolerance
-    enable_cancellation=True,      # Graceful shutdown support
-    enable_memory_manager=True,    # Memory monitoring
+    enable_rate_limiter=True,
+    enable_cancellation=True,
+    enable_memory_manager=True,
 )
 
-# Convert with full infrastructure support
-result = converter.convert("data.myf", context=context)
+converter = PluginRegistry.get_converter("csvschema")
+result = converter.convert("schema.csv", context=context)
+
+if result.is_success:
+    print(f"Converted {len(result.entity_types)} entities")
+    print(f"Created {len(result.relationship_types)} relationships")
+else:
+    print(f"Errors: {result.errors}")
 ```
 
-## Core Infrastructure Integration
+**Type Mapping:**
 
-The plugin system integrates with the following core utilities:
+The converter maps common database types to Fabric types:
 
-| Feature | Context Method | Description |
-|---------|----------------|-------------|
-| Rate Limiting | `context.acquire_rate_limit()` | Token bucket rate limiting for API calls |
-| Circuit Breaker | `context.call_with_circuit_breaker()` | Fault tolerance for external services |
-| Cancellation | `context.is_cancelled()`, `context.throw_if_cancelled()` | Graceful shutdown support |
-| Memory Management | `context.check_memory()` | Memory availability monitoring |
-| Input Validation | `context.validate_input()` | Security checks for file paths |
-| Progress Reporting | `context.report_progress()` | User feedback for long operations |
+| CSV Type | Fabric Type |
+|----------|-------------|
+| String, VARCHAR, TEXT | String |
+| Integer, INT, BIGINT | Int32/Int64 |
+| Float, Double, Decimal | Double/Decimal |
+| Boolean | Boolean |
+| DateTime, Timestamp | DateTime |
+| JSON, JSONB | String (JSON-encoded) |
 
-**Example using all features:**
-```python
-def convert(self, source, context=None, **options):
-    output = ConversionOutput()
-    
-    # Memory check
-    if context and not context.check_memory("conversion"):
-        return ConversionOutput(status=ConversionStatus.FAILED)
-    
-    # Input validation
-    if context:
-        context.validate_input(str(source))
-    
-    for idx, item in enumerate(items):
-        # Cancellation check
-        if context:
-            context.throw_if_cancelled()
-            context.report_progress(idx, len(items), f"Processing")
-        
-        # Rate-limited API call with circuit breaker
-        if context:
-            context.acquire_rate_limit()
-            result = context.call_with_circuit_breaker(api_call, item)
-        
-        # Process result...
-    
-    return output
-```
+**Relationship Inference:**
 
-## Plugin Types
+Properties ending with `_id` are treated as foreign keys:
+- `machine_id` → Creates relationship to `Machine` entity
+- `sensor_id` → Creates relationship to `Sensor` entity
 
-The plugin system supports three types:
+## Quick Start
 
-| Type | Base Class | Purpose |
-|------|------------|---------|
-| Converter | `FormatConverter` | Convert source format → Fabric Ontology |
-| Validator | `FormatValidator` | Validate files before conversion |
-| Exporter | `FormatExporter` | Export Fabric Ontology → target format |
-
-## Best Practices
-
-1. **Handle errors gracefully** - Use ConversionStatus.PARTIAL for recoverable errors
-2. **Provide useful warnings** - Help users understand conversion limitations
-3. **Support progress reporting** - Use the context callback for long operations
-4. **Document your format** - Include format specification in docstrings
-5. **Add content detection** - Override `can_convert()` for smarter detection
-6. **Include examples** - Provide sample files in your plugin package
-
-## Testing Your Plugin
-
-```python
-import pytest
-from src.core.plugins import PluginRegistry
-from my_plugin import MyFormatConverter
-
-def test_conversion():
-    converter = MyFormatConverter()
-    result = converter.convert("test_data.myf")
-    
-    assert result.is_success
-    assert len(result.entity_types) > 0
-
-def test_registration():
-    PluginRegistry.register_converter(MyFormatConverter())
-    assert PluginRegistry.has_converter("myformat")
-```
+1. **Study the example:** Review `csv_schema_converter.py` to understand the plugin structure
+2. **Read the guide:** See [PLUGIN_GUIDE.md](../../docs/PLUGIN_GUIDE.md) for comprehensive documentation
+3. **Create your plugin:** Implement `FormatConverter` interface for your format
+4. **Test it:** Write tests following the examples in `tests/test_plugins.py`
+5. **Register it:** Use one of the three registration methods (programmatic, entry point, or directory)
 
 ## See Also
 
-- [docs/API.md](../../docs/API.md) - Plugin API reference
-- [docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md) - System architecture
+- [Plugin Development Guide](../../docs/PLUGIN_GUIDE.md) - Complete plugin development documentation
+- [API Reference](../../docs/API.md) - Plugin API reference
+- [Architecture Overview](../../docs/ARCHITECTURE.md) - System architecture
+- [Testing Guide](../../docs/TESTING.md) - How to test your plugins

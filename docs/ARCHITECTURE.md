@@ -38,8 +38,13 @@
 User interface and command dispatch:
 - `commands.py` - Command registry
 - `parsers.py` - Argument parsing
-- `commands/unified.py` - validate/convert/upload/export
+- `commands/unified/` - Format-agnostic commands (split modules):
+  - `validate.py` - ValidateCommand
+  - `convert.py` - ConvertCommand
+  - `upload.py` - UploadCommand
+  - `export.py` - ExportCommand
 - `commands/common.py` - list/get/delete
+- `commands/base.py` - BaseCommand and protocols
 
 ### Format Pipelines (`src/formats/`)
 
@@ -78,6 +83,7 @@ User interface and command dispatch:
 | Rate Limiter | `rate_limiter.py` | Token bucket throttling |
 | Circuit Breaker | `circuit_breaker.py` | Fault tolerance |
 | Streaming | `streaming.py` | Large file processing |
+| Pipeline | `services/pipeline.py` | Formalized streaming pipeline |
 | Memory | `memory.py` | Memory safety checks |
 
 ### Plugin System (`src/plugins/`)
@@ -114,6 +120,9 @@ src/
 ├── main.py              # Entry point
 ├── app/cli/             # CLI layer
 │   └── commands/        # Command implementations
+│       ├── unified/     # Format-agnostic commands
+│       ├── base.py      # Base command class
+│       └── common.py    # Workspace commands
 ├── formats/             # Format pipelines
 │   ├── rdf/             # RDF/OWL/JSON-LD
 │   └── dtdl/            # DTDL v2/v3/v4

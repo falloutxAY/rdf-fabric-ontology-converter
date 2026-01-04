@@ -6,6 +6,7 @@ to Microsoft Fabric Ontology format.
 
 Components:
 - rdf_converter: Main converter class and high-level functions
+- streaming_converter: Memory-efficient streaming converter for large files
 - preflight_validator: Pre-conversion validation for RDF/OWL files
 - fabric_to_ttl: Export Fabric ontology back to TTL format
 - type_mapper: XSD to Fabric type mapping
@@ -27,9 +28,9 @@ from .property_extractor import (
     ObjectPropertyExtractor,
     EntityIdentifierSetter,
 )
+from .streaming_converter import StreamingRDFConverter
 from .rdf_converter import (
     RDFToFabricConverter,
-    StreamingRDFConverter,
     FabricDefinitionValidator,
     DefinitionValidationError,
     InputValidator,

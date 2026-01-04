@@ -170,6 +170,71 @@ result = engine.process_file(
 )
 ```
 
+### Streaming Pipeline Interface
+
+For custom streaming implementations, use the formal pipeline interface:
+
+```python
+from src.core.services.pipeline import (
+    StreamingPipeline,
+    PipelineConfig,
+    PipelineResult,
+    StreamReaderProtocol,
+    StreamProcessorProtocol,
+    StreamAggregatorProtocol,
+    create_pipeline_from_format,
+)
+
+# Quick start with format-specific pipeline
+config = PipelineConfig(
+    chunk_size=10000,
+    memory_limit_mb=512,
+    enable_progress=True,
+)
+pipeline = create_pipeline_from_format("rdf", config)
+
+# Execute with progress callback
+result = pipeline.execute(
+    input_path="large_ontology.ttl",
+    output_path="output.json",
+    progress_callback=lambda stats: print(f"Items: {stats.items_produced}")
+)
+
+print(result.stats.get_summary())
+```
+
+### Pipeline Components
+
+| Component | Protocol | Purpose |
+|-----------|----------|---------|
+| Reader | `StreamReaderProtocol` | Read file in chunks |
+| Processor | `StreamProcessorProtocol` | Parse/convert chunks |
+| Aggregator | `StreamAggregatorProtocol` | Combine results |
+
+### Pipeline Configuration
+
+```python
+config = PipelineConfig(
+    chunk_size=10000,         # Items per chunk
+    memory_limit_mb=512,      # Memory ceiling
+    buffer_size_bytes=65536,  # I/O buffer (64KB)
+    enable_progress=True,     # Progress callbacks
+    fail_fast=True,           # Stop on first error
+)
+```
+
+### Pipeline Statistics
+
+```python
+result = pipeline.execute("input.ttl")
+
+print(result.stats.chunks_processed)   # Chunks handled
+print(result.stats.items_produced)     # Entities created
+print(result.stats.bytes_read)         # Total bytes read
+print(result.stats.duration_seconds)   # Execution time
+print(result.stats.peak_memory_mb)     # Peak memory usage
+```
+
 ## Validation
 
 ```python

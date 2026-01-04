@@ -447,6 +447,29 @@ class OntologyPlugin(ABC):
         return None
     
     @property
+    def supported_fabric_versions(self) -> List[str]:
+        """
+        List of Fabric API versions supported by this plugin.
+        
+        Override this to specify which Fabric API versions your plugin
+        can work with. This helps ensure compatibility and allows the
+        system to warn users about potential issues.
+        
+        Common versions:
+        - "v1": Initial Fabric Ontology API
+        - "v2": Extended API with additional features
+        
+        Returns:
+            List of supported version strings (default: ["v1"]).
+            
+        Example:
+            @property
+            def supported_fabric_versions(self) -> List[str]:
+                return ["v1", "v2"]  # Supports both v1 and v2 APIs
+        """
+        return ["v1"]
+    
+    @property
     def author(self) -> str:
         """
         Plugin author information.

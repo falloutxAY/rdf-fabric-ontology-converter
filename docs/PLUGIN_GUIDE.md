@@ -184,6 +184,68 @@ Fabric types: `String`, `Boolean`, `BigInt`, `Double`, `Decimal`, `DateTime`
 4. **Add warnings:** Surface potential issues to users
 5. **Write tests:** Cover parser, validator, and converter
 
+## Streaming Support
+
+For large file support, implement the streaming protocols:
+
+```python
+from src.plugins.protocols import StreamingParserProtocol, StreamingConverterProtocol
+from src.core.services.pipeline import StreamReaderProtocol, StreamProcessorProtocol
+from typing import Iterator, Tuple, Dict, Any
+
+class MyFormatStreamReader(StreamReaderProtocol[str]):
+    """Read large files in chunks."""
+    
+    def read_chunks(self, file_path, config) -> Iterator[Tuple[str, int]]:
+        with open(file_path, 'r') as f:
+            buffer = []
+            bytes_read = 0
+            for line in f:
+                buffer.append(line)
+                bytes_read += len(line.encode())
+                if len(buffer) >= config.chunk_size:
+                    yield ''.join(buffer), bytes_read
+                    buffer = []
+                    bytes_read = 0
+            if buffer:
+                yield ''.join(buffer), bytes_read
+    
+    def get_file_size(self, file_path) -> int:
+        return Path(file_path).stat().st_size
+    
+    def supports_format(self, file_path) -> bool:
+        return Path(file_path).suffix in {'.myf', '.myformat'}
+
+class MyFormatStreamProcessor(StreamProcessorProtocol[str, list]):
+    """Process chunks incrementally."""
+    
+    def process_chunk(self, chunk: str, chunk_index: int, state: Dict[str, Any]):
+        items = self._parse_chunk(chunk)
+        entities = self._convert_items(items, state)
+        return entities, len(entities)
+    
+    def initialize_state(self, config):
+        return {"id_counter": 1000000000000, "seen_names": set()}
+    
+    def get_format_name(self) -> str:
+        return "MyFormat"
+```
+
+Register streaming support in your plugin:
+
+```python
+class MyFormatPlugin(OntologyPlugin):
+    @property
+    def supports_streaming(self) -> bool:
+        return True
+    
+    def create_stream_reader(self):
+        return MyFormatStreamReader()
+    
+    def create_stream_processor(self):
+        return MyFormatStreamProcessor()
+```
+
 ## Example: CSV Plugin
 
 ```python

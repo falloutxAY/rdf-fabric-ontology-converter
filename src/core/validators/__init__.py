@@ -6,17 +6,20 @@ This package provides validators organized by concern:
 - url.py: URL validation and SSRF protection
 - rate_limiter.py: Rate limiting and resource guards for validation operations
 - fabric_limits.py: Fabric API limits validation
+- definition.py: Ontology definition validation (entity/relationship references)
 
 Module Structure (refactored for maintainability):
 - input.py: InputValidator - file/content validation with security
 - url.py: URLValidator - SSRF protection for URLs
 - rate_limiter.py: ValidationRateLimiter, ValidationContext - rate limiting
 - fabric_limits.py: FabricLimitsValidator, EntityIdPartsInferrer - Fabric limits
+- definition.py: FabricDefinitionValidator - entity/relationship reference validation
 
 Usage:
     # Imports from submodules
     from core.validators import InputValidator, URLValidator
     from core.validators import FabricLimitsValidator, EntityIdPartsInferrer
+    from core.validators import FabricDefinitionValidator, DefinitionValidationError
     
     # Or import specific submodules
     from core.validators.rate_limiter import ValidationRateLimiter
@@ -31,6 +34,10 @@ from .fabric_limits import (
     FabricLimitsValidator,
     EntityIdPartsInferrer,
 )
+from .definition import (
+    DefinitionValidationError,
+    FabricDefinitionValidator,
+)
 
 __all__ = [
     # Input validation
@@ -44,4 +51,7 @@ __all__ = [
     'FabricLimitValidationError',
     'FabricLimitsValidator',
     'EntityIdPartsInferrer',
+    # Definition validation
+    'DefinitionValidationError',
+    'FabricDefinitionValidator',
 ]

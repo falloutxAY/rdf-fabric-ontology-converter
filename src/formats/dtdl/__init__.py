@@ -8,6 +8,7 @@ Key Components:
 - dtdl_parser: Parse DTDL files (single, array, directory)
 - dtdl_validator: Validate DTDL structure and references
 - dtdl_converter: Convert DTDL to Fabric Ontology format
+- mode_converters: Specialized converters for Components, Commands, ScaledDecimal
 
 Usage:
     from dtdl import DTDLParser, DTDLValidator, DTDLToFabricConverter
@@ -52,6 +53,11 @@ from .dtdl_converter import (
     ScaledDecimalMode,
     ScaledDecimalValue,
 )
+from .mode_converters import (
+    ComponentConverter,
+    CommandConverter,
+    ScaledDecimalConverter,
+)
 from .dtdl_type_mapper import (
     DTDLTypeMapper,
     TypeMappingResult,
@@ -92,6 +98,10 @@ __all__ = [
     'CommandMode',
     'ScaledDecimalMode',
     'ScaledDecimalValue',
+    # Mode-specific converters
+    'ComponentConverter',
+    'CommandConverter',
+    'ScaledDecimalConverter',
     # Type Mapper
     'DTDLTypeMapper',
     'TypeMappingResult',

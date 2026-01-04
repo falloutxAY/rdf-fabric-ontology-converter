@@ -3,7 +3,11 @@ CLI command implementations.
 
 This package contains split command modules for better organization:
 - base.py: Base command class and protocols
-- unified.py: Unified commands (validate, convert, upload, export)
+- unified/: Unified commands split into separate modules
+    - validate.py: ValidateCommand
+    - convert.py: ConvertCommand  
+    - upload.py: UploadCommand
+    - export.py: ExportCommand
 - common.py: Common commands (list, get, delete, test, compare)
 """
 
@@ -23,6 +27,7 @@ from .common import (
     CompareCommand,
 )
 
+# Import from unified package (split modules)
 from .unified import (
     ValidateCommand,
     ConvertCommand,

@@ -1,0 +1,129 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/CDM/master/schemaDocuments/schema.cdm.json",
+    "jsonSchemaSemanticVersion": "1.0.0",
+    "imports": [],
+    "definitions": [
+        {
+            "entityName": "Customer",
+            "description": "Banking customer with KYC and financial profile information.",
+            "displayName": "Banking Customer",
+            "hasAttributes": [
+                {
+                    "name": "customerId",
+                    "dataType": "GUID",
+                    "description": "Unique customer identifier",
+                    "appliedTraits": ["means.identity.entityId"],
+                    "isPrimaryKey": true
+                },
+                {
+                    "name": "customerNumber",
+                    "dataType": "string",
+                    "description": "Business customer number"
+                },
+                {
+                    "name": "customerType",
+                    "dataType": "string",
+                    "description": "Type (Individual, Business, Corporate)"
+                },
+                {
+                    "name": "firstName",
+                    "dataType": "name",
+                    "description": "First name"
+                },
+                {
+                    "name": "lastName",
+                    "dataType": "name",
+                    "description": "Last name"
+                },
+                {
+                    "name": "dateOfBirth",
+                    "dataType": "date",
+                    "description": "Date of birth",
+                    "isNullable": true
+                },
+                {
+                    "name": "email",
+                    "dataType": "email",
+                    "description": "Email address"
+                },
+                {
+                    "name": "phone",
+                    "dataType": "phone",
+                    "description": "Phone number"
+                },
+                {
+                    "name": "address",
+                    "dataType": "address",
+                    "description": "Street address"
+                },
+                {
+                    "name": "city",
+                    "dataType": "city",
+                    "description": "City"
+                },
+                {
+                    "name": "country",
+                    "dataType": "country",
+                    "description": "Country"
+                },
+                {
+                    "name": "kycStatus",
+                    "dataType": "string",
+                    "description": "KYC verification status"
+                },
+                {
+                    "name": "kycVerifiedDate",
+                    "dataType": "dateTime",
+                    "description": "KYC verification date",
+                    "isNullable": true
+                },
+                {
+                    "name": "riskRating",
+                    "dataType": "string",
+                    "description": "Customer risk rating (Low, Medium, High)"
+                },
+                {
+                    "name": "creditScore",
+                    "dataType": "integer",
+                    "description": "Credit score",
+                    "isNullable": true
+                },
+                {
+                    "name": "annualIncome",
+                    "dataType": "decimal",
+                    "description": "Annual income",
+                    "appliedTraits": ["means.measurement.currency"],
+                    "isNullable": true
+                },
+                {
+                    "name": "employmentStatus",
+                    "dataType": "string",
+                    "description": "Employment status",
+                    "isNullable": true
+                },
+                {
+                    "name": "relationshipManagerId",
+                    "dataType": "string",
+                    "description": "Assigned relationship manager",
+                    "isNullable": true
+                },
+                {
+                    "name": "onboardingDate",
+                    "dataType": "dateTime",
+                    "description": "Date customer onboarded"
+                },
+                {
+                    "name": "isActive",
+                    "dataType": "boolean",
+                    "description": "Whether customer is active",
+                    "defaultValue": "true"
+                },
+                {
+                    "name": "createdOn",
+                    "dataType": "dateTime",
+                    "description": "Record creation timestamp"
+                }
+            ]
+        }
+    ]
+}

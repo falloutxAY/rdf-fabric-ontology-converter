@@ -1,0 +1,18 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/CDM/master/schemaDocuments/schema.manifest.cdm.json",
+    "manifestName": "EducationManifest",
+    "jsonSchemaSemanticVersion": "1.0.0",
+    "description": "Education Industry Accelerator manifest.",
+    "imports": [],
+    "entities": [
+        {"type": "LocalEntity", "entityName": "Student", "entityPath": "Student.cdm.json/Student"},
+        {"type": "LocalEntity", "entityName": "Course", "entityPath": "Course.cdm.json/Course"},
+        {"type": "LocalEntity", "entityName": "Enrollment", "entityPath": "Enrollment.cdm.json/Enrollment"},
+        {"type": "LocalEntity", "entityName": "Institution", "entityPath": "Institution.cdm.json/Institution"}
+    ],
+    "relationships": [
+        {"name": "EnrollmentStudent", "fromEntity": "Enrollment.cdm.json/Enrollment", "fromEntityAttribute": "studentId", "toEntity": "Student.cdm.json/Student", "toEntityAttribute": "studentId"},
+        {"name": "EnrollmentCourse", "fromEntity": "Enrollment.cdm.json/Enrollment", "fromEntityAttribute": "courseId", "toEntity": "Course.cdm.json/Course", "toEntityAttribute": "courseId"},
+        {"name": "StudentInstitution", "fromEntity": "Student.cdm.json/Student", "fromEntityAttribute": "institutionId", "toEntity": "Institution.cdm.json/Institution", "toEntityAttribute": "institutionId"}
+    ]
+}

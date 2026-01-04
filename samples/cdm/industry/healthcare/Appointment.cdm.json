@@ -1,0 +1,192 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/CDM/master/schemaDocuments/schema.cdm.json",
+    "jsonSchemaSemanticVersion": "1.0.0",
+    "imports": [],
+    "definitions": [
+        {
+            "entityName": "Appointment",
+            "description": "A scheduled healthcare appointment. Aligned with FHIR Appointment resource.",
+            "displayName": "Healthcare Appointment",
+            "hasAttributes": [
+                {
+                    "name": "appointmentId",
+                    "dataType": "GUID",
+                    "description": "Unique identifier for the appointment",
+                    "appliedTraits": ["means.identity.entityId"],
+                    "isPrimaryKey": true
+                },
+                {
+                    "name": "appointmentNumber",
+                    "dataType": "string",
+                    "description": "Business appointment number"
+                },
+                {
+                    "name": "patientId",
+                    "dataType": "string",
+                    "description": "Reference to the patient",
+                    "appliedTraits": ["means.identity.entityId"]
+                },
+                {
+                    "name": "practitionerId",
+                    "dataType": "string",
+                    "description": "Reference to the practitioner",
+                    "appliedTraits": ["means.identity.entityId"]
+                },
+                {
+                    "name": "appointmentType",
+                    "dataType": "string",
+                    "description": "Type of appointment (routine, follow-up, new patient, etc.)"
+                },
+                {
+                    "name": "serviceType",
+                    "dataType": "string",
+                    "description": "Service category",
+                    "isNullable": true
+                },
+                {
+                    "name": "specialty",
+                    "dataType": "string",
+                    "description": "Medical specialty",
+                    "isNullable": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "description": "Status (proposed, pending, booked, arrived, fulfilled, cancelled, noshow)"
+                },
+                {
+                    "name": "priority",
+                    "dataType": "integer",
+                    "description": "Priority (1-5, where 1 is highest)",
+                    "isNullable": true
+                },
+                {
+                    "name": "scheduledStartDateTime",
+                    "dataType": "dateTime",
+                    "description": "Scheduled start date/time"
+                },
+                {
+                    "name": "scheduledEndDateTime",
+                    "dataType": "dateTime",
+                    "description": "Scheduled end date/time"
+                },
+                {
+                    "name": "actualStartDateTime",
+                    "dataType": "dateTime",
+                    "description": "Actual start date/time",
+                    "isNullable": true
+                },
+                {
+                    "name": "actualEndDateTime",
+                    "dataType": "dateTime",
+                    "description": "Actual end date/time",
+                    "isNullable": true
+                },
+                {
+                    "name": "durationMinutes",
+                    "dataType": "integer",
+                    "description": "Scheduled duration in minutes"
+                },
+                {
+                    "name": "locationId",
+                    "dataType": "string",
+                    "description": "Reference to appointment location",
+                    "isNullable": true
+                },
+                {
+                    "name": "locationName",
+                    "dataType": "string",
+                    "description": "Location name or room",
+                    "isNullable": true
+                },
+                {
+                    "name": "reasonCode",
+                    "dataType": "string",
+                    "description": "Reason code for appointment",
+                    "isNullable": true
+                },
+                {
+                    "name": "reasonDescription",
+                    "dataType": "string",
+                    "description": "Reason for appointment"
+                },
+                {
+                    "name": "comment",
+                    "dataType": "string",
+                    "description": "Additional comments or notes",
+                    "isNullable": true
+                },
+                {
+                    "name": "patientInstruction",
+                    "dataType": "string",
+                    "description": "Instructions for the patient",
+                    "isNullable": true
+                },
+                {
+                    "name": "bookedBy",
+                    "dataType": "string",
+                    "description": "Who booked the appointment",
+                    "isNullable": true
+                },
+                {
+                    "name": "bookedDateTime",
+                    "dataType": "dateTime",
+                    "description": "When appointment was booked"
+                },
+                {
+                    "name": "cancellationReason",
+                    "dataType": "string",
+                    "description": "Reason for cancellation if cancelled",
+                    "isNullable": true
+                },
+                {
+                    "name": "cancelledDateTime",
+                    "dataType": "dateTime",
+                    "description": "When appointment was cancelled",
+                    "isNullable": true
+                },
+                {
+                    "name": "isRecurring",
+                    "dataType": "boolean",
+                    "description": "Whether this is a recurring appointment",
+                    "defaultValue": "false"
+                },
+                {
+                    "name": "recurrenceRule",
+                    "dataType": "string",
+                    "description": "Recurrence pattern (iCal format)",
+                    "isNullable": true
+                },
+                {
+                    "name": "reminderSent",
+                    "dataType": "boolean",
+                    "description": "Whether reminder was sent",
+                    "defaultValue": "false"
+                },
+                {
+                    "name": "reminderSentDateTime",
+                    "dataType": "dateTime",
+                    "description": "When reminder was sent",
+                    "isNullable": true
+                },
+                {
+                    "name": "createdOn",
+                    "dataType": "dateTime",
+                    "description": "Record creation timestamp"
+                },
+                {
+                    "name": "modifiedOn",
+                    "dataType": "dateTime",
+                    "description": "Record last modified timestamp",
+                    "isNullable": true
+                }
+            ],
+            "exhibitsTraits": [
+                {
+                    "traitReference": "is.CDM.entityVersion",
+                    "arguments": [{"name": "versionNumber", "value": "1.0"}]
+                }
+            ]
+        }
+    ]
+}

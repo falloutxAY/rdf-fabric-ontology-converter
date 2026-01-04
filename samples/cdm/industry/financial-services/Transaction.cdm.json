@@ -1,0 +1,136 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/CDM/master/schemaDocuments/schema.cdm.json",
+    "jsonSchemaSemanticVersion": "1.0.0",
+    "imports": [],
+    "definitions": [
+        {
+            "entityName": "Transaction",
+            "description": "Financial transaction record.",
+            "displayName": "Financial Transaction",
+            "hasAttributes": [
+                {
+                    "name": "transactionId",
+                    "dataType": "GUID",
+                    "description": "Unique transaction identifier",
+                    "appliedTraits": ["means.identity.entityId"],
+                    "isPrimaryKey": true
+                },
+                {
+                    "name": "transactionNumber",
+                    "dataType": "string",
+                    "description": "Transaction reference number"
+                },
+                {
+                    "name": "accountId",
+                    "dataType": "string",
+                    "description": "Reference to account"
+                },
+                {
+                    "name": "transactionType",
+                    "dataType": "string",
+                    "description": "Type (Debit, Credit, Transfer, Fee)"
+                },
+                {
+                    "name": "transactionCategory",
+                    "dataType": "string",
+                    "description": "Category (Purchase, ATM, Wire, etc.)"
+                },
+                {
+                    "name": "amount",
+                    "dataType": "decimal",
+                    "description": "Transaction amount",
+                    "appliedTraits": ["means.measurement.currency"]
+                },
+                {
+                    "name": "currency",
+                    "dataType": "string",
+                    "description": "Transaction currency"
+                },
+                {
+                    "name": "exchangeRate",
+                    "dataType": "double",
+                    "description": "Exchange rate if foreign currency",
+                    "isNullable": true
+                },
+                {
+                    "name": "balanceAfter",
+                    "dataType": "decimal",
+                    "description": "Account balance after transaction",
+                    "appliedTraits": ["means.measurement.currency"]
+                },
+                {
+                    "name": "transactionDateTime",
+                    "dataType": "dateTime",
+                    "description": "Transaction date and time"
+                },
+                {
+                    "name": "postingDate",
+                    "dataType": "date",
+                    "description": "Posting date"
+                },
+                {
+                    "name": "valueDate",
+                    "dataType": "date",
+                    "description": "Value date",
+                    "isNullable": true
+                },
+                {
+                    "name": "description",
+                    "dataType": "string",
+                    "description": "Transaction description"
+                },
+                {
+                    "name": "merchantName",
+                    "dataType": "string",
+                    "description": "Merchant name",
+                    "isNullable": true
+                },
+                {
+                    "name": "merchantCategory",
+                    "dataType": "string",
+                    "description": "Merchant category code (MCC)",
+                    "isNullable": true
+                },
+                {
+                    "name": "counterpartyAccountId",
+                    "dataType": "string",
+                    "description": "Counterparty account for transfers",
+                    "isNullable": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "description": "Status (Pending, Completed, Failed, Reversed)"
+                },
+                {
+                    "name": "channel",
+                    "dataType": "string",
+                    "description": "Transaction channel (Online, ATM, Branch, Mobile)"
+                },
+                {
+                    "name": "location",
+                    "dataType": "string",
+                    "description": "Transaction location",
+                    "isNullable": true
+                },
+                {
+                    "name": "isFraudulent",
+                    "dataType": "boolean",
+                    "description": "Fraud flag",
+                    "defaultValue": "false"
+                },
+                {
+                    "name": "fraudScore",
+                    "dataType": "double",
+                    "description": "Fraud detection score",
+                    "isNullable": true
+                },
+                {
+                    "name": "createdOn",
+                    "dataType": "dateTime",
+                    "description": "Record creation timestamp"
+                }
+            ]
+        }
+    ]
+}

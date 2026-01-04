@@ -1,0 +1,27 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/CDM/master/schemaDocuments/schema.cdm.json",
+    "jsonSchemaSemanticVersion": "1.0.0",
+    "definitions": [
+        {
+            "entityName": "Dealer",
+            "description": "Automotive dealership.",
+            "displayName": "Dealer",
+            "hasAttributes": [
+                {"name": "dealerId", "dataType": "GUID", "isPrimaryKey": true},
+                {"name": "dealerName", "dataType": "string"},
+                {"name": "dealerCode", "dataType": "string"},
+                {"name": "address", "dataType": "address"},
+                {"name": "city", "dataType": "city"},
+                {"name": "stateOrProvince", "dataType": "stateOrProvince"},
+                {"name": "postalCode", "dataType": "postalCode"},
+                {"name": "phone", "dataType": "phone"},
+                {"name": "email", "dataType": "email"},
+                {"name": "website", "dataType": "url", "isNullable": true},
+                {"name": "managerId", "dataType": "string", "isNullable": true},
+                {"name": "brand", "dataType": "string"},
+                {"name": "isActive", "dataType": "boolean", "defaultValue": "true"},
+                {"name": "createdOn", "dataType": "dateTime"}
+            ]
+        }
+    ]
+}

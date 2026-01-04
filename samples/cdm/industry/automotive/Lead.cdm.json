@@ -1,0 +1,27 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/CDM/master/schemaDocuments/schema.cdm.json",
+    "jsonSchemaSemanticVersion": "1.0.0",
+    "definitions": [
+        {
+            "entityName": "Lead",
+            "description": "Sales lead.",
+            "displayName": "Sales Lead",
+            "hasAttributes": [
+                {"name": "leadId", "dataType": "GUID", "isPrimaryKey": true},
+                {"name": "firstName", "dataType": "name"},
+                {"name": "lastName", "dataType": "name"},
+                {"name": "email", "dataType": "email"},
+                {"name": "phone", "dataType": "phone"},
+                {"name": "dealerId", "dataType": "string"},
+                {"name": "interestVehicleId", "dataType": "string", "isNullable": true},
+                {"name": "leadSource", "dataType": "string"},
+                {"name": "status", "dataType": "string"},
+                {"name": "assignedTo", "dataType": "string", "isNullable": true},
+                {"name": "estimatedPurchaseDate", "dataType": "date", "isNullable": true},
+                {"name": "budget", "dataType": "decimal", "appliedTraits": ["means.measurement.currency"], "isNullable": true},
+                {"name": "notes", "dataType": "string", "isNullable": true},
+                {"name": "createdOn", "dataType": "dateTime"}
+            ]
+        }
+    ]
+}

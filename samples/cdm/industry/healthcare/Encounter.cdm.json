@@ -1,0 +1,178 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/CDM/master/schemaDocuments/schema.cdm.json",
+    "jsonSchemaSemanticVersion": "1.0.0",
+    "imports": [],
+    "definitions": [
+        {
+            "entityName": "Encounter",
+            "description": "An interaction between a patient and healthcare provider. Aligned with FHIR Encounter resource.",
+            "displayName": "Patient Encounter",
+            "hasAttributes": [
+                {
+                    "name": "encounterId",
+                    "dataType": "GUID",
+                    "description": "Unique identifier for the encounter",
+                    "appliedTraits": ["means.identity.entityId"],
+                    "isPrimaryKey": true
+                },
+                {
+                    "name": "encounterNumber",
+                    "dataType": "string",
+                    "description": "Business encounter number",
+                    "appliedTraits": ["means.identity.barCode"]
+                },
+                {
+                    "name": "patientId",
+                    "dataType": "string",
+                    "description": "Reference to the patient",
+                    "appliedTraits": ["means.identity.entityId"]
+                },
+                {
+                    "name": "practitionerId",
+                    "dataType": "string",
+                    "description": "Reference to the primary practitioner",
+                    "appliedTraits": ["means.identity.entityId"]
+                },
+                {
+                    "name": "encounterType",
+                    "dataType": "string",
+                    "description": "Type of encounter (ambulatory, emergency, inpatient, etc.)"
+                },
+                {
+                    "name": "encounterClass",
+                    "dataType": "string",
+                    "description": "Classification (AMB, EMER, IMP, etc.)"
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "description": "Status (planned, arrived, in-progress, finished, cancelled)"
+                },
+                {
+                    "name": "priority",
+                    "dataType": "integer",
+                    "description": "Encounter priority (1=Emergency, 2=Urgent, 3=Routine)",
+                    "isNullable": true
+                },
+                {
+                    "name": "startDateTime",
+                    "dataType": "dateTime",
+                    "description": "Encounter start date/time"
+                },
+                {
+                    "name": "endDateTime",
+                    "dataType": "dateTime",
+                    "description": "Encounter end date/time",
+                    "isNullable": true
+                },
+                {
+                    "name": "durationMinutes",
+                    "dataType": "integer",
+                    "description": "Duration in minutes",
+                    "isNullable": true
+                },
+                {
+                    "name": "locationId",
+                    "dataType": "string",
+                    "description": "Reference to encounter location",
+                    "isNullable": true
+                },
+                {
+                    "name": "locationName",
+                    "dataType": "string",
+                    "description": "Location name (e.g., Room 101)",
+                    "isNullable": true
+                },
+                {
+                    "name": "departmentId",
+                    "dataType": "string",
+                    "description": "Reference to department",
+                    "isNullable": true
+                },
+                {
+                    "name": "reasonCode",
+                    "dataType": "string",
+                    "description": "Reason code for encounter",
+                    "isNullable": true
+                },
+                {
+                    "name": "reasonDescription",
+                    "dataType": "string",
+                    "description": "Reason for encounter (chief complaint)"
+                },
+                {
+                    "name": "primaryDiagnosisCode",
+                    "dataType": "string",
+                    "description": "Primary diagnosis ICD code",
+                    "isNullable": true
+                },
+                {
+                    "name": "primaryDiagnosisDescription",
+                    "dataType": "string",
+                    "description": "Primary diagnosis description",
+                    "isNullable": true
+                },
+                {
+                    "name": "admissionSource",
+                    "dataType": "string",
+                    "description": "Source of admission",
+                    "isNullable": true
+                },
+                {
+                    "name": "dischargeDisposition",
+                    "dataType": "string",
+                    "description": "Discharge disposition",
+                    "isNullable": true
+                },
+                {
+                    "name": "appointmentId",
+                    "dataType": "string",
+                    "description": "Reference to originating appointment",
+                    "isNullable": true
+                },
+                {
+                    "name": "episodeOfCareId",
+                    "dataType": "string",
+                    "description": "Reference to episode of care",
+                    "isNullable": true
+                },
+                {
+                    "name": "notes",
+                    "dataType": "string",
+                    "description": "Clinical notes",
+                    "isNullable": true
+                },
+                {
+                    "name": "billingStatus",
+                    "dataType": "string",
+                    "description": "Billing status",
+                    "isNullable": true
+                },
+                {
+                    "name": "totalCharge",
+                    "dataType": "decimal",
+                    "description": "Total charges for encounter",
+                    "appliedTraits": ["means.measurement.currency"],
+                    "isNullable": true
+                },
+                {
+                    "name": "createdOn",
+                    "dataType": "dateTime",
+                    "description": "Record creation timestamp"
+                },
+                {
+                    "name": "modifiedOn",
+                    "dataType": "dateTime",
+                    "description": "Record last modified timestamp",
+                    "isNullable": true
+                }
+            ],
+            "exhibitsTraits": [
+                {
+                    "traitReference": "is.CDM.entityVersion",
+                    "arguments": [{"name": "versionNumber", "value": "1.0"}]
+                }
+            ]
+        }
+    ]
+}

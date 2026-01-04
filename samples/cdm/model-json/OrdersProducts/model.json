@@ -1,0 +1,395 @@
+{
+    "name": "OrdersProductsModel",
+    "description": "A complete model.json example demonstrating the legacy CDM format with multiple entities and relationships.",
+    "version": "1.0",
+    "modifiedTime": "2026-01-04T00:00:00Z",
+    "culture": "en-US",
+    "entities": [
+        {
+            "$type": "LocalEntity",
+            "name": "Customer",
+            "description": "Customer information",
+            "annotations": [
+                {
+                    "name": "CDM.Version",
+                    "value": "1.0"
+                }
+            ],
+            "attributes": [
+                {
+                    "name": "customerId",
+                    "dataType": "guid",
+                    "description": "Unique identifier for the customer"
+                },
+                {
+                    "name": "customerNumber",
+                    "dataType": "string",
+                    "description": "Business customer number",
+                    "maxLength": 20
+                },
+                {
+                    "name": "firstName",
+                    "dataType": "string",
+                    "description": "Customer first name",
+                    "maxLength": 100
+                },
+                {
+                    "name": "lastName",
+                    "dataType": "string",
+                    "description": "Customer last name",
+                    "maxLength": 100
+                },
+                {
+                    "name": "email",
+                    "dataType": "string",
+                    "description": "Email address",
+                    "maxLength": 255
+                },
+                {
+                    "name": "phone",
+                    "dataType": "string",
+                    "description": "Phone number",
+                    "maxLength": 50
+                },
+                {
+                    "name": "address",
+                    "dataType": "string",
+                    "description": "Street address"
+                },
+                {
+                    "name": "city",
+                    "dataType": "string",
+                    "description": "City",
+                    "maxLength": 100
+                },
+                {
+                    "name": "state",
+                    "dataType": "string",
+                    "description": "State or province",
+                    "maxLength": 100
+                },
+                {
+                    "name": "postalCode",
+                    "dataType": "string",
+                    "description": "Postal code",
+                    "maxLength": 20
+                },
+                {
+                    "name": "country",
+                    "dataType": "string",
+                    "description": "Country",
+                    "maxLength": 100
+                },
+                {
+                    "name": "dateOfBirth",
+                    "dataType": "date",
+                    "description": "Date of birth"
+                },
+                {
+                    "name": "customerSince",
+                    "dataType": "dateTime",
+                    "description": "Date when customer registered"
+                },
+                {
+                    "name": "totalPurchases",
+                    "dataType": "decimal",
+                    "description": "Total amount of all purchases"
+                },
+                {
+                    "name": "loyaltyPoints",
+                    "dataType": "int64",
+                    "description": "Accumulated loyalty points"
+                },
+                {
+                    "name": "isActive",
+                    "dataType": "boolean",
+                    "description": "Whether customer is active"
+                }
+            ]
+        },
+        {
+            "$type": "LocalEntity",
+            "name": "Product",
+            "description": "Product catalog",
+            "attributes": [
+                {
+                    "name": "productId",
+                    "dataType": "guid",
+                    "description": "Unique identifier for the product"
+                },
+                {
+                    "name": "sku",
+                    "dataType": "string",
+                    "description": "Stock Keeping Unit code",
+                    "maxLength": 50
+                },
+                {
+                    "name": "name",
+                    "dataType": "string",
+                    "description": "Product name",
+                    "maxLength": 200
+                },
+                {
+                    "name": "description",
+                    "dataType": "string",
+                    "description": "Product description"
+                },
+                {
+                    "name": "categoryId",
+                    "dataType": "string",
+                    "description": "Reference to product category"
+                },
+                {
+                    "name": "unitPrice",
+                    "dataType": "decimal",
+                    "description": "Standard unit price"
+                },
+                {
+                    "name": "costPrice",
+                    "dataType": "decimal",
+                    "description": "Product cost"
+                },
+                {
+                    "name": "stockQuantity",
+                    "dataType": "int64",
+                    "description": "Current stock quantity"
+                },
+                {
+                    "name": "reorderLevel",
+                    "dataType": "int64",
+                    "description": "Quantity at which to reorder"
+                },
+                {
+                    "name": "weight",
+                    "dataType": "double",
+                    "description": "Product weight in kg"
+                },
+                {
+                    "name": "isDiscontinued",
+                    "dataType": "boolean",
+                    "description": "Whether product is discontinued"
+                },
+                {
+                    "name": "createdOn",
+                    "dataType": "dateTime",
+                    "description": "Record creation timestamp"
+                }
+            ]
+        },
+        {
+            "$type": "LocalEntity",
+            "name": "Order",
+            "description": "Sales orders",
+            "attributes": [
+                {
+                    "name": "orderId",
+                    "dataType": "guid",
+                    "description": "Unique identifier for the order"
+                },
+                {
+                    "name": "orderNumber",
+                    "dataType": "string",
+                    "description": "Business order number",
+                    "maxLength": 30
+                },
+                {
+                    "name": "customerId",
+                    "dataType": "string",
+                    "description": "Reference to customer"
+                },
+                {
+                    "name": "orderDate",
+                    "dataType": "dateTime",
+                    "description": "Date order was placed"
+                },
+                {
+                    "name": "requiredDate",
+                    "dataType": "dateTime",
+                    "description": "Date customer needs the order"
+                },
+                {
+                    "name": "shippedDate",
+                    "dataType": "dateTime",
+                    "description": "Date order was shipped"
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "description": "Order status",
+                    "maxLength": 50
+                },
+                {
+                    "name": "subtotal",
+                    "dataType": "decimal",
+                    "description": "Order subtotal"
+                },
+                {
+                    "name": "tax",
+                    "dataType": "decimal",
+                    "description": "Tax amount"
+                },
+                {
+                    "name": "shipping",
+                    "dataType": "decimal",
+                    "description": "Shipping cost"
+                },
+                {
+                    "name": "total",
+                    "dataType": "decimal",
+                    "description": "Total order amount"
+                },
+                {
+                    "name": "shippingAddress",
+                    "dataType": "string",
+                    "description": "Shipping address"
+                },
+                {
+                    "name": "shippingCity",
+                    "dataType": "string",
+                    "description": "Shipping city"
+                },
+                {
+                    "name": "shippingPostalCode",
+                    "dataType": "string",
+                    "description": "Shipping postal code"
+                },
+                {
+                    "name": "shippingCountry",
+                    "dataType": "string",
+                    "description": "Shipping country"
+                },
+                {
+                    "name": "notes",
+                    "dataType": "string",
+                    "description": "Order notes"
+                }
+            ]
+        },
+        {
+            "$type": "LocalEntity",
+            "name": "OrderDetail",
+            "description": "Order line items",
+            "attributes": [
+                {
+                    "name": "orderDetailId",
+                    "dataType": "guid",
+                    "description": "Unique identifier for the order detail"
+                },
+                {
+                    "name": "orderId",
+                    "dataType": "string",
+                    "description": "Reference to parent order"
+                },
+                {
+                    "name": "productId",
+                    "dataType": "string",
+                    "description": "Reference to product"
+                },
+                {
+                    "name": "quantity",
+                    "dataType": "int64",
+                    "description": "Quantity ordered"
+                },
+                {
+                    "name": "unitPrice",
+                    "dataType": "decimal",
+                    "description": "Price at time of order"
+                },
+                {
+                    "name": "discount",
+                    "dataType": "double",
+                    "description": "Discount percentage"
+                },
+                {
+                    "name": "lineTotal",
+                    "dataType": "decimal",
+                    "description": "Total for this line"
+                }
+            ]
+        },
+        {
+            "$type": "LocalEntity",
+            "name": "Category",
+            "description": "Product categories",
+            "attributes": [
+                {
+                    "name": "categoryId",
+                    "dataType": "guid",
+                    "description": "Unique identifier for the category"
+                },
+                {
+                    "name": "name",
+                    "dataType": "string",
+                    "description": "Category name",
+                    "maxLength": 100
+                },
+                {
+                    "name": "description",
+                    "dataType": "string",
+                    "description": "Category description"
+                },
+                {
+                    "name": "parentCategoryId",
+                    "dataType": "string",
+                    "description": "Parent category for hierarchy"
+                },
+                {
+                    "name": "displayOrder",
+                    "dataType": "int64",
+                    "description": "Sort order"
+                },
+                {
+                    "name": "isActive",
+                    "dataType": "boolean",
+                    "description": "Whether category is active"
+                }
+            ]
+        }
+    ],
+    "relationships": [
+        {
+            "$type": "SingleKeyRelationship",
+            "fromAttribute": {
+                "entityName": "Order",
+                "attributeName": "customerId"
+            },
+            "toAttribute": {
+                "entityName": "Customer",
+                "attributeName": "customerId"
+            }
+        },
+        {
+            "$type": "SingleKeyRelationship",
+            "fromAttribute": {
+                "entityName": "OrderDetail",
+                "attributeName": "orderId"
+            },
+            "toAttribute": {
+                "entityName": "Order",
+                "attributeName": "orderId"
+            }
+        },
+        {
+            "$type": "SingleKeyRelationship",
+            "fromAttribute": {
+                "entityName": "OrderDetail",
+                "attributeName": "productId"
+            },
+            "toAttribute": {
+                "entityName": "Product",
+                "attributeName": "productId"
+            }
+        },
+        {
+            "$type": "SingleKeyRelationship",
+            "fromAttribute": {
+                "entityName": "Product",
+                "attributeName": "categoryId"
+            },
+            "toAttribute": {
+                "entityName": "Category",
+                "attributeName": "categoryId"
+            }
+        }
+    ]
+}

@@ -1,0 +1,190 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/CDM/master/schemaDocuments/schema.cdm.json",
+    "jsonSchemaSemanticVersion": "1.0.0",
+    "imports": [],
+    "definitions": [
+        {
+            "entityName": "Practitioner",
+            "description": "A person who is directly or indirectly involved in provisioning healthcare. Aligned with FHIR Practitioner resource.",
+            "displayName": "Healthcare Practitioner",
+            "hasAttributes": [
+                {
+                    "name": "practitionerId",
+                    "dataType": "GUID",
+                    "description": "Unique identifier for the practitioner",
+                    "appliedTraits": ["means.identity.entityId"],
+                    "isPrimaryKey": true
+                },
+                {
+                    "name": "npi",
+                    "dataType": "string",
+                    "description": "National Provider Identifier",
+                    "appliedTraits": ["means.identity.barCode"]
+                },
+                {
+                    "name": "firstName",
+                    "dataType": "name",
+                    "description": "Practitioner's first/given name",
+                    "appliedTraits": ["means.identity.person.firstName"]
+                },
+                {
+                    "name": "lastName",
+                    "dataType": "name",
+                    "description": "Practitioner's last/family name",
+                    "appliedTraits": ["means.identity.person.lastName"]
+                },
+                {
+                    "name": "prefix",
+                    "dataType": "string",
+                    "description": "Name prefix (Dr., Prof., etc.)",
+                    "isNullable": true
+                },
+                {
+                    "name": "suffix",
+                    "dataType": "string",
+                    "description": "Name suffix (MD, PhD, etc.)",
+                    "isNullable": true
+                },
+                {
+                    "name": "dateOfBirth",
+                    "dataType": "date",
+                    "description": "Practitioner's date of birth",
+                    "isNullable": true
+                },
+                {
+                    "name": "gender",
+                    "dataType": "string",
+                    "description": "Administrative gender"
+                },
+                {
+                    "name": "specialty",
+                    "dataType": "string",
+                    "description": "Primary medical specialty"
+                },
+                {
+                    "name": "secondarySpecialty",
+                    "dataType": "string",
+                    "description": "Secondary specialty",
+                    "isNullable": true
+                },
+                {
+                    "name": "qualifications",
+                    "dataType": "string",
+                    "description": "Professional qualifications and certifications",
+                    "isNullable": true
+                },
+                {
+                    "name": "licenseNumber",
+                    "dataType": "string",
+                    "description": "Medical license number"
+                },
+                {
+                    "name": "licenseState",
+                    "dataType": "stateOrProvince",
+                    "description": "State/province of license"
+                },
+                {
+                    "name": "licenseExpirationDate",
+                    "dataType": "date",
+                    "description": "License expiration date",
+                    "isNullable": true
+                },
+                {
+                    "name": "email",
+                    "dataType": "email",
+                    "description": "Work email address",
+                    "appliedTraits": ["means.identity.service.email"]
+                },
+                {
+                    "name": "phoneNumber",
+                    "dataType": "phone",
+                    "description": "Work phone number"
+                },
+                {
+                    "name": "mobilePhone",
+                    "dataType": "phone",
+                    "description": "Mobile phone number",
+                    "isNullable": true
+                },
+                {
+                    "name": "faxNumber",
+                    "dataType": "phone",
+                    "description": "Fax number",
+                    "isNullable": true
+                },
+                {
+                    "name": "practiceAddressLine1",
+                    "dataType": "address",
+                    "description": "Practice address line 1"
+                },
+                {
+                    "name": "practiceCity",
+                    "dataType": "city",
+                    "description": "Practice city"
+                },
+                {
+                    "name": "practiceState",
+                    "dataType": "stateOrProvince",
+                    "description": "Practice state"
+                },
+                {
+                    "name": "practicePostalCode",
+                    "dataType": "postalCode",
+                    "description": "Practice postal code"
+                },
+                {
+                    "name": "departmentId",
+                    "dataType": "string",
+                    "description": "Reference to department",
+                    "isNullable": true
+                },
+                {
+                    "name": "organizationId",
+                    "dataType": "string",
+                    "description": "Reference to healthcare organization"
+                },
+                {
+                    "name": "hireDate",
+                    "dataType": "date",
+                    "description": "Date hired",
+                    "isNullable": true
+                },
+                {
+                    "name": "yearsOfExperience",
+                    "dataType": "integer",
+                    "description": "Years of professional experience",
+                    "isNullable": true
+                },
+                {
+                    "name": "isAcceptingNewPatients",
+                    "dataType": "boolean",
+                    "description": "Whether accepting new patients",
+                    "defaultValue": "true"
+                },
+                {
+                    "name": "isActive",
+                    "dataType": "boolean",
+                    "description": "Whether practitioner is active",
+                    "defaultValue": "true"
+                },
+                {
+                    "name": "createdOn",
+                    "dataType": "dateTime",
+                    "description": "Record creation timestamp"
+                },
+                {
+                    "name": "modifiedOn",
+                    "dataType": "dateTime",
+                    "description": "Record last modified timestamp",
+                    "isNullable": true
+                }
+            ],
+            "exhibitsTraits": [
+                {
+                    "traitReference": "is.CDM.entityVersion",
+                    "arguments": [{"name": "versionNumber", "value": "1.0"}]
+                }
+            ]
+        }
+    ]
+}

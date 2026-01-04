@@ -1,0 +1,223 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/CDM/master/schemaDocuments/schema.cdm.json",
+    "jsonSchemaSemanticVersion": "1.0.0",
+    "imports": [],
+    "definitions": [
+        {
+            "entityName": "Order",
+            "description": "Sales order entity demonstrating relationships and financial types.",
+            "displayName": "Sales Order",
+            "hasAttributes": [
+                {
+                    "name": "orderId",
+                    "dataType": "GUID",
+                    "description": "Unique identifier for the order",
+                    "appliedTraits": [
+                        "means.identity.entityId"
+                    ],
+                    "isPrimaryKey": true
+                },
+                {
+                    "name": "orderNumber",
+                    "dataType": "string",
+                    "description": "Human-readable order number",
+                    "appliedTraits": [
+                        "means.identity.barCode"
+                    ]
+                },
+                {
+                    "name": "customerId",
+                    "dataType": "string",
+                    "description": "Reference to the customer (Person)",
+                    "appliedTraits": [
+                        "means.identity.entityId"
+                    ]
+                },
+                {
+                    "name": "orderDate",
+                    "dataType": "dateTime",
+                    "description": "Date when order was placed"
+                },
+                {
+                    "name": "shippingDate",
+                    "dataType": "dateTime",
+                    "description": "Expected or actual shipping date",
+                    "isNullable": true
+                },
+                {
+                    "name": "deliveryDate",
+                    "dataType": "dateTime",
+                    "description": "Expected or actual delivery date",
+                    "isNullable": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "integer",
+                    "description": "Order status (1=Pending, 2=Processing, 3=Shipped, 4=Delivered, 5=Cancelled)",
+                    "defaultValue": "1"
+                },
+                {
+                    "name": "subtotal",
+                    "dataType": "decimal",
+                    "description": "Order subtotal before tax and shipping",
+                    "appliedTraits": [
+                        "means.measurement.currency"
+                    ]
+                },
+                {
+                    "name": "taxAmount",
+                    "dataType": "decimal",
+                    "description": "Tax amount",
+                    "appliedTraits": [
+                        "means.measurement.currency"
+                    ],
+                    "isNullable": true
+                },
+                {
+                    "name": "shippingCost",
+                    "dataType": "decimal",
+                    "description": "Shipping cost",
+                    "appliedTraits": [
+                        "means.measurement.currency"
+                    ],
+                    "isNullable": true
+                },
+                {
+                    "name": "discountAmount",
+                    "dataType": "decimal",
+                    "description": "Discount applied to order",
+                    "appliedTraits": [
+                        "means.measurement.currency"
+                    ],
+                    "isNullable": true
+                },
+                {
+                    "name": "totalAmount",
+                    "dataType": "currency",
+                    "description": "Total order amount including tax and shipping"
+                },
+                {
+                    "name": "currencyCode",
+                    "dataType": "string",
+                    "description": "ISO currency code (e.g., USD, EUR)",
+                    "appliedTraits": [
+                        "means.measurement.currencyCode"
+                    ],
+                    "defaultValue": "USD"
+                },
+                {
+                    "name": "quantity",
+                    "dataType": "integer",
+                    "description": "Total number of items in order"
+                },
+                {
+                    "name": "shippingAddressId",
+                    "dataType": "string",
+                    "description": "Reference to shipping address (Contact)",
+                    "isNullable": true
+                },
+                {
+                    "name": "billingAddressId",
+                    "dataType": "string",
+                    "description": "Reference to billing address (Contact)",
+                    "isNullable": true
+                },
+                {
+                    "name": "notes",
+                    "dataType": "string",
+                    "description": "Order notes or special instructions",
+                    "isNullable": true
+                },
+                {
+                    "name": "isPriority",
+                    "dataType": "boolean",
+                    "description": "Whether this is a priority order",
+                    "defaultValue": "false"
+                },
+                {
+                    "name": "createdOn",
+                    "dataType": "dateTime",
+                    "description": "Record creation timestamp"
+                },
+                {
+                    "name": "modifiedOn",
+                    "dataType": "dateTime",
+                    "description": "Record last modified timestamp",
+                    "isNullable": true
+                }
+            ],
+            "exhibitsTraits": [
+                {
+                    "traitReference": "is.CDM.entityVersion",
+                    "arguments": [
+                        {
+                            "name": "versionNumber",
+                            "value": "1.0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "entityName": "OrderLine",
+            "description": "Individual line item in an order.",
+            "displayName": "Order Line",
+            "hasAttributes": [
+                {
+                    "name": "orderLineId",
+                    "dataType": "GUID",
+                    "description": "Unique identifier for the order line",
+                    "appliedTraits": [
+                        "means.identity.entityId"
+                    ],
+                    "isPrimaryKey": true
+                },
+                {
+                    "name": "orderId",
+                    "dataType": "string",
+                    "description": "Reference to parent order",
+                    "appliedTraits": [
+                        "means.identity.entityId"
+                    ]
+                },
+                {
+                    "name": "productId",
+                    "dataType": "string",
+                    "description": "Reference to product"
+                },
+                {
+                    "name": "productName",
+                    "dataType": "name",
+                    "description": "Name of the product"
+                },
+                {
+                    "name": "quantity",
+                    "dataType": "integer",
+                    "description": "Quantity ordered"
+                },
+                {
+                    "name": "unitPrice",
+                    "dataType": "decimal",
+                    "description": "Price per unit",
+                    "appliedTraits": [
+                        "means.measurement.currency"
+                    ]
+                },
+                {
+                    "name": "discount",
+                    "dataType": "double",
+                    "description": "Discount percentage",
+                    "isNullable": true
+                },
+                {
+                    "name": "lineTotal",
+                    "dataType": "decimal",
+                    "description": "Total for this line item",
+                    "appliedTraits": [
+                        "means.measurement.currency"
+                    ]
+                }
+            ]
+        }
+    ]
+}

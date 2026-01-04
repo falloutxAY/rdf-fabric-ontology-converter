@@ -1,0 +1,27 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/CDM/master/schemaDocuments/schema.cdm.json",
+    "jsonSchemaSemanticVersion": "1.0.0",
+    "definitions": [
+        {
+            "entityName": "ServiceAppointment",
+            "description": "Vehicle service appointment.",
+            "displayName": "Service Appointment",
+            "hasAttributes": [
+                {"name": "serviceAppointmentId", "dataType": "GUID", "isPrimaryKey": true},
+                {"name": "vehicleId", "dataType": "string"},
+                {"name": "customerId", "dataType": "string"},
+                {"name": "dealerId", "dataType": "string"},
+                {"name": "scheduledDateTime", "dataType": "dateTime"},
+                {"name": "serviceType", "dataType": "string"},
+                {"name": "description", "dataType": "string"},
+                {"name": "estimatedCost", "dataType": "decimal", "appliedTraits": ["means.measurement.currency"], "isNullable": true},
+                {"name": "actualCost", "dataType": "decimal", "appliedTraits": ["means.measurement.currency"], "isNullable": true},
+                {"name": "status", "dataType": "string"},
+                {"name": "completedDateTime", "dataType": "dateTime", "isNullable": true},
+                {"name": "technicianId", "dataType": "string", "isNullable": true},
+                {"name": "notes", "dataType": "string", "isNullable": true},
+                {"name": "createdOn", "dataType": "dateTime"}
+            ]
+        }
+    ]
+}

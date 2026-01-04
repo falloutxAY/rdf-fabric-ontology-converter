@@ -1,0 +1,118 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/CDM/master/schemaDocuments/schema.manifest.cdm.json",
+    "manifestName": "SimpleManifest",
+    "jsonSchemaSemanticVersion": "1.0.0",
+    "description": "A simple manifest demonstrating CDM structure with basic entities.",
+    "imports": [],
+    "entities": [
+        {
+            "type": "LocalEntity",
+            "entityName": "Person",
+            "entityPath": "Person.cdm.json/Person",
+            "description": "Basic person entity"
+        },
+        {
+            "type": "LocalEntity",
+            "entityName": "Contact",
+            "entityPath": "Contact.cdm.json/Contact",
+            "description": "Contact information entity"
+        },
+        {
+            "type": "LocalEntity",
+            "entityName": "Order",
+            "entityPath": "Order.cdm.json/Order",
+            "description": "Sales order entity"
+        },
+        {
+            "type": "LocalEntity",
+            "entityName": "OrderLine",
+            "entityPath": "Order.cdm.json/OrderLine",
+            "description": "Order line item entity"
+        }
+    ],
+    "relationships": [
+        {
+            "name": "PersonHasContact",
+            "fromEntity": "Contact.cdm.json/Contact",
+            "fromEntityAttribute": "personId",
+            "toEntity": "Person.cdm.json/Person",
+            "toEntityAttribute": "personId",
+            "exhibitsTraits": [
+                {
+                    "traitReference": "means.relationship.verbPhrase",
+                    "arguments": [
+                        {
+                            "name": "verbPhrase",
+                            "value": "has contact information"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "OrderBelongsToPerson",
+            "fromEntity": "Order.cdm.json/Order",
+            "fromEntityAttribute": "customerId",
+            "toEntity": "Person.cdm.json/Person",
+            "toEntityAttribute": "personId",
+            "exhibitsTraits": [
+                {
+                    "traitReference": "means.relationship.verbPhrase",
+                    "arguments": [
+                        {
+                            "name": "verbPhrase",
+                            "value": "placed by"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "OrderLineInOrder",
+            "fromEntity": "Order.cdm.json/OrderLine",
+            "fromEntityAttribute": "orderId",
+            "toEntity": "Order.cdm.json/Order",
+            "toEntityAttribute": "orderId",
+            "exhibitsTraits": [
+                {
+                    "traitReference": "means.relationship.verbPhrase",
+                    "arguments": [
+                        {
+                            "name": "verbPhrase",
+                            "value": "belongs to"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "OrderShipsToContact",
+            "fromEntity": "Order.cdm.json/Order",
+            "fromEntityAttribute": "shippingAddressId",
+            "toEntity": "Contact.cdm.json/Contact",
+            "toEntityAttribute": "contactId",
+            "exhibitsTraits": [
+                {
+                    "traitReference": "means.relationship.verbPhrase",
+                    "arguments": [
+                        {
+                            "name": "verbPhrase",
+                            "value": "ships to"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "exhibitsTraits": [
+        {
+            "traitReference": "is.CDM.manifest.contentType",
+            "arguments": [
+                {
+                    "name": "contentType",
+                    "value": "Sample"
+                }
+            ]
+        }
+    ]
+}

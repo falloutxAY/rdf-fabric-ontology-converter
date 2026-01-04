@@ -18,6 +18,7 @@ Use pytest markers to run specific test categories:
 pytest -m unit           # Fast unit tests
 pytest -m integration    # Integration tests
 pytest -m samples        # Sample file tests
+pytest -m industry       # Industry accelerator tests (CDM)
 pytest -m resilience     # Rate limiter, circuit breaker
 pytest -m security       # Security tests
 pytest -m slow           # Long-running tests
@@ -57,6 +58,11 @@ pytest --run-live --workspace-id "your-workspace-guid"
 | `tests/rdf/test_converter.py` | RDF conversion, type mapping |
 | `tests/rdf/test_rdf_formats.py` | All RDF format support (TTL, RDF/XML, N3, etc.) |
 | `tests/dtdl/test_dtdl.py` | DTDL parsing, validation, conversion |
+| `tests/cdm/test_cdm_parser.py` | CDM parsing |
+| `tests/cdm/test_cdm_validator.py` | CDM validation |
+| `tests/cdm/test_cdm_converter.py` | CDM conversion |
+| `tests/cdm/test_cdm_samples.py` | CDM sample file tests |
+| `tests/cdm/test_cdm_integration.py` | CDM integration tests |
 | `tests/core/test_resilience.py` | Rate limiter, circuit breaker |
 | `tests/core/test_fabric_client.py` | Fabric API client (mocked) |
 | `tests/core/test_fabric_contract.py` | API contract validation with schema checks |

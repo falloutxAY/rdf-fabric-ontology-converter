@@ -6,15 +6,16 @@
 ┌─────────────────────────────────────────────────────────────┐
 │                        CLI Layer                             │
 │   validate | convert | upload | export | list | delete       │
-└─────────────────────────────┬───────────────────────────────┘
+└─────────────────────────────────┬───────────────────────────┘
                               │
 ┌─────────────────────────────▼───────────────────────────────┐
 │                     Format Pipelines                         │
-│  ┌─────────────────────┐    ┌─────────────────────────────┐ │
-│  │    RDF Pipeline     │    │      DTDL Pipeline          │ │
-│  │  Parser → Validator │    │  Parser → Validator         │ │
-│  │      → Converter    │    │      → Converter            │ │
-│  └─────────────────────┘    └─────────────────────────────┘ │
+│  ┌───────────────┐  ┌───────────────┐  ┌─────────────────┐  │
+│  │ RDF Pipeline  │  │ DTDL Pipeline │  │  CDM Pipeline   │  │
+│  │ Parser        │  │ Parser        │  │  Parser         │  │
+│  │ Validator     │  │ Validator     │  │  Validator      │  │
+│  │ Converter     │  │ Converter     │  │  Converter      │  │
+│  └───────────────┘  └───────────────┘  └─────────────────┘  │
 └─────────────────────────────┬───────────────────────────────┘
                               │
 ┌─────────────────────────────▼───────────────────────────────┐
@@ -65,6 +66,16 @@ User interface and command dispatch:
 | Validator | `dtdl_validator.py` | Validate DTMI, structure |
 | Converter | `dtdl_converter.py` | Map interfaces to Fabric |
 | Type Mapper | `dtdl_type_mapper.py` | DTDL → Fabric type mapping |
+
+#### CDM Pipeline (`formats/cdm/`)
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| Parser | `cdm_parser.py` | Parse CDM manifests and entities |
+| Validator | `cdm_validator.py` | Validate CDM structure |
+| Converter | `cdm_converter.py` | Map CDM entities to Fabric |
+| Type Mapper | `cdm_type_mapper.py` | CDM → Fabric type mapping |
+| Models | `cdm_models.py` | CDM data models |
 
 ### Shared Models (`src/shared/models/`)
 
@@ -124,7 +135,8 @@ src/
 │       └── common.py    # Workspace commands
 ├── formats/             # Format pipelines
 │   ├── rdf/             # RDF/OWL/JSON-LD
-│   └── dtdl/            # DTDL v2/v3/v4
+│   ├── dtdl/            # DTDL v2/v3/v4
+│   └── cdm/             # CDM manifests/entities
 ├── shared/              # Shared code
 │   ├── models/          # Data models
 │   └── utilities/       # Helpers

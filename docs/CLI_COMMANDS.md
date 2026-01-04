@@ -8,7 +8,7 @@ python -m src.main <command> [options]
 
 ## Format Commands
 
-Commands that work with ontology files use `--format {rdf,dtdl}`:
+Commands that work with ontology files use `--format {rdf,dtdl,cdm}`:
 
 ### validate
 
@@ -17,11 +17,12 @@ Check files for Fabric compatibility.
 ```bash
 python -m src.main validate --format rdf ontology.ttl
 python -m src.main validate --format dtdl models/ --recursive --verbose
+python -m src.main validate --format cdm samples/cdm/simple/simple.manifest.cdm.json
 ```
 
 | Option | Description |
 |--------|-------------|
-| `--format` | `rdf` or `dtdl` (required) |
+| `--format` | `rdf`, `dtdl`, or `cdm` (required) |
 | `--output`, `-o` | Save JSON report to file |
 | `--verbose`, `-v` | Show detailed report |
 | `--recursive`, `-r` | Search directories recursively |
@@ -33,11 +34,12 @@ Convert to Fabric JSON without uploading.
 ```bash
 python -m src.main convert --format rdf ontology.ttl --output fabric.json
 python -m src.main convert --format dtdl models/ --ontology-name MyTwin
+python -m src.main convert --format cdm samples/cdm/industry/healthcare/ --output healthcare.json
 ```
 
 | Option | Description |
 |--------|-------------|
-| `--format` | `rdf` or `dtdl` (required) |
+| `--format` | `rdf`, `dtdl`, or `cdm` (required) |
 | `--output`, `-o` | Output file path |
 | `--ontology-name`, `-n` | Name for the ontology |
 | `--streaming` | Memory-efficient mode for large files |
@@ -52,11 +54,12 @@ Upload ontology to Microsoft Fabric.
 ```bash
 python -m src.main upload --format rdf ontology.ttl --ontology-name MyOntology
 python -m src.main upload --format dtdl models/ --update
+python -m src.main upload --format cdm samples/cdm/ --ontology-name CDMOntology --recursive
 ```
 
 | Option | Description |
 |--------|-------------|
-| `--format` | `rdf` or `dtdl` (required) |
+| `--format` | `rdf`, `dtdl`, or `cdm` (required) |
 | `--config`, `-c` | Configuration file path |
 | `--ontology-name`, `-n` | Name for the ontology |
 | `--update`, `-u` | Update if ontology exists |
@@ -126,6 +129,7 @@ python -m src.main plugin info rdf      # Show plugin details
 |--------|------------|-------------|
 | `rdf` | `.ttl`, `.rdf`, `.owl`, `.nt`, `.nq`, `.trig`, `.n3`, `.jsonld` | RDF/OWL ontologies |
 | `dtdl` | `.json`, `.dtdl` | Digital Twins Definition Language v2/v3/v4 |
+| `cdm` | `.cdm.json`, `.manifest.cdm.json`, `model.json` | Common Data Model manifests and entities |
 
 ## Streaming Mode
 
@@ -150,3 +154,4 @@ python -m src.main upload --format rdf large.ttl --streaming
 - [Configuration](CONFIGURATION.md) - Setup and authentication
 - [RDF Guide](RDF_GUIDE.md) - RDF conversion details
 - [DTDL Guide](DTDL_GUIDE.md) - DTDL conversion details
+- [CDM Guide](CDM_GUIDE.md) - CDM conversion details

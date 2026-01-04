@@ -17,6 +17,11 @@ import sys
 import os
 from pathlib import Path
 
+# IMPORTANT: Patch tenacity's sleep function BEFORE any other imports
+# This must happen before tenacity.Retrying class is defined (which captures defaults)
+import tenacity.nap
+tenacity.nap.sleep = lambda seconds: None
+
 # Add src to path for imports
 src_dir = os.path.join(os.path.dirname(__file__), '..', 'src')
 if src_dir not in sys.path:

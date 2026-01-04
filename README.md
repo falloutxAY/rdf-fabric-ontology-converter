@@ -13,7 +13,7 @@ Convert RDF/OWL, DTDL, and CDM ontologies to Microsoft Fabric Ontology format vi
 | Feature | Description |
 |---------|-------------|
 | **RDF Import** | Turtle, RDF/XML, N-Triples, N-Quads, TriG, N3, JSON-LD |
-| **DTDL Import** | Azure Digital Twins models (v2/v3/v4) |
+| **DTDL Import** | Digital Twins Definition Language models (v2/v3/v4) |
 | **CDM Import** | Common Data Model manifests and entities |
 | **Validation** | Pre-flight compatibility checks before upload |
 | **Export** | Export Fabric ontologies back to TTL |

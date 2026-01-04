@@ -182,28 +182,26 @@ class TestCLIValidateCommand:
         from formats.dtdl import DTDLParser, DTDLValidator
         
         parser = DTDLParser()
-        interfaces = parser.parse_file(temp_dtdl_file)
+        result = parser.parse_file(temp_dtdl_file)
         
         validator = DTDLValidator()
-        errors = validator.validate(interfaces)
+        validation_result = validator.validate(result.interfaces)
         
         # Valid DTDL should have no errors
-        critical_errors = [e for e in errors if e.severity == 'error']
-        assert len(critical_errors) == 0
+        assert validation_result.is_valid or len(validation_result.errors) == 0
     
     def test_validate_dtdl_content_valid(self):
         """Test validating valid DTDL content directly."""
         from formats.dtdl import DTDLParser, DTDLValidator
         
         parser = DTDLParser()
-        interfaces = parser.parse_content(SAMPLE_DTDL_CONTENT)
+        result = parser.parse_content(SAMPLE_DTDL_CONTENT)
         
         validator = DTDLValidator()
-        errors = validator.validate(interfaces)
+        validation_result = validator.validate(result.interfaces)
         
         # Valid DTDL should have no errors
-        critical_errors = [e for e in errors if e.severity == 'error']
-        assert len(critical_errors) == 0
+        assert validation_result.is_valid or len(validation_result.errors) == 0
     
     def test_validate_nonexistent_file(self):
         """Test validating a nonexistent file raises appropriate error."""
@@ -277,30 +275,30 @@ class TestCLIConvertCommand:
         from formats.dtdl import DTDLParser, DTDLToFabricConverter
         
         parser = DTDLParser()
-        interfaces = parser.parse_file(temp_dtdl_file)
+        result = parser.parse_file(temp_dtdl_file)
         
         converter = DTDLToFabricConverter()
-        result = converter.convert(interfaces)
+        conversion_result = converter.convert(result.interfaces)
         
-        assert result is not None
-        assert len(result.entity_types) >= 2  # Thermostat and Room
-        assert len(result.relationship_types) >= 1  # hasThermostat
+        assert conversion_result is not None
+        assert len(conversion_result.entity_types) >= 2  # Thermostat and Room
+        assert len(conversion_result.relationship_types) >= 1  # hasThermostat
     
     def test_convert_dtdl_content_to_fabric(self):
         """Test converting DTDL content to Fabric format."""
         from formats.dtdl import DTDLParser, DTDLToFabricConverter
         
         parser = DTDLParser()
-        interfaces = parser.parse_content(SAMPLE_DTDL_CONTENT)
+        result = parser.parse_content(SAMPLE_DTDL_CONTENT)
         
         converter = DTDLToFabricConverter()
-        result = converter.convert(interfaces)
+        conversion_result = converter.convert(result.interfaces)
         
         # Should have both interfaces converted
-        assert len(result.entity_types) == 2
+        assert len(conversion_result.entity_types) == 2
         
         # Check entity names
-        entity_names = [e.name for e in result.entity_types]
+        entity_names = [e.name for e in conversion_result.entity_types]
         assert 'Thermostat' in entity_names
         assert 'Room' in entity_names
     
@@ -309,11 +307,11 @@ class TestCLIConvertCommand:
         from formats.dtdl import DTDLParser, DTDLToFabricConverter
         
         parser = DTDLParser()
-        interfaces = parser.parse_content(SAMPLE_DTDL_CONTENT)
+        result = parser.parse_content(SAMPLE_DTDL_CONTENT)
         
         converter = DTDLToFabricConverter()
-        result = converter.convert(interfaces)
-        definition = converter.to_fabric_definition(result, "TestOntology")
+        conversion_result = converter.convert(result.interfaces)
+        definition = converter.to_fabric_definition(conversion_result, "TestOntology")
         
         assert definition is not None
         assert 'parts' in definition
@@ -394,14 +392,17 @@ class TestCLIErrorHandling:
         """Test appropriate error for invalid file extension."""
         from core.validators import InputValidator
         
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.xyz', delete=False) as f:
-            f.write("content")
-            f.flush()
-            try:
-                with pytest.raises(ValueError, match="extension"):
-                    InputValidator.validate_input_ttl_path(f.name)
-            finally:
-                os.unlink(f.name)
+        # Create temp file and get its path, then close it properly
+        f = tempfile.NamedTemporaryFile(mode='w', suffix='.xyz', delete=False)
+        temp_path = f.name
+        f.write("content")
+        f.close()  # Close file before validation to avoid Windows file lock
+        
+        try:
+            with pytest.raises(ValueError, match="extension"):
+                InputValidator.validate_input_ttl_path(temp_path)
+        finally:
+            os.unlink(temp_path)
     
     def test_empty_content_error(self):
         """Test appropriate error for empty content."""
@@ -443,10 +444,12 @@ class TestCLIOutputFormats:
         
         summary = result.get_summary()
         
-        assert 'entity_types' in summary
-        assert 'relationship_types' in summary
-        assert summary['entity_types'] >= 2
-        assert summary['relationship_types'] >= 1
+        # get_summary returns a string, check it contains expected info
+        assert 'Entity Types' in summary
+        assert 'Relationships' in summary
+        # Verify we have entities and relationships
+        assert len(result.entity_types) >= 2
+        assert len(result.relationship_types) >= 1
 
 
 class TestDefinitionValidator:

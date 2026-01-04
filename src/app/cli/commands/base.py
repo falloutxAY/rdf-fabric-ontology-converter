@@ -20,7 +20,7 @@ from ..helpers import (
     confirm_action,
 )
 from shared.models import ConversionResult
-from shared.models.base import ConverterProtocol
+from plugins.protocols import ConverterProtocol
 from constants import ExitCode
 
 

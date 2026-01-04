@@ -28,11 +28,32 @@ Usage:
         
         def get_converter(self) -> ConverterProtocol:
             return MyFormatConverter()
+
+Lifecycle:
+    Plugins can implement lifecycle callbacks to be notified of conversion events:
+    
+    class MyFormatPlugin(OntologyPlugin):
+        def get_lifecycle(self) -> Optional[PluginLifecycle]:
+            return MyLifecycle()
+    
+    class MyLifecycle(PluginLifecycle):
+        def on_register(self, plugin: OntologyPlugin) -> None:
+            print(f"Plugin {plugin.format_name} registered")
+        
+        def on_convert_start(self, file_path: str, options: Dict[str, Any]) -> None:
+            print(f"Starting conversion of {file_path}")
+        
+        def on_convert_complete(
+            self, file_path: str, result: Any, success: bool
+        ) -> None:
+            status = "succeeded" if success else "failed"
+            print(f"Conversion {status} for {file_path}")
 """
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Set, Type, TYPE_CHECKING
+from dataclasses import dataclass, field
+from typing import Any, Callable, Dict, List, Optional, Protocol, Set, Type, TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - import for type hints only
     from formats.base import FormatPipeline
@@ -44,6 +65,199 @@ from .protocols import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# Plugin Lifecycle Events (P3.2)
+# =============================================================================
+
+
+class PluginLifecycleProtocol(Protocol):
+    """
+    Protocol for plugin lifecycle event handlers.
+    
+    Implement this protocol to receive notifications about plugin
+    registration and conversion events.
+    """
+    
+    def on_register(self, plugin: "OntologyPlugin") -> None:
+        """Called when the plugin is registered with the manager."""
+        ...
+    
+    def on_unregister(self, plugin: "OntologyPlugin") -> None:
+        """Called when the plugin is unregistered from the manager."""
+        ...
+    
+    def on_convert_start(
+        self, file_path: str, options: Dict[str, Any]
+    ) -> None:
+        """Called before a conversion begins."""
+        ...
+    
+    def on_convert_complete(
+        self, file_path: str, result: Any, success: bool, error: Optional[Exception] = None
+    ) -> None:
+        """Called after a conversion completes (success or failure)."""
+        ...
+    
+    def on_validate_start(self, file_path: str) -> None:
+        """Called before validation begins."""
+        ...
+    
+    def on_validate_complete(
+        self, file_path: str, result: Any, success: bool
+    ) -> None:
+        """Called after validation completes."""
+        ...
+
+
+@dataclass
+class PluginLifecycle:
+    """
+    Plugin lifecycle event handler with callback support.
+    
+    Provides a flexible way to handle plugin events through either
+    method overriding or callback registration.
+    
+    Example using callbacks:
+        lifecycle = PluginLifecycle()
+        lifecycle.register_callback("on_convert_start", my_start_handler)
+        lifecycle.register_callback("on_convert_complete", my_complete_handler)
+    
+    Example using inheritance:
+        class MyLifecycle(PluginLifecycle):
+            def on_convert_start(self, file_path: str, options: Dict[str, Any]) -> None:
+                logger.info(f"Converting: {file_path}")
+    
+    Attributes:
+        callbacks: Dictionary mapping event names to callback lists.
+    """
+    
+    callbacks: Dict[str, List[Callable[..., None]]] = field(
+        default_factory=lambda: {
+            "on_register": [],
+            "on_unregister": [],
+            "on_convert_start": [],
+            "on_convert_complete": [],
+            "on_validate_start": [],
+            "on_validate_complete": [],
+        }
+    )
+    
+    def register_callback(
+        self, event: str, callback: Callable[..., None]
+    ) -> None:
+        """
+        Register a callback for a lifecycle event.
+        
+        Args:
+            event: Event name (e.g., "on_convert_start").
+            callback: Callable to invoke when event occurs.
+            
+        Raises:
+            ValueError: If event name is not recognized.
+        """
+        if event not in self.callbacks:
+            raise ValueError(
+                f"Unknown event: {event}. Valid events: {list(self.callbacks.keys())}"
+            )
+        self.callbacks[event].append(callback)
+    
+    def unregister_callback(
+        self, event: str, callback: Callable[..., None]
+    ) -> bool:
+        """
+        Unregister a callback for a lifecycle event.
+        
+        Args:
+            event: Event name.
+            callback: The callback to remove.
+            
+        Returns:
+            True if callback was found and removed, False otherwise.
+        """
+        if event in self.callbacks and callback in self.callbacks[event]:
+            self.callbacks[event].remove(callback)
+            return True
+        return False
+    
+    def _invoke_callbacks(self, event: str, *args: Any, **kwargs: Any) -> None:
+        """Invoke all callbacks for an event."""
+        for callback in self.callbacks.get(event, []):
+            try:
+                callback(*args, **kwargs)
+            except Exception as e:
+                logger.warning(f"Lifecycle callback error for {event}: {e}")
+    
+    def on_register(self, plugin: "OntologyPlugin") -> None:
+        """
+        Called when the plugin is registered with the manager.
+        
+        Args:
+            plugin: The plugin being registered.
+        """
+        self._invoke_callbacks("on_register", plugin)
+    
+    def on_unregister(self, plugin: "OntologyPlugin") -> None:
+        """
+        Called when the plugin is unregistered from the manager.
+        
+        Args:
+            plugin: The plugin being unregistered.
+        """
+        self._invoke_callbacks("on_unregister", plugin)
+    
+    def on_convert_start(
+        self, file_path: str, options: Dict[str, Any]
+    ) -> None:
+        """
+        Called before a conversion begins.
+        
+        Args:
+            file_path: Path to the file being converted.
+            options: Conversion options dictionary.
+        """
+        self._invoke_callbacks("on_convert_start", file_path, options)
+    
+    def on_convert_complete(
+        self,
+        file_path: str,
+        result: Any,
+        success: bool,
+        error: Optional[Exception] = None,
+    ) -> None:
+        """
+        Called after a conversion completes.
+        
+        Args:
+            file_path: Path to the file that was converted.
+            result: The conversion result (or None on failure).
+            success: Whether conversion succeeded.
+            error: The exception if conversion failed.
+        """
+        self._invoke_callbacks("on_convert_complete", file_path, result, success, error)
+    
+    def on_validate_start(self, file_path: str) -> None:
+        """
+        Called before validation begins.
+        
+        Args:
+            file_path: Path to the file being validated.
+        """
+        self._invoke_callbacks("on_validate_start", file_path)
+    
+    def on_validate_complete(
+        self, file_path: str, result: Any, success: bool
+    ) -> None:
+        """
+        Called after validation completes.
+        
+        Args:
+            file_path: Path to the file that was validated.
+            result: The validation result.
+            success: Whether validation passed.
+        """
+        self._invoke_callbacks("on_validate_complete", file_path, result, success)
 
 
 class OntologyPlugin(ABC):
@@ -207,6 +421,32 @@ class OntologyPlugin(ABC):
         return "1.0.0"
     
     @property
+    def min_converter_version(self) -> str:
+        """
+        Minimum converter version required for this plugin.
+        
+        Override this if your plugin requires specific converter features
+        that were introduced in a particular version.
+        
+        Returns:
+            Minimum version string (default: "1.0.0").
+        """
+        return "1.0.0"
+    
+    @property
+    def max_converter_version(self) -> Optional[str]:
+        """
+        Maximum converter version supported by this plugin.
+        
+        Override this if your plugin is incompatible with newer versions.
+        Returns None if there's no upper limit (default behavior).
+        
+        Returns:
+            Maximum version string or None.
+        """
+        return None
+    
+    @property
     def author(self) -> str:
         """
         Plugin author information.
@@ -312,6 +552,25 @@ class OntologyPlugin(ABC):
         """
         return None
     
+    def get_lifecycle(self) -> Optional[PluginLifecycle]:
+        """
+        Get a lifecycle handler for this plugin.
+        
+        Override to provide lifecycle callbacks for plugin events
+        like registration, conversion start/complete, etc.
+        
+        Returns:
+            PluginLifecycle instance or None if not using lifecycle events.
+        
+        Example:
+            def get_lifecycle(self) -> Optional[PluginLifecycle]:
+                lifecycle = PluginLifecycle()
+                lifecycle.register_callback("on_convert_start", self._log_start)
+                lifecycle.register_callback("on_convert_complete", self._log_complete)
+                return lifecycle
+        """
+        return None
+    
     def register_cli_arguments(self, parser: Any) -> None:
         """
         Register format-specific CLI arguments.
@@ -363,6 +622,53 @@ class OntologyPlugin(ABC):
                 missing.append(dep)
         return missing
     
+    def check_version_compatibility(self, converter_version: str) -> bool:
+        """
+        Check if this plugin is compatible with the given converter version.
+        
+        Uses semantic versioning comparison to determine if the plugin
+        can work with the specified converter version.
+        
+        Args:
+            converter_version: The converter version string (e.g., "1.2.3").
+        
+        Returns:
+            True if compatible, False otherwise.
+        
+        Example:
+            >>> plugin = RDFPlugin()
+            >>> plugin.check_version_compatibility("1.0.0")
+            True
+            >>> plugin.check_version_compatibility("0.9.0")
+            False  # Below min_converter_version
+        """
+        try:
+            from packaging import version
+            cv = version.parse(converter_version)
+            min_v = version.parse(self.min_converter_version)
+            
+            if cv < min_v:
+                logger.warning(
+                    f"Plugin '{self.format_name}' requires converter >= {self.min_converter_version}, "
+                    f"but got {converter_version}"
+                )
+                return False
+            
+            if self.max_converter_version:
+                max_v = version.parse(self.max_converter_version)
+                if cv > max_v:
+                    logger.warning(
+                        f"Plugin '{self.format_name}' only supports converter <= {self.max_converter_version}, "
+                        f"but got {converter_version}"
+                    )
+                    return False
+            
+            return True
+        except ImportError:
+            # Fallback to simple string comparison if packaging not available
+            logger.debug("packaging module not available, using simple version comparison")
+            return converter_version >= self.min_converter_version
+    
     def can_handle_extension(self, extension: str) -> bool:
         """
         Check if this plugin handles the given extension.
@@ -405,11 +711,14 @@ class OntologyPlugin(ABC):
             "format_name": self.format_name,
             "display_name": self.display_name,
             "version": self.version,
+            "min_converter_version": self.min_converter_version,
+            "max_converter_version": self.max_converter_version,
             "author": self.author,
             "description": self.description,
             "file_extensions": list(self.file_extensions),
             "supports_streaming": self.supports_streaming,
             "supports_export": self.supports_export,
+            "supports_lifecycle": self.get_lifecycle() is not None,
             "dependencies": self.dependencies,
             "documentation_url": self.documentation_url,
         }

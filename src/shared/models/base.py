@@ -3,65 +3,24 @@ Base converter protocol and abstract types.
 
 This module defines the common interface that all format converters
 (RDF, DTDL, etc.) must implement for consistent behavior.
+
+Note:
+    The canonical ConverterProtocol definition is in plugins.protocols.
+    This module re-exports it for backward compatibility and provides
+    the BaseConverter abstract class.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional, Protocol, runtime_checkable
+from typing import Any, Dict, Optional
 
 from .conversion import ConversionResult
 
+# Import the canonical protocol definition from plugins
+# This ensures a single source of truth for the protocol interface
+from plugins.protocols import ConverterProtocol
 
-@runtime_checkable
-class ConverterProtocol(Protocol):
-    """
-    Protocol defining the interface for ontology format converters.
-    
-    All converters (RDF, DTDL, future formats) should implement this
-    protocol to ensure consistent behavior across the codebase.
-    
-    Example:
-        >>> class MyConverter:
-        ...     def convert(self, content: str, **kwargs) -> ConversionResult:
-        ...         # Implementation
-        ...         pass
-        ...     
-        ...     def validate(self, content: str) -> bool:
-        ...         # Implementation
-        ...         pass
-        >>> 
-        >>> converter: ConverterProtocol = MyConverter()
-    """
-    
-    def convert(
-        self,
-        content: str,
-        id_prefix: int = 1000000000000,
-        **kwargs: Any,
-    ) -> ConversionResult:
-        """
-        Convert content from source format to Fabric Ontology format.
-        
-        Args:
-            content: The source content (TTL string, JSON string, etc.).
-            id_prefix: Starting ID for generated entities.
-            **kwargs: Format-specific options.
-            
-        Returns:
-            ConversionResult with converted entities and relationships.
-        """
-        ...
-    
-    def validate(self, content: str) -> bool:
-        """
-        Validate that the content is well-formed for this format.
-        
-        Args:
-            content: The source content to validate.
-            
-        Returns:
-            True if valid, False otherwise.
-        """
-        ...
+# Re-export for backward compatibility
+__all__ = ['ConverterProtocol', 'BaseConverter']
 
 
 class BaseConverter(ABC):

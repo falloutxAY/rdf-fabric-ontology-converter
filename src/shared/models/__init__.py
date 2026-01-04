@@ -10,6 +10,9 @@ Usage:
     # Or import specific classes
     from models.fabric_types import EntityType, EntityTypeProperty
     from models.conversion import ConversionResult, SkippedItem
+    
+    # For the converter protocol (also available from plugins.protocols)
+    from models.base import ConverterProtocol, BaseConverter
 """
 
 from .fabric_types import (
@@ -22,6 +25,10 @@ from .conversion import (
     ConversionResult,
     SkippedItem,
 )
+from .base import (
+    ConverterProtocol,
+    BaseConverter,
+)
 
 __all__ = [
     # Fabric entity types
@@ -32,4 +39,7 @@ __all__ = [
     # Conversion results
     "ConversionResult",
     "SkippedItem",
+    # Converter protocol and base class
+    "ConverterProtocol",
+    "BaseConverter",
 ]

@@ -25,7 +25,7 @@ Usage:
     from core.auth import TokenManager, CredentialFactory
     from core.http_client import RequestHandler, ResponseHandler
     from core.lro_handler import LROHandler
-    from core.fabric_client import FabricOntologyClient
+    from core.platform.fabric_client import FabricOntologyClient
 """
 
 # Rate limiting
@@ -85,8 +85,8 @@ from .http_client import (
 # Long-running operation handling
 from .lro_handler import LROHandler
 
-# Fabric API client
-from .fabric_client import (
+# Fabric API client - import directly from platform to avoid deprecation warning
+from .platform.fabric_client import (
     FabricConfig,
     FabricOntologyClient,
     FabricAPIError,

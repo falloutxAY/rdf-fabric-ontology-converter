@@ -36,7 +36,7 @@ from src.core import (
     FabricAPIError,
     RateLimitConfig,
 )
-from src.core.fabric_client import TransientAPIError
+from src.core.platform.fabric_client import TransientAPIError
 from src.rdf import (
     StreamingRDFConverter,
     RDFToFabricConverter,

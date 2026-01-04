@@ -476,7 +476,7 @@ class TestRateLimitRequestIntegration:
         with patch.object(FabricOntologyClient, '_get_credential'):
             client = FabricOntologyClient(config)
         
-        with patch('core.fabric_client.requests.request') as mock_request:
+        with patch('core.platform.fabric_client.requests.request') as mock_request:
             mock_response = MagicMock()
             mock_response.status_code = 200
             mock_request.return_value = mock_response
@@ -996,7 +996,7 @@ class TestCircuitBreakerOpenError:
 class TestFabricClientCircuitBreakerIntegration:
     """Tests for circuit breaker integration with FabricOntologyClient."""
     
-    @patch('core.fabric_client.requests.request')
+    @patch('core.platform.fabric_client.requests.request')
     def test_client_initializes_circuit_breaker(self, mock_request):
         """Test that FabricOntologyClient initializes circuit breaker from config."""
         from src.core import FabricConfig, FabricOntologyClient, CircuitBreakerSettings
@@ -1017,7 +1017,7 @@ class TestFabricClientCircuitBreakerIntegration:
         assert client.circuit_breaker.config.failure_threshold == 3
         assert client.circuit_breaker.config.recovery_timeout == 30.0
     
-    @patch('core.fabric_client.requests.request')
+    @patch('core.platform.fabric_client.requests.request')
     def test_client_without_circuit_breaker(self, mock_request):
         """Test that FabricOntologyClient works without circuit breaker."""
         from src.core import FabricConfig, FabricOntologyClient, CircuitBreakerSettings
@@ -1457,7 +1457,7 @@ class TestFabricClientCancellation:
             use_interactive_auth=False
         )
         
-        with patch('core.fabric_client.DefaultAzureCredential'):
+        with patch('core.platform.fabric_client.DefaultAzureCredential'):
             client = FabricOntologyClient(config)
             client._access_token = "mock-token"
             client._token_expires = time.time() + 3600
@@ -1482,7 +1482,7 @@ class TestFabricClientCancellation:
             use_interactive_auth=False
         )
         
-        with patch('core.fabric_client.DefaultAzureCredential'):
+        with patch('core.platform.fabric_client.DefaultAzureCredential'):
             client = FabricOntologyClient(config)
             client._access_token = "mock-token"
             client._token_expires = time.time() + 3600
@@ -1507,7 +1507,7 @@ class TestFabricClientCancellation:
             use_interactive_auth=False
         )
         
-        with patch('core.fabric_client.DefaultAzureCredential'):
+        with patch('core.platform.fabric_client.DefaultAzureCredential'):
             client = FabricOntologyClient(config)
             client._access_token = "mock-token"
             client._token_expires = time.time() + 3600
@@ -1532,7 +1532,7 @@ class TestFabricClientCancellation:
             use_interactive_auth=False
         )
         
-        with patch('core.fabric_client.DefaultAzureCredential'):
+        with patch('core.platform.fabric_client.DefaultAzureCredential'):
             client = FabricOntologyClient(config)
             client._access_token = "mock-token"
             client._token_expires = time.time() + 3600

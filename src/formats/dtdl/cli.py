@@ -270,14 +270,14 @@ def upload_command(args: argparse.Namespace) -> int:
     Returns:
         0 on success, 1 on upload errors
     """
-    # Import Fabric client from parent module
+    # Import Fabric client
     try:
-        from ..core.fabric_client import FabricOntologyClient
+        from ..core.platform.fabric_client import FabricOntologyClient
     except ImportError:
         try:
-            from core import FabricOntologyClient
+            from core.platform.fabric_client import FabricOntologyClient
         except ImportError:
-            logger.error("Could not import FabricOntologyClient. Ensure fabric_client.py is available.")
+            logger.error("Could not import FabricOntologyClient. Ensure platform/fabric_client.py is available.")
             return 1
     
     definition_path = Path(args.definition)
@@ -413,10 +413,10 @@ def import_command(args: argparse.Namespace) -> int:
         logger.info("Step 4: Uploading to Fabric...")
         
         try:
-            from ..core.fabric_client import FabricOntologyClient, FabricConfig
+            from ..core.platform.fabric_client import FabricOntologyClient, FabricConfig
         except ImportError:
             try:
-                from core import FabricOntologyClient, FabricConfig
+                from core.platform.fabric_client import FabricOntologyClient, FabricConfig
             except ImportError:
                 logger.error("Could not import FabricOntologyClient")
                 return 1
@@ -533,10 +533,10 @@ def _import_with_streaming(args: argparse.Namespace, path: Path) -> int:
         logger.info("Uploading to Fabric...")
         
         try:
-            from ..core.fabric_client import FabricOntologyClient, FabricConfig
+            from ..core.platform.fabric_client import FabricOntologyClient, FabricConfig
         except ImportError:
             try:
-                from core import FabricOntologyClient, FabricConfig
+                from core.platform.fabric_client import FabricOntologyClient, FabricConfig
             except ImportError:
                 logger.error("Could not import FabricOntologyClient")
                 return 1

@@ -34,6 +34,7 @@ python -m pytest tests/ -v        # Run test suite
 | **Invalid baseEntityTypeId** | Parent class must be defined in same ontology, converter orders entities automatically |
 | **Invalid RDF/TTL syntax** | Validate at [W3C Validator](https://www.w3.org/RDF/Validator/), check prefixes, ensure UTF-8 encoding |
 | **No RDF triples found** | File is empty, wrong encoding, or missing prefix declarations |
+| **Unknown format `jsonld`** | JSON-LD no longer has its own CLI switch—use `--format rdf` (or rely on `.jsonld` auto-detection) so the RDF plugin handles it |
 | **Configuration file not found** | Copy `config.sample.json` to `src/config.json` and edit with your values |
 | **Invalid JSON** | Validate at [jsonlint.com](https://jsonlint.com/), check for missing/extra commas |
 | **MemoryError** | Use `--force-memory` flag or split large files (>500MB). Requires 3.5x file size in RAM |

@@ -38,6 +38,10 @@ pytest -m samples        # Sample file tests
 pytest -m resilience     # Rate limiter, circuit breaker, cancellation
 pytest -m security       # Security-related tests
 pytest -m slow           # Long-running tests
+
+> ℹ️  JSON-LD inputs do not have a standalone plugin anymore. Use the `rdf`
+> format (which auto-detects `.jsonld`) when writing or running tests against
+> JSON-LD samples.
 ```
 
 ## 📋 Test Files (consolidated)
@@ -148,7 +152,29 @@ High-level coverage includes:
 - Resilience (rate limiter, circuit breaker, retries)
 - Fabric client behavior and streaming converter
 - Validation, exporter, and end-to-end flows
+- JSON-LD parity by routing `.jsonld` fixtures through the RDF converter
 - **DTDL v4 features** (scaledDecimal, new primitive types, validation limits)
+
+### Testing JSON-LD inputs
+
+Because JSON-LD now flows through the RDF plugin, there is no dedicated
+`jsonld` marker or plugin test suite. To validate JSON-LD handling:
+
+- Place sample files in `samples/jsonld/` (several fixtures already exist).
+- Run the same RDF-focused tests/CLI commands, letting the `.jsonld` extension
+  auto-select the RDF path, for example:
+
+```powershell
+# Validate JSON-LD sample through RDF pipeline
+python -m src.main validate samples/jsonld/simple_person.jsonld
+
+# Convert JSON-LD to Fabric using explicit flag (optional)
+python -m src.main convert --format rdf samples/jsonld/ecommerce_catalog.jsonld -o out.json
+```
+
+Adding or updating tests for JSON-LD scenarios simply means extending the RDF
+tests (e.g., under `tests/rdf/`) with `.jsonld` fixtures—no separate plugin is
+required.
 
 ### DTDL v4 Test Coverage
 

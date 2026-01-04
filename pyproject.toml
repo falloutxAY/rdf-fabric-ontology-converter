@@ -50,6 +50,18 @@ addopts = "-ra -q"
 testpaths = [
     "tests",
 ]
+markers = [
+    "unit: Fast unit tests",
+    "integration: Integration tests",
+    "samples: Sample file tests",
+    "industry: Industry accelerator tests (CDM)",
+    "resilience: Rate limiter and circuit breaker tests",
+    "security: Security tests",
+    "slow: Long-running tests",
+    "contract: API contract validation tests",
+    "e2e: End-to-end smoke tests",
+    "live: Live Fabric API tests (opt-in)",
+]
 
 [tool.mypy]
 python_version = "3.9"

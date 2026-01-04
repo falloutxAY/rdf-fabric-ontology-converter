@@ -1,0 +1,32 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/CDM/master/schemaDocuments/schema.cdm.json",
+    "jsonSchemaSemanticVersion": "1.0.0",
+    "definitions": [
+        {
+            "entityName": "Student",
+            "description": "Student information.",
+            "hasAttributes": [
+                {"name": "studentId", "dataType": "GUID", "isPrimaryKey": true},
+                {"name": "studentNumber", "dataType": "string"},
+                {"name": "firstName", "dataType": "name"},
+                {"name": "lastName", "dataType": "name"},
+                {"name": "dateOfBirth", "dataType": "date"},
+                {"name": "email", "dataType": "email"},
+                {"name": "phone", "dataType": "phone", "isNullable": true},
+                {"name": "address", "dataType": "address", "isNullable": true},
+                {"name": "city", "dataType": "city"},
+                {"name": "stateOrProvince", "dataType": "stateOrProvince", "isNullable": true},
+                {"name": "postalCode", "dataType": "postalCode", "isNullable": true},
+                {"name": "country", "dataType": "country"},
+                {"name": "institutionId", "dataType": "string"},
+                {"name": "enrollmentDate", "dataType": "dateTime"},
+                {"name": "expectedGraduationDate", "dataType": "date", "isNullable": true},
+                {"name": "majorId", "dataType": "string", "isNullable": true},
+                {"name": "gpa", "dataType": "double", "isNullable": true},
+                {"name": "status", "dataType": "string"},
+                {"name": "isActive", "dataType": "boolean", "defaultValue": "true"},
+                {"name": "createdOn", "dataType": "dateTime"}
+            ]
+        }
+    ]
+}

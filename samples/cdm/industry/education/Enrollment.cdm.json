@@ -1,0 +1,24 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/CDM/master/schemaDocuments/schema.cdm.json",
+    "jsonSchemaSemanticVersion": "1.0.0",
+    "definitions": [
+        {
+            "entityName": "Enrollment",
+            "description": "Course enrollment.",
+            "hasAttributes": [
+                {"name": "enrollmentId", "dataType": "GUID", "isPrimaryKey": true},
+                {"name": "studentId", "dataType": "string"},
+                {"name": "courseId", "dataType": "string"},
+                {"name": "enrollmentDate", "dataType": "dateTime"},
+                {"name": "status", "dataType": "string"},
+                {"name": "grade", "dataType": "string", "isNullable": true},
+                {"name": "gradePoints", "dataType": "double", "isNullable": true},
+                {"name": "completionDate", "dataType": "dateTime", "isNullable": true},
+                {"name": "withdrawalDate", "dataType": "dateTime", "isNullable": true},
+                {"name": "withdrawalReason", "dataType": "string", "isNullable": true},
+                {"name": "attendancePercentage", "dataType": "double", "isNullable": true},
+                {"name": "createdOn", "dataType": "dateTime"}
+            ]
+        }
+    ]
+}

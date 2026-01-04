@@ -1,0 +1,91 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/CDM/master/schemaDocuments/schema.cdm.json",
+    "jsonSchemaSemanticVersion": "1.0.0",
+    "imports": [],
+    "definitions": [
+        {
+            "entityName": "Person",
+            "description": "A basic person entity demonstrating core CDM concepts.",
+            "displayName": "Person",
+            "hasAttributes": [
+                {
+                    "name": "personId",
+                    "dataType": "string",
+                    "description": "Unique identifier for the person",
+                    "appliedTraits": [
+                        "is.dataFormat.character",
+                        "is.dataFormat.big",
+                        "is.dataFormat.array",
+                        "means.identity.entityId"
+                    ],
+                    "isPrimaryKey": true
+                },
+                {
+                    "name": "firstName",
+                    "dataType": "name",
+                    "description": "First name of the person",
+                    "appliedTraits": [
+                        "means.identity.person.firstName"
+                    ]
+                },
+                {
+                    "name": "lastName",
+                    "dataType": "name",
+                    "description": "Last name of the person",
+                    "appliedTraits": [
+                        "means.identity.person.lastName"
+                    ]
+                },
+                {
+                    "name": "fullName",
+                    "dataType": "name",
+                    "description": "Full name of the person",
+                    "appliedTraits": [
+                        "means.identity.person.fullName"
+                    ],
+                    "isNullable": true
+                },
+                {
+                    "name": "dateOfBirth",
+                    "dataType": "date",
+                    "description": "Date of birth",
+                    "isNullable": true
+                },
+                {
+                    "name": "age",
+                    "dataType": "integer",
+                    "description": "Age in years",
+                    "isNullable": true
+                },
+                {
+                    "name": "isActive",
+                    "dataType": "boolean",
+                    "description": "Whether the person record is active",
+                    "defaultValue": "true"
+                },
+                {
+                    "name": "createdOn",
+                    "dataType": "dateTime",
+                    "description": "Record creation timestamp"
+                },
+                {
+                    "name": "modifiedOn",
+                    "dataType": "dateTime",
+                    "description": "Record last modified timestamp",
+                    "isNullable": true
+                }
+            ],
+            "exhibitsTraits": [
+                {
+                    "traitReference": "is.CDM.entityVersion",
+                    "arguments": [
+                        {
+                            "name": "versionNumber",
+                            "value": "1.0"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

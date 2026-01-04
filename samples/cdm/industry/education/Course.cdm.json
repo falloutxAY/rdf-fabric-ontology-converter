@@ -1,0 +1,29 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/CDM/master/schemaDocuments/schema.cdm.json",
+    "jsonSchemaSemanticVersion": "1.0.0",
+    "definitions": [
+        {
+            "entityName": "Course",
+            "description": "Course catalog.",
+            "hasAttributes": [
+                {"name": "courseId", "dataType": "GUID", "isPrimaryKey": true},
+                {"name": "courseCode", "dataType": "string"},
+                {"name": "courseName", "dataType": "string"},
+                {"name": "description", "dataType": "string", "isNullable": true},
+                {"name": "departmentId", "dataType": "string"},
+                {"name": "credits", "dataType": "integer"},
+                {"name": "level", "dataType": "string"},
+                {"name": "instructorId", "dataType": "string", "isNullable": true},
+                {"name": "maxEnrollment", "dataType": "integer"},
+                {"name": "currentEnrollment", "dataType": "integer"},
+                {"name": "semester", "dataType": "string"},
+                {"name": "academicYear", "dataType": "string"},
+                {"name": "schedule", "dataType": "string", "isNullable": true},
+                {"name": "location", "dataType": "string", "isNullable": true},
+                {"name": "isOnline", "dataType": "boolean", "defaultValue": "false"},
+                {"name": "isActive", "dataType": "boolean", "defaultValue": "true"},
+                {"name": "createdOn", "dataType": "dateTime"}
+            ]
+        }
+    ]
+}

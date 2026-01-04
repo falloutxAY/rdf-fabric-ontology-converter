@@ -238,6 +238,19 @@ class DTDLParser:
         self._parse_json_content(data, source_name, result)
         
         return result
+    
+    def parse_content(self, content: str, source_name: str = "<string>") -> ParseResult:
+        """
+        Parse DTDL from a JSON string (alias for parse_string).
+        
+        Args:
+            content: JSON string containing DTDL
+            source_name: Name to use for error messages
+            
+        Returns:
+            ParseResult with interfaces and any errors
+        """
+        return self.parse_string(content, source_name)
 
     def parse_interface_dict(
         self,

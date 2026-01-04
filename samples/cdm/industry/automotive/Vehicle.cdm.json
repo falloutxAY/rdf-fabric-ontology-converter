@@ -1,0 +1,32 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/CDM/master/schemaDocuments/schema.cdm.json",
+    "jsonSchemaSemanticVersion": "1.0.0",
+    "definitions": [
+        {
+            "entityName": "Vehicle",
+            "description": "Vehicle inventory and specifications.",
+            "displayName": "Vehicle",
+            "hasAttributes": [
+                {"name": "vehicleId", "dataType": "GUID", "isPrimaryKey": true},
+                {"name": "vin", "dataType": "string", "description": "Vehicle Identification Number"},
+                {"name": "make", "dataType": "string"},
+                {"name": "model", "dataType": "string"},
+                {"name": "year", "dataType": "integer"},
+                {"name": "trim", "dataType": "string", "isNullable": true},
+                {"name": "exteriorColor", "dataType": "string"},
+                {"name": "interiorColor", "dataType": "string", "isNullable": true},
+                {"name": "mileage", "dataType": "integer"},
+                {"name": "fuelType", "dataType": "string"},
+                {"name": "transmission", "dataType": "string"},
+                {"name": "engineSize", "dataType": "string", "isNullable": true},
+                {"name": "msrp", "dataType": "decimal", "appliedTraits": ["means.measurement.currency"]},
+                {"name": "listPrice", "dataType": "decimal", "appliedTraits": ["means.measurement.currency"]},
+                {"name": "dealerId", "dataType": "string"},
+                {"name": "status", "dataType": "string", "description": "Available, Sold, Reserved"},
+                {"name": "condition", "dataType": "string", "description": "New, Used, Certified Pre-Owned"},
+                {"name": "stockNumber", "dataType": "string"},
+                {"name": "createdOn", "dataType": "dateTime"}
+            ]
+        }
+    ]
+}

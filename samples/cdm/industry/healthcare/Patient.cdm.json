@@ -1,0 +1,195 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/CDM/master/schemaDocuments/schema.cdm.json",
+    "jsonSchemaSemanticVersion": "1.0.0",
+    "imports": [],
+    "definitions": [
+        {
+            "entityName": "Patient",
+            "description": "A person receiving healthcare services. Aligned with FHIR Patient resource.",
+            "displayName": "Patient",
+            "hasAttributes": [
+                {
+                    "name": "patientId",
+                    "dataType": "GUID",
+                    "description": "Unique identifier for the patient",
+                    "appliedTraits": ["means.identity.entityId"],
+                    "isPrimaryKey": true
+                },
+                {
+                    "name": "medicalRecordNumber",
+                    "dataType": "string",
+                    "description": "Medical Record Number (MRN)",
+                    "appliedTraits": ["means.identity.barCode"]
+                },
+                {
+                    "name": "firstName",
+                    "dataType": "name",
+                    "description": "Patient's first/given name",
+                    "appliedTraits": ["means.identity.person.firstName"]
+                },
+                {
+                    "name": "lastName",
+                    "dataType": "name",
+                    "description": "Patient's last/family name",
+                    "appliedTraits": ["means.identity.person.lastName"]
+                },
+                {
+                    "name": "middleName",
+                    "dataType": "name",
+                    "description": "Patient's middle name",
+                    "isNullable": true
+                },
+                {
+                    "name": "dateOfBirth",
+                    "dataType": "date",
+                    "description": "Patient's date of birth"
+                },
+                {
+                    "name": "gender",
+                    "dataType": "string",
+                    "description": "Administrative gender (male, female, other, unknown)"
+                },
+                {
+                    "name": "maritalStatus",
+                    "dataType": "string",
+                    "description": "Marital status code",
+                    "isNullable": true
+                },
+                {
+                    "name": "ssn",
+                    "dataType": "string",
+                    "description": "Social Security Number (encrypted)",
+                    "isNullable": true
+                },
+                {
+                    "name": "email",
+                    "dataType": "email",
+                    "description": "Primary email address",
+                    "appliedTraits": ["means.identity.service.email"],
+                    "isNullable": true
+                },
+                {
+                    "name": "phoneNumber",
+                    "dataType": "phone",
+                    "description": "Primary phone number",
+                    "isNullable": true
+                },
+                {
+                    "name": "mobilePhone",
+                    "dataType": "phone",
+                    "description": "Mobile phone number",
+                    "isNullable": true
+                },
+                {
+                    "name": "addressLine1",
+                    "dataType": "address",
+                    "description": "Street address line 1",
+                    "isNullable": true
+                },
+                {
+                    "name": "addressLine2",
+                    "dataType": "address",
+                    "description": "Street address line 2",
+                    "isNullable": true
+                },
+                {
+                    "name": "city",
+                    "dataType": "city",
+                    "description": "City"
+                },
+                {
+                    "name": "stateOrProvince",
+                    "dataType": "stateOrProvince",
+                    "description": "State or province",
+                    "isNullable": true
+                },
+                {
+                    "name": "postalCode",
+                    "dataType": "postalCode",
+                    "description": "Postal/ZIP code",
+                    "isNullable": true
+                },
+                {
+                    "name": "country",
+                    "dataType": "country",
+                    "description": "Country"
+                },
+                {
+                    "name": "preferredLanguage",
+                    "dataType": "languageTag",
+                    "description": "Preferred communication language",
+                    "isNullable": true
+                },
+                {
+                    "name": "emergencyContactName",
+                    "dataType": "name",
+                    "description": "Emergency contact name",
+                    "isNullable": true
+                },
+                {
+                    "name": "emergencyContactPhone",
+                    "dataType": "phone",
+                    "description": "Emergency contact phone",
+                    "isNullable": true
+                },
+                {
+                    "name": "primaryCareProviderId",
+                    "dataType": "string",
+                    "description": "Reference to primary care practitioner",
+                    "isNullable": true
+                },
+                {
+                    "name": "insuranceProviderId",
+                    "dataType": "string",
+                    "description": "Primary insurance provider ID",
+                    "isNullable": true
+                },
+                {
+                    "name": "insuranceMemberId",
+                    "dataType": "string",
+                    "description": "Insurance member ID",
+                    "isNullable": true
+                },
+                {
+                    "name": "isDeceased",
+                    "dataType": "boolean",
+                    "description": "Whether patient is deceased",
+                    "defaultValue": "false"
+                },
+                {
+                    "name": "deceasedDate",
+                    "dataType": "dateTime",
+                    "description": "Date of death if applicable",
+                    "isNullable": true
+                },
+                {
+                    "name": "isActive",
+                    "dataType": "boolean",
+                    "description": "Whether patient record is active",
+                    "defaultValue": "true"
+                },
+                {
+                    "name": "createdOn",
+                    "dataType": "dateTime",
+                    "description": "Record creation timestamp"
+                },
+                {
+                    "name": "modifiedOn",
+                    "dataType": "dateTime",
+                    "description": "Record last modified timestamp",
+                    "isNullable": true
+                }
+            ],
+            "exhibitsTraits": [
+                {
+                    "traitReference": "is.CDM.entityVersion",
+                    "arguments": [{"name": "versionNumber", "value": "1.0"}]
+                },
+                {
+                    "traitReference": "is.application.releaseVersion",
+                    "arguments": [{"name": "releaseVersion", "value": "Healthcare/1.0"}]
+                }
+            ]
+        }
+    ]
+}

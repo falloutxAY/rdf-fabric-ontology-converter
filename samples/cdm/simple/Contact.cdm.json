@@ -1,0 +1,147 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/CDM/master/schemaDocuments/schema.cdm.json",
+    "jsonSchemaSemanticVersion": "1.0.0",
+    "imports": [],
+    "definitions": [
+        {
+            "entityName": "Contact",
+            "description": "Contact information entity with semantic types.",
+            "displayName": "Contact",
+            "hasAttributes": [
+                {
+                    "name": "contactId",
+                    "dataType": "GUID",
+                    "description": "Unique identifier for the contact",
+                    "appliedTraits": [
+                        "means.identity.entityId"
+                    ],
+                    "isPrimaryKey": true
+                },
+                {
+                    "name": "personId",
+                    "dataType": "string",
+                    "description": "Reference to the person",
+                    "appliedTraits": [
+                        "means.identity.entityId"
+                    ]
+                },
+                {
+                    "name": "emailAddress",
+                    "dataType": "email",
+                    "description": "Primary email address",
+                    "appliedTraits": [
+                        "means.identity.service.email"
+                    ]
+                },
+                {
+                    "name": "phoneNumber",
+                    "dataType": "phone",
+                    "description": "Primary phone number",
+                    "appliedTraits": [
+                        "means.identity.service.phone"
+                    ],
+                    "isNullable": true
+                },
+                {
+                    "name": "mobilePhone",
+                    "dataType": "phone",
+                    "description": "Mobile phone number",
+                    "isNullable": true
+                },
+                {
+                    "name": "faxNumber",
+                    "dataType": "phone",
+                    "description": "Fax number",
+                    "isNullable": true
+                },
+                {
+                    "name": "websiteUrl",
+                    "dataType": "url",
+                    "description": "Personal website URL",
+                    "isNullable": true
+                },
+                {
+                    "name": "addressLine1",
+                    "dataType": "address",
+                    "description": "Street address line 1",
+                    "isNullable": true
+                },
+                {
+                    "name": "addressLine2",
+                    "dataType": "address",
+                    "description": "Street address line 2",
+                    "isNullable": true
+                },
+                {
+                    "name": "city",
+                    "dataType": "city",
+                    "description": "City name"
+                },
+                {
+                    "name": "stateOrProvince",
+                    "dataType": "stateOrProvince",
+                    "description": "State or province",
+                    "isNullable": true
+                },
+                {
+                    "name": "postalCode",
+                    "dataType": "postalCode",
+                    "description": "Postal/ZIP code",
+                    "isNullable": true
+                },
+                {
+                    "name": "country",
+                    "dataType": "country",
+                    "description": "Country name"
+                },
+                {
+                    "name": "latitude",
+                    "dataType": "double",
+                    "description": "Geographic latitude",
+                    "appliedTraits": [
+                        "means.location.latitude"
+                    ],
+                    "isNullable": true
+                },
+                {
+                    "name": "longitude",
+                    "dataType": "double",
+                    "description": "Geographic longitude",
+                    "appliedTraits": [
+                        "means.location.longitude"
+                    ],
+                    "isNullable": true
+                },
+                {
+                    "name": "preferredContactMethod",
+                    "dataType": "integer",
+                    "description": "Preferred method of contact (1=Email, 2=Phone, 3=Mail)",
+                    "isNullable": true
+                },
+                {
+                    "name": "isVerified",
+                    "dataType": "boolean",
+                    "description": "Whether contact information has been verified",
+                    "defaultValue": "false"
+                },
+                {
+                    "name": "verifiedOn",
+                    "dataType": "dateTime",
+                    "description": "Date when contact was verified",
+                    "isNullable": true
+                }
+            ],
+            "exhibitsTraits": [
+                {
+                    "traitReference": "is.CDM.entityVersion",
+                    "arguments": [
+                        {
+                            "name": "versionNumber",
+                            "value": "1.0"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

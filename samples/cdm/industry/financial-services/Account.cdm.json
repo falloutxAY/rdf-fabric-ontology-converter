@@ -1,0 +1,110 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/CDM/master/schemaDocuments/schema.cdm.json",
+    "jsonSchemaSemanticVersion": "1.0.0",
+    "imports": [],
+    "definitions": [
+        {
+            "entityName": "Account",
+            "description": "Bank account including checking, savings, and investment accounts.",
+            "displayName": "Bank Account",
+            "hasAttributes": [
+                {
+                    "name": "accountId",
+                    "dataType": "GUID",
+                    "description": "Unique account identifier",
+                    "appliedTraits": ["means.identity.entityId"],
+                    "isPrimaryKey": true
+                },
+                {
+                    "name": "accountNumber",
+                    "dataType": "string",
+                    "description": "Account number"
+                },
+                {
+                    "name": "customerId",
+                    "dataType": "string",
+                    "description": "Reference to account holder"
+                },
+                {
+                    "name": "accountType",
+                    "dataType": "string",
+                    "description": "Type (Checking, Savings, Investment, Credit)"
+                },
+                {
+                    "name": "accountName",
+                    "dataType": "string",
+                    "description": "Account display name"
+                },
+                {
+                    "name": "currency",
+                    "dataType": "string",
+                    "description": "Account currency (ISO code)"
+                },
+                {
+                    "name": "currentBalance",
+                    "dataType": "decimal",
+                    "description": "Current balance",
+                    "appliedTraits": ["means.measurement.currency"]
+                },
+                {
+                    "name": "availableBalance",
+                    "dataType": "decimal",
+                    "description": "Available balance",
+                    "appliedTraits": ["means.measurement.currency"]
+                },
+                {
+                    "name": "overdraftLimit",
+                    "dataType": "decimal",
+                    "description": "Overdraft limit",
+                    "appliedTraits": ["means.measurement.currency"],
+                    "isNullable": true
+                },
+                {
+                    "name": "interestRate",
+                    "dataType": "double",
+                    "description": "Interest rate percentage",
+                    "isNullable": true
+                },
+                {
+                    "name": "openedDate",
+                    "dataType": "dateTime",
+                    "description": "Date account was opened"
+                },
+                {
+                    "name": "maturityDate",
+                    "dataType": "dateTime",
+                    "description": "Maturity date for term accounts",
+                    "isNullable": true
+                },
+                {
+                    "name": "branchId",
+                    "dataType": "string",
+                    "description": "Branch identifier",
+                    "isNullable": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "description": "Account status (Active, Dormant, Closed, Frozen)"
+                },
+                {
+                    "name": "lastActivityDate",
+                    "dataType": "dateTime",
+                    "description": "Last transaction date",
+                    "isNullable": true
+                },
+                {
+                    "name": "isJointAccount",
+                    "dataType": "boolean",
+                    "description": "Whether joint account",
+                    "defaultValue": "false"
+                },
+                {
+                    "name": "createdOn",
+                    "dataType": "dateTime",
+                    "description": "Record creation timestamp"
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,172 @@
+{
+    "name": "SimpleLegacyModel",
+    "description": "A simple model.json demonstrating the legacy CDM format.",
+    "version": "1.0",
+    "modifiedTime": "2026-01-04T00:00:00Z",
+    "entities": [
+        {
+            "$type": "LocalEntity",
+            "name": "Product",
+            "description": "Product catalog entity",
+            "attributes": [
+                {
+                    "name": "productId",
+                    "dataType": "guid",
+                    "description": "Unique identifier for the product"
+                },
+                {
+                    "name": "productCode",
+                    "dataType": "string",
+                    "description": "Product SKU code"
+                },
+                {
+                    "name": "productName",
+                    "dataType": "string",
+                    "description": "Display name of the product"
+                },
+                {
+                    "name": "description",
+                    "dataType": "string",
+                    "description": "Product description"
+                },
+                {
+                    "name": "category",
+                    "dataType": "string",
+                    "description": "Product category"
+                },
+                {
+                    "name": "unitPrice",
+                    "dataType": "decimal",
+                    "description": "Standard unit price"
+                },
+                {
+                    "name": "costPrice",
+                    "dataType": "decimal",
+                    "description": "Cost price for the product"
+                },
+                {
+                    "name": "quantity",
+                    "dataType": "int64",
+                    "description": "Available quantity in stock"
+                },
+                {
+                    "name": "weight",
+                    "dataType": "double",
+                    "description": "Product weight in kg"
+                },
+                {
+                    "name": "isAvailable",
+                    "dataType": "boolean",
+                    "description": "Whether product is currently available"
+                },
+                {
+                    "name": "createdOn",
+                    "dataType": "dateTime",
+                    "description": "Record creation date"
+                },
+                {
+                    "name": "modifiedOn",
+                    "dataType": "dateTime",
+                    "description": "Record last modified date"
+                }
+            ]
+        },
+        {
+            "$type": "LocalEntity",
+            "name": "Category",
+            "description": "Product category entity",
+            "attributes": [
+                {
+                    "name": "categoryId",
+                    "dataType": "guid",
+                    "description": "Unique identifier for the category"
+                },
+                {
+                    "name": "categoryName",
+                    "dataType": "string",
+                    "description": "Name of the category"
+                },
+                {
+                    "name": "parentCategoryId",
+                    "dataType": "string",
+                    "description": "Reference to parent category for hierarchy"
+                },
+                {
+                    "name": "displayOrder",
+                    "dataType": "int64",
+                    "description": "Display order for sorting"
+                },
+                {
+                    "name": "isActive",
+                    "dataType": "boolean",
+                    "description": "Whether category is active"
+                }
+            ]
+        },
+        {
+            "$type": "LocalEntity",
+            "name": "Supplier",
+            "description": "Product supplier entity",
+            "attributes": [
+                {
+                    "name": "supplierId",
+                    "dataType": "guid",
+                    "description": "Unique identifier for the supplier"
+                },
+                {
+                    "name": "supplierName",
+                    "dataType": "string",
+                    "description": "Name of the supplier"
+                },
+                {
+                    "name": "contactName",
+                    "dataType": "string",
+                    "description": "Primary contact name"
+                },
+                {
+                    "name": "contactEmail",
+                    "dataType": "string",
+                    "description": "Contact email address"
+                },
+                {
+                    "name": "contactPhone",
+                    "dataType": "string",
+                    "description": "Contact phone number"
+                },
+                {
+                    "name": "address",
+                    "dataType": "string",
+                    "description": "Business address"
+                },
+                {
+                    "name": "city",
+                    "dataType": "string",
+                    "description": "City"
+                },
+                {
+                    "name": "country",
+                    "dataType": "string",
+                    "description": "Country"
+                },
+                {
+                    "name": "rating",
+                    "dataType": "double",
+                    "description": "Supplier rating (0-5)"
+                }
+            ]
+        }
+    ],
+    "relationships": [
+        {
+            "$type": "SingleKeyRelationship",
+            "fromAttribute": {
+                "entityName": "Product",
+                "attributeName": "category"
+            },
+            "toAttribute": {
+                "entityName": "Category",
+                "attributeName": "categoryName"
+            }
+        }
+    ]
+}

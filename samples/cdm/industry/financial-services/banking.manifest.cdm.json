@@ -1,0 +1,56 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/CDM/master/schemaDocuments/schema.manifest.cdm.json",
+    "manifestName": "BankingManifest",
+    "jsonSchemaSemanticVersion": "1.0.0",
+    "description": "Financial Services Industry Accelerator manifest with banking entities.",
+    "imports": [],
+    "entities": [
+        {
+            "type": "LocalEntity",
+            "entityName": "Customer",
+            "entityPath": "Customer.cdm.json/Customer",
+            "description": "Banking customer information"
+        },
+        {
+            "type": "LocalEntity",
+            "entityName": "Account",
+            "entityPath": "Account.cdm.json/Account",
+            "description": "Bank account details"
+        },
+        {
+            "type": "LocalEntity",
+            "entityName": "Transaction",
+            "entityPath": "Transaction.cdm.json/Transaction",
+            "description": "Financial transactions"
+        },
+        {
+            "type": "LocalEntity",
+            "entityName": "Loan",
+            "entityPath": "Loan.cdm.json/Loan",
+            "description": "Loan and credit products"
+        }
+    ],
+    "relationships": [
+        {
+            "name": "AccountCustomer",
+            "fromEntity": "Account.cdm.json/Account",
+            "fromEntityAttribute": "customerId",
+            "toEntity": "Customer.cdm.json/Customer",
+            "toEntityAttribute": "customerId"
+        },
+        {
+            "name": "TransactionAccount",
+            "fromEntity": "Transaction.cdm.json/Transaction",
+            "fromEntityAttribute": "accountId",
+            "toEntity": "Account.cdm.json/Account",
+            "toEntityAttribute": "accountId"
+        },
+        {
+            "name": "LoanCustomer",
+            "fromEntity": "Loan.cdm.json/Loan",
+            "fromEntityAttribute": "customerId",
+            "toEntity": "Customer.cdm.json/Customer",
+            "toEntityAttribute": "customerId"
+        }
+    ]
+}

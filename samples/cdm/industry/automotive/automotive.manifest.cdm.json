@@ -1,0 +1,52 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/CDM/master/schemaDocuments/schema.manifest.cdm.json",
+    "manifestName": "AutomotiveManifest",
+    "jsonSchemaSemanticVersion": "1.0.0",
+    "description": "Automotive Industry Accelerator manifest.",
+    "imports": [],
+    "entities": [
+        {
+            "type": "LocalEntity",
+            "entityName": "Vehicle",
+            "entityPath": "Vehicle.cdm.json/Vehicle"
+        },
+        {
+            "type": "LocalEntity",
+            "entityName": "Dealer",
+            "entityPath": "Dealer.cdm.json/Dealer"
+        },
+        {
+            "type": "LocalEntity",
+            "entityName": "ServiceAppointment",
+            "entityPath": "ServiceAppointment.cdm.json/ServiceAppointment"
+        },
+        {
+            "type": "LocalEntity",
+            "entityName": "Lead",
+            "entityPath": "Lead.cdm.json/Lead"
+        }
+    ],
+    "relationships": [
+        {
+            "name": "VehicleDealer",
+            "fromEntity": "Vehicle.cdm.json/Vehicle",
+            "fromEntityAttribute": "dealerId",
+            "toEntity": "Dealer.cdm.json/Dealer",
+            "toEntityAttribute": "dealerId"
+        },
+        {
+            "name": "ServiceVehicle",
+            "fromEntity": "ServiceAppointment.cdm.json/ServiceAppointment",
+            "fromEntityAttribute": "vehicleId",
+            "toEntity": "Vehicle.cdm.json/Vehicle",
+            "toEntityAttribute": "vehicleId"
+        },
+        {
+            "name": "LeadDealer",
+            "fromEntity": "Lead.cdm.json/Lead",
+            "fromEntityAttribute": "dealerId",
+            "toEntity": "Dealer.cdm.json/Dealer",
+            "toEntityAttribute": "dealerId"
+        }
+    ]
+}

@@ -1,0 +1,93 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/CDM/master/schemaDocuments/schema.manifest.cdm.json",
+    "manifestName": "HealthcareManifest",
+    "jsonSchemaSemanticVersion": "1.0.0",
+    "description": "Healthcare Industry Accelerator manifest with FHIR-aligned entities.",
+    "imports": [],
+    "entities": [
+        {
+            "type": "LocalEntity",
+            "entityName": "Patient",
+            "entityPath": "Patient.cdm.json/Patient",
+            "description": "Patient demographics and health information"
+        },
+        {
+            "type": "LocalEntity",
+            "entityName": "Practitioner",
+            "entityPath": "Practitioner.cdm.json/Practitioner",
+            "description": "Healthcare practitioner information"
+        },
+        {
+            "type": "LocalEntity",
+            "entityName": "Encounter",
+            "entityPath": "Encounter.cdm.json/Encounter",
+            "description": "Patient encounter/visit record"
+        },
+        {
+            "type": "LocalEntity",
+            "entityName": "Appointment",
+            "entityPath": "Appointment.cdm.json/Appointment",
+            "description": "Scheduled appointment"
+        }
+    ],
+    "relationships": [
+        {
+            "name": "EncounterPatient",
+            "fromEntity": "Encounter.cdm.json/Encounter",
+            "fromEntityAttribute": "patientId",
+            "toEntity": "Patient.cdm.json/Patient",
+            "toEntityAttribute": "patientId",
+            "exhibitsTraits": [
+                {
+                    "traitReference": "means.relationship.verbPhrase",
+                    "arguments": [{"name": "verbPhrase", "value": "for patient"}]
+                }
+            ]
+        },
+        {
+            "name": "EncounterPractitioner",
+            "fromEntity": "Encounter.cdm.json/Encounter",
+            "fromEntityAttribute": "practitionerId",
+            "toEntity": "Practitioner.cdm.json/Practitioner",
+            "toEntityAttribute": "practitionerId",
+            "exhibitsTraits": [
+                {
+                    "traitReference": "means.relationship.verbPhrase",
+                    "arguments": [{"name": "verbPhrase", "value": "with practitioner"}]
+                }
+            ]
+        },
+        {
+            "name": "AppointmentPatient",
+            "fromEntity": "Appointment.cdm.json/Appointment",
+            "fromEntityAttribute": "patientId",
+            "toEntity": "Patient.cdm.json/Patient",
+            "toEntityAttribute": "patientId",
+            "exhibitsTraits": [
+                {
+                    "traitReference": "means.relationship.verbPhrase",
+                    "arguments": [{"name": "verbPhrase", "value": "scheduled for"}]
+                }
+            ]
+        },
+        {
+            "name": "AppointmentPractitioner",
+            "fromEntity": "Appointment.cdm.json/Appointment",
+            "fromEntityAttribute": "practitionerId",
+            "toEntity": "Practitioner.cdm.json/Practitioner",
+            "toEntityAttribute": "practitionerId",
+            "exhibitsTraits": [
+                {
+                    "traitReference": "means.relationship.verbPhrase",
+                    "arguments": [{"name": "verbPhrase", "value": "with"}]
+                }
+            ]
+        }
+    ],
+    "exhibitsTraits": [
+        {
+            "traitReference": "is.CDM.manifest.contentType",
+            "arguments": [{"name": "contentType", "value": "Healthcare"}]
+        }
+    ]
+}

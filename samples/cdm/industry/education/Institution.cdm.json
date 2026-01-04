@@ -1,0 +1,28 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/CDM/master/schemaDocuments/schema.cdm.json",
+    "jsonSchemaSemanticVersion": "1.0.0",
+    "definitions": [
+        {
+            "entityName": "Institution",
+            "description": "Educational institution.",
+            "hasAttributes": [
+                {"name": "institutionId", "dataType": "GUID", "isPrimaryKey": true},
+                {"name": "institutionName", "dataType": "string"},
+                {"name": "institutionCode", "dataType": "string"},
+                {"name": "institutionType", "dataType": "string"},
+                {"name": "address", "dataType": "address"},
+                {"name": "city", "dataType": "city"},
+                {"name": "stateOrProvince", "dataType": "stateOrProvince"},
+                {"name": "postalCode", "dataType": "postalCode"},
+                {"name": "country", "dataType": "country"},
+                {"name": "phone", "dataType": "phone"},
+                {"name": "email", "dataType": "email"},
+                {"name": "website", "dataType": "url", "isNullable": true},
+                {"name": "accreditationStatus", "dataType": "string", "isNullable": true},
+                {"name": "totalStudents", "dataType": "integer", "isNullable": true},
+                {"name": "isActive", "dataType": "boolean", "defaultValue": "true"},
+                {"name": "createdOn", "dataType": "dateTime"}
+            ]
+        }
+    ]
+}

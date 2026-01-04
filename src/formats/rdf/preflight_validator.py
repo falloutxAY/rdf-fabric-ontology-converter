@@ -86,6 +86,16 @@ class ValidationReport:
     issues: List[ValidationIssue]
     summary: Dict[str, Any]
 
+    @property
+    def is_valid(self) -> bool:
+        """Alias for can_import_seamlessly for backward compatibility."""
+        return self.can_import_seamlessly
+    
+    @property
+    def error_count(self) -> int:
+        """Return the count of error-level issues."""
+        return self.issues_by_severity.get('error', 0)
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "file_path": self.file_path,

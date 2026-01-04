@@ -1,0 +1,133 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/CDM/master/schemaDocuments/schema.cdm.json",
+    "jsonSchemaSemanticVersion": "1.0.0",
+    "imports": [],
+    "definitions": [
+        {
+            "entityName": "Loan",
+            "description": "Loan and credit product.",
+            "displayName": "Loan",
+            "hasAttributes": [
+                {
+                    "name": "loanId",
+                    "dataType": "GUID",
+                    "description": "Unique loan identifier",
+                    "appliedTraits": ["means.identity.entityId"],
+                    "isPrimaryKey": true
+                },
+                {
+                    "name": "loanNumber",
+                    "dataType": "string",
+                    "description": "Loan reference number"
+                },
+                {
+                    "name": "customerId",
+                    "dataType": "string",
+                    "description": "Reference to borrower"
+                },
+                {
+                    "name": "loanType",
+                    "dataType": "string",
+                    "description": "Type (Mortgage, Personal, Auto, Business)"
+                },
+                {
+                    "name": "principalAmount",
+                    "dataType": "decimal",
+                    "description": "Original principal amount",
+                    "appliedTraits": ["means.measurement.currency"]
+                },
+                {
+                    "name": "outstandingBalance",
+                    "dataType": "decimal",
+                    "description": "Current outstanding balance",
+                    "appliedTraits": ["means.measurement.currency"]
+                },
+                {
+                    "name": "interestRate",
+                    "dataType": "double",
+                    "description": "Annual interest rate"
+                },
+                {
+                    "name": "rateType",
+                    "dataType": "string",
+                    "description": "Rate type (Fixed, Variable)"
+                },
+                {
+                    "name": "termMonths",
+                    "dataType": "integer",
+                    "description": "Loan term in months"
+                },
+                {
+                    "name": "monthlyPayment",
+                    "dataType": "decimal",
+                    "description": "Monthly payment amount",
+                    "appliedTraits": ["means.measurement.currency"]
+                },
+                {
+                    "name": "disbursementDate",
+                    "dataType": "dateTime",
+                    "description": "Loan disbursement date"
+                },
+                {
+                    "name": "maturityDate",
+                    "dataType": "dateTime",
+                    "description": "Loan maturity date"
+                },
+                {
+                    "name": "nextPaymentDate",
+                    "dataType": "date",
+                    "description": "Next payment due date",
+                    "isNullable": true
+                },
+                {
+                    "name": "lastPaymentDate",
+                    "dataType": "date",
+                    "description": "Last payment received date",
+                    "isNullable": true
+                },
+                {
+                    "name": "lastPaymentAmount",
+                    "dataType": "decimal",
+                    "description": "Last payment amount",
+                    "appliedTraits": ["means.measurement.currency"],
+                    "isNullable": true
+                },
+                {
+                    "name": "collateralType",
+                    "dataType": "string",
+                    "description": "Type of collateral",
+                    "isNullable": true
+                },
+                {
+                    "name": "collateralValue",
+                    "dataType": "decimal",
+                    "description": "Collateral value",
+                    "appliedTraits": ["means.measurement.currency"],
+                    "isNullable": true
+                },
+                {
+                    "name": "status",
+                    "dataType": "string",
+                    "description": "Status (Active, Delinquent, Default, Closed)"
+                },
+                {
+                    "name": "daysDelinquent",
+                    "dataType": "integer",
+                    "description": "Days past due",
+                    "isNullable": true
+                },
+                {
+                    "name": "purpose",
+                    "dataType": "string",
+                    "description": "Loan purpose",
+                    "isNullable": true
+                },
+                {
+                    "name": "createdOn",
+                    "dataType": "dateTime",
+                    "description": "Record creation timestamp"
+                }
+            ]
+        }
+    ]
+}

@@ -8,26 +8,27 @@ Create custom plugins to support new ontology formats.
 |--------|--------|------------|
 | RDF | `rdf` | `.ttl`, `.rdf`, `.owl`, `.nt`, `.nq`, `.trig`, `.n3`, `.jsonld` |
 | DTDL | `dtdl` | `.json`, `.dtdl` |
+| CDM | `cdm` | `.cdm.json`, `.manifest.cdm.json`, `model.json` |
 
 ## Plugin Architecture
 
 ```
-┌──────────────────────────────────────┐
-│           Plugin Manager             │
-│  ┌────────────┐  ┌────────────────┐  │
-│  │ RDF Plugin │  │  DTDL Plugin   │  │
-│  │  Parser    │  │   Parser       │  │
-│  │  Validator │  │   Validator    │  │
-│  │  Converter │  │   Converter    │  │
-│  └────────────┘  └────────────────┘  │
-└──────────────────────────────────────┘
-                  │
-                  ▼
-┌──────────────────────────────────────┐
-│           Shared Models              │
-│  EntityType  │  RelationshipType     │
-│  ConversionResult                    │
-└──────────────────────────────────────┘
+┌────────────────────────────────────────────────────┐
+│                  Plugin Manager                    │
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐  │
+│  │ RDF Plugin │  │ DTDL Plugin │  │ CDM Plugin  │  │
+│  │  Parser    │  │  Parser     │  │  Parser     │  │
+│  │  Validator │  │  Validator  │  │  Validator  │  │
+│  │  Converter │  │  Converter  │  │  Converter  │  │
+│  └────────────┘  └────────────┘  └────────────┘  │
+└────────────────────────────────────────────────────┘
+                          │
+                          ▼
+┌────────────────────────────────────────────────────┐
+│                  Shared Models                     │
+│  EntityType  │  RelationshipType                   │
+│  ConversionResult                                  │
+└────────────────────────────────────────────────────┘
 ```
 
 ## Creating a Plugin

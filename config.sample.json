@@ -1,7 +1,6 @@
 {
     "fabric": {
         "workspace_id": "YOUR_WORKSPACE_ID",
-        "ontology_id": "", 
         "api_base_url": "https://api.fabric.microsoft.com/v1",
         "tenant_id": "YOUR_TENANT_ID",
         "client_id": "YOUR_CLIENT_ID", 
@@ -43,6 +42,12 @@
         "component_mode": "skip",
         "command_mode": "skip",
         "scaled_decimal_mode": "json_string"
+    },
+    "cdm": {
+        "strict_validation": true,
+        "resolve_references": false,
+        "expand_attribute_groups": true,
+        "default_namespace": "usertypes"
     },
     "logging": {
         "level": "INFO",

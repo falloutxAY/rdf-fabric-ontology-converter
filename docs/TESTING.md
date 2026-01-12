@@ -125,7 +125,7 @@ tests/
 
 ```python
 import pytest
-from src.formats.rdf import RDFToFabricConverter
+from src.rdf import RDFToFabricConverter
 
 class TestRDFConverter:
     def test_basic_class(self):

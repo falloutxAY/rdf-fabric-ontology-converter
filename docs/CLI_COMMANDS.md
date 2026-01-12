@@ -116,13 +116,6 @@ python -m src.main test
 python -m src.main test --upload-test
 ```
 
-## Plugin Commands
-
-```bash
-python -m src.main plugin list          # List available plugins
-python -m src.main plugin info rdf      # Show plugin details
-```
-
 ## Supported Formats
 
 | Format | Extensions | Description |

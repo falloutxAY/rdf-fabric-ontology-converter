@@ -353,11 +353,15 @@ class FabricOntologyClient:
         # Interactive browser authentication
         if self.config.use_interactive_auth:
             logger.info("Interactive browser authentication enabled")
+            # Only pass tenant_id/client_id if they have non-empty values
+            # Empty strings cause Azure Identity to fail validation
+            interactive_kwargs = {}
+            if self.config.tenant_id:
+                interactive_kwargs['tenant_id'] = self.config.tenant_id
+            if self.config.client_id:
+                interactive_kwargs['client_id'] = self.config.client_id
             credentials.append(
-                InteractiveBrowserCredential(
-                    tenant_id=self.config.tenant_id,
-                    client_id=self.config.client_id,
-                )
+                InteractiveBrowserCredential(**interactive_kwargs)
             )
         
         # Default Azure credential (for managed identities, etc.)

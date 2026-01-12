@@ -39,6 +39,8 @@ class ValidateCommand(BaseCommand):
             return self._validate_rdf(args)
         elif fmt == Format.DTDL:
             return self._validate_dtdl(args)
+        elif fmt == Format.CDM:
+            return self._validate_cdm(args)
         else:
             print(f"✗ Unsupported format: {fmt}")
             return 1
@@ -259,6 +261,106 @@ class ValidateCommand(BaseCommand):
                 json.dump(report_data, handle, indent=2)
             print(f"\nReport saved to: {args.output}")
         elif args.save_report:
+            auto_path = f"{path}.validation.json" if path.is_file() else f"{path.name}.validation.json"
+            with open(auto_path, 'w', encoding='utf-8') as handle:
+                json.dump(report_data, handle, indent=2)
+            print(f"\nReport saved to: {auto_path}")
+
+        return exit_code
+
+    def _validate_cdm(self, args: argparse.Namespace) -> int:
+        """Validate CDM manifest and entity files."""
+        try:
+            from src.formats.cdm import CDMParser, CDMValidator
+            from src.shared.utilities.validation import Severity
+        except ImportError as exc:
+            print(f"✗ CDM modules not available: {exc}")
+            return 1
+
+        path = Path(args.path)
+
+        if not path.exists():
+            print(f"✗ Path does not exist: {path}")
+            return 2
+
+        parser = CDMParser()
+        validator = CDMValidator()
+
+        try:
+            if path.is_file():
+                manifest = parser.parse_file(str(path))
+            elif path.is_dir():
+                # Look for manifest files in directory
+                manifest_files = list(path.glob("*.manifest.cdm.json")) + list(path.glob("model.json"))
+                if not manifest_files:
+                    print(f"✗ No CDM manifest files found in '{path}'")
+                    return 2
+                # Parse first manifest found
+                manifest = parser.parse_file(str(manifest_files[0]))
+                print(f"Using manifest: {manifest_files[0].name}")
+            else:
+                print(f"✗ Path does not exist: {path}")
+                return 2
+        except Exception as exc:
+            print(f"✗ Parse error: {exc}")
+            return 2
+
+        print(f"Parsed CDM manifest: {manifest.name}")
+        print(f"  Entities: {len(manifest.entities)}")
+
+        # Use validate_manifest for pre-parsed manifest objects
+        validation_result = validator.validate_manifest(manifest)
+
+        # Get errors and warnings using the proper interface
+        errors = validation_result.get_issues_by_severity(Severity.ERROR)
+        warnings = validation_result.get_issues_by_severity(Severity.WARNING)
+
+        report_data = {
+            "path": str(path),
+            "manifest_name": manifest.name,
+            "entities_parsed": len(manifest.entities),
+            "validation_errors": [
+                {"severity": str(e.severity.value), "code": str(e.category.value), "message": e.message}
+                for e in errors
+            ],
+            "validation_warnings": [
+                {"severity": str(w.severity.value), "code": str(w.category.value), "message": w.message}
+                for w in warnings
+            ],
+            "is_valid": validation_result.is_valid,
+            "entities": [
+                {
+                    "name": e.name,
+                    "attributes": len(e.attributes),
+                }
+                for e in manifest.entities
+            ],
+        }
+
+        if errors:
+            print(f"Found {len(errors)} validation errors:")
+            for err in errors[:10]:
+                print(f"  - [{err.severity.value}] {err.category.value}: {err.message}")
+            exit_code = 1
+        else:
+            if warnings:
+                print(f"Found {len(warnings)} warnings:")
+                for warn in warnings[:10]:
+                    print(f"  - {warn.category.value}: {warn.message}")
+            print("✓ Validation successful!")
+            exit_code = 0
+
+        if getattr(args, 'verbose', False):
+            print("\nEntity Summary:")
+            for entity in manifest.entities[:20]:
+                print(f"  {entity.name}")
+                print(f"    Attributes: {len(entity.attributes)}")
+
+        if args.output:
+            with open(args.output, 'w', encoding='utf-8') as handle:
+                json.dump(report_data, handle, indent=2)
+            print(f"\nReport saved to: {args.output}")
+        elif getattr(args, 'save_report', False):
             auto_path = f"{path}.validation.json" if path.is_file() else f"{path.name}.validation.json"
             with open(auto_path, 'w', encoding='utf-8') as handle:
                 json.dump(report_data, handle, indent=2)

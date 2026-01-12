@@ -17,6 +17,7 @@ class Format(str, Enum):
     """Supported ontology formats."""
     RDF = "rdf"
     DTDL = "dtdl"
+    CDM = "cdm"
 
     def __str__(self) -> str:
         return self.value
@@ -127,7 +128,7 @@ def get_uploader(fmt: Format) -> Any:
 # ---------------------------------------------------------------------------
 
 def _register_defaults() -> None:
-    """Register default factories for RDF and DTDL."""
+    """Register default factories for RDF, DTDL, and CDM."""
     # RDF validators/converters
     def rdf_validator():
         from src.rdf import PreflightValidator
@@ -151,6 +152,18 @@ def _register_defaults() -> None:
 
     register_validator(Format.DTDL, dtdl_validator)
     register_converter(Format.DTDL, dtdl_converter)
+
+    # CDM validators/converters
+    def cdm_validator():
+        from src.formats.cdm import CDMValidator
+        return CDMValidator()
+
+    def cdm_converter():
+        from src.formats.cdm import CDMToFabricConverter
+        return CDMToFabricConverter()
+
+    register_validator(Format.CDM, cdm_validator)
+    register_converter(Format.CDM, cdm_converter)
 
 
 # Auto-register on module load
@@ -179,6 +192,7 @@ RDF_EXTENSIONS = {
     ".htm",
 }
 DTDL_EXTENSIONS = {".json"}
+CDM_EXTENSIONS = {".cdm.json", ".manifest.cdm.json"}
 
 
 def infer_format_from_path(path: str) -> Format:
@@ -197,8 +211,14 @@ def infer_format_from_path(path: str) -> Format:
     Raises:
         ValueError: If format cannot be inferred.
     """
-    from pathlib import Path
-    ext = Path(path).suffix.lower()
+    from pathlib import Path as PathLib
+    path_obj = PathLib(path)
+    ext = path_obj.suffix.lower()
+    filename = path_obj.name.lower()
+    
+    # Check for CDM compound extensions first (before plugin system)
+    if filename.endswith('.manifest.cdm.json') or filename.endswith('.cdm.json'):
+        return Format.CDM
     
     # Try plugin system first
     manager = _get_plugin_manager()
@@ -257,6 +277,12 @@ def list_supported_formats() -> Dict[str, Dict[str, Any]]:
             "extensions": list(DTDL_EXTENSIONS),
             "source": "builtin",
         }
+        result["cdm"] = {
+            "display_name": "CDM (Common Data Model)",
+            "version": "1.0.0",
+            "extensions": list(CDM_EXTENSIONS),
+            "source": "builtin",
+        }
     return result
 
 
@@ -270,4 +296,4 @@ def list_supported_extensions() -> Set[str]:
     manager = _get_plugin_manager()
     if manager:
         return manager.list_extensions()
-    return RDF_EXTENSIONS | DTDL_EXTENSIONS
+    return RDF_EXTENSIONS | DTDL_EXTENSIONS | CDM_EXTENSIONS

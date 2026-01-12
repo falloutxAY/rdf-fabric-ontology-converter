@@ -53,6 +53,8 @@ class UploadCommand(BaseCommand):
             return self._upload_rdf(args)
         elif fmt == Format.DTDL:
             return self._upload_dtdl(args)
+        elif fmt == Format.CDM:
+            return self._upload_cdm(args)
         else:
             print(f"✗ Unsupported format: {fmt}")
             return 1
@@ -483,3 +485,125 @@ class UploadCommand(BaseCommand):
 
         print("\n=== Upload complete ===")
         return 0
+
+    def _upload_cdm(self, args: argparse.Namespace) -> int:
+        """Delegate to CDM upload logic."""
+        try:
+            from src.formats.cdm import CDMParser, CDMValidator, CDMToFabricConverter
+            from src.formats.rdf.rdf_converter import convert_to_fabric_definition
+        except ImportError as exc:
+            print(f"✗ CDM modules not available: {exc}")
+            return 1
+
+        from src.core import FabricConfig, create_client, FabricAPIError
+
+        path = Path(args.path)
+
+        if not path.exists():
+            print(f"✗ Path does not exist: {path}")
+            return 2
+
+        # Load config
+        config_path = args.config or get_default_config_path()
+        try:
+            config_data = load_config(config_path)
+        except Exception as e:
+            print(f"✗ {e}")
+            return 1
+
+        fabric_config = FabricConfig.from_dict(config_data)
+        if not fabric_config.workspace_id or fabric_config.workspace_id == "YOUR_WORKSPACE_ID":
+            print("✗ Please configure workspace_id in config.json")
+            return 1
+
+        setup_logging(config=config_data.get('logging', {}))
+
+        print(f"=== CDM Upload: {path} ===")
+
+        # Parse
+        print("\nStep 1: Parsing...")
+        parser = CDMParser()
+
+        try:
+            if path.is_file():
+                manifest = parser.parse_file(str(path))
+            elif path.is_dir():
+                manifest_files = list(path.glob("*.manifest.cdm.json")) + list(path.glob("model.json"))
+                if not manifest_files:
+                    print(f"✗ No CDM manifest files found in '{path}'")
+                    return 2
+                manifest = parser.parse_file(str(manifest_files[0]))
+                print(f"  Using manifest: {manifest_files[0].name}")
+            else:
+                print(f"✗ Path does not exist: {path}")
+                return 2
+        except Exception as e:
+            print(f"  ✗ Parse error: {e}")
+            return 2
+
+        print(f"  ✓ Parsed {len(manifest.entities)} entities")
+
+        # Validate
+        print("\nStep 2: Validating...")
+        validator = CDMValidator()
+        validation_result = validator.validate_manifest(manifest)
+
+        if not validation_result.is_valid:
+            print(f"  ✗ Validation errors: {validation_result.error_count}")
+            if not getattr(args, 'force', False):
+                return 1
+
+        print("  ✓ Validation passed")
+
+        # Convert
+        print("\nStep 3: Converting...")
+        namespace = getattr(args, 'namespace', 'usertypes')
+        converter = CDMToFabricConverter(namespace=namespace)
+
+        conversion_result = converter.convert_manifest(manifest)
+        ontology_name = args.ontology_name or manifest.name or path.stem
+
+        # Build Fabric definition using shared function
+        definition = convert_to_fabric_definition(
+            conversion_result.entity_types,
+            conversion_result.relationship_types,
+            ontology_name,
+            skip_validation=True,
+        )
+
+        print_conversion_summary(conversion_result, heading="CONVERSION SUMMARY")
+
+        # Dry-run check
+        if getattr(args, 'dry_run', False):
+            output_path = args.output or f"{ontology_name}_fabric.json"
+            output = {
+                "displayName": ontology_name,
+                "description": args.description or f"Converted from CDM: {path.name}",
+                "definition": definition,
+            }
+            with open(output_path, 'w', encoding='utf-8') as f:
+                json.dump(output, f, indent=2)
+            print(f"\n✓ Dry-run: saved to {output_path}")
+            return 0
+
+        # Upload
+        print("\nStep 4: Uploading...")
+        description = args.description or f"Imported from CDM: {path.name}"
+
+        client = create_client(fabric_config)
+
+        try:
+            result = client.create_or_update_ontology(
+                display_name=ontology_name,
+                description=description,
+                definition=definition,
+                wait_for_completion=True,
+            )
+            print(f"✓ Successfully uploaded '{ontology_name}'")
+            print(f"  Ontology ID: {result.get('id', 'Unknown')}")
+            return 0
+        except FabricAPIError as e:
+            print(f"✗ Fabric API error: {e.message}")
+            if e.error_code == "ItemDisplayNameAlreadyInUse":
+                print("  Hint: Use --update to update existing ontology.")
+            return 1

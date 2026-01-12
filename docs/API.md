@@ -6,7 +6,7 @@ Programmatic usage of the converter components.
 
 ```python
 # RDF Conversion
-from src.formats.rdf import RDFToFabricConverter
+from src.rdf import RDFToFabricConverter
 
 converter = RDFToFabricConverter()
 result = converter.convert_file("ontology.ttl")
@@ -15,7 +15,7 @@ print(f"Entities: {len(result.entity_types)}")
 print(f"Relationships: {len(result.relationship_types)}")
 
 # DTDL Conversion
-from src.formats.dtdl import DTDLParser, DTDLToFabricConverter
+from src.dtdl import DTDLParser, DTDLToFabricConverter
 
 parser = DTDLParser()
 interfaces = parser.parse_file("models/")
@@ -84,7 +84,7 @@ for skip in result.skipped_items:
 ## RDF Converter
 
 ```python
-from src.formats.rdf import RDFToFabricConverter, PreflightValidator
+from src.rdf import RDFToFabricConverter, PreflightValidator
 
 # Validate first
 validator = PreflightValidator()
@@ -99,7 +99,7 @@ if issues.is_valid:
 ## DTDL Converter
 
 ```python
-from src.formats.dtdl import (
+from src.dtdl import (
     DTDLParser,
     DTDLValidator, 
     DTDLToFabricConverter,

@@ -119,12 +119,13 @@ def get_default_config_path() -> str:
     """Get the default configuration file path.
     
     Returns:
-        Path to the default config.json file in the src directory.
+        Path to the default config.json file in the project root directory.
     """
-    # Look for config.json in the src directory (where CLI modules live)
+    # Look for config.json in the project root (where config.sample.json lives)
+    # Path: src/app/cli/helpers.py -> src/app/cli -> src/app -> src -> project root
     cli_dir = Path(__file__).parent
-    src_dir = cli_dir.parent
-    return str(src_dir / "config.json")
+    project_root = cli_dir.parent.parent.parent
+    return str(project_root / "config.json")
 
 
 def _clear_managed_handlers() -> None:

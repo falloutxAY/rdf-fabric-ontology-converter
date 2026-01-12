@@ -6,9 +6,9 @@ It centralizes all argument parsing logic and provides a clean interface
 for the main entry point.
 
 Unified Command Structure:
-    - validate --format {rdf,dtdl} <path>
-    - convert  --format {rdf,dtdl} <path>
-    - upload   --format {rdf,dtdl} <path>
+    - validate --format {rdf,dtdl,cdm} <path>
+    - convert  --format {rdf,dtdl,cdm} <path>
+    - upload   --format {rdf,dtdl,cdm} <path>
     - export   <ontology_id>  (RDF only)
     - list / get / delete / compare / test  (common commands)
 """
@@ -93,9 +93,9 @@ def add_format_flag(parser: argparse.ArgumentParser, required: bool = True) -> N
     """Add the --format selector flag."""
     parser.add_argument(
         '--format',
-        choices=['rdf', 'dtdl'],
+        choices=['rdf', 'dtdl', 'cdm'],
         required=required,
-        help='Input format: rdf (TTL/RDF/OWL/JSON-LD) or dtdl (Digital Twins JSON)'
+        help='Input format: rdf (TTL/RDF/OWL/JSON-LD), dtdl (Digital Twins JSON), or cdm (Common Data Model)'
     )
 
 

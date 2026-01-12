@@ -15,18 +15,20 @@
 
 ### Interactive (Browser Login)
 
+The simplest setup for interactive authentication:
+
 ```json
 {
   "fabric": {
     "workspace_id": "YOUR_WORKSPACE_ID",
-    "tenant_id": "YOUR_TENANT_ID",
-    "client_id": "04b07795-8ddb-461a-bbcb-537c989290d8",
+    "tenant_id": "",
+    "client_id": "",
     "use_interactive_auth": true
   }
 }
 ```
 
-> **Note:** The `client_id` above is Azure CLI's well-known client ID. You can use your own app registration if needed.
+> **Note:** Leave `tenant_id` and `client_id` empty for automatic multi-tenant interactive auth. The Azure Identity SDK will prompt you to select your tenant during login. If you need to restrict to a specific tenant, provide your `tenant_id`.
 
 ### Service Principal
 
@@ -186,6 +188,15 @@ python -m src.main list
 | `dtdl.component_mode` | `skip` | `skip`, `flatten`, or `separate` |
 | `dtdl.command_mode` | `skip` | `skip`, `property`, or `entity` |
 | `dtdl.scaled_decimal_mode` | `json_string` | `json_string`, `structured`, or `calculated` |
+
+### CDM Settings
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `cdm.strict_validation` | `true` | Enable strict CDM validation |
+| `cdm.resolve_references` | `false` | Resolve external entity references |
+| `cdm.expand_attribute_groups` | `true` | Expand attribute groups inline |
+| `cdm.default_namespace` | `usertypes` | Default Fabric namespace for converted entities |
 
 ### Logging
 

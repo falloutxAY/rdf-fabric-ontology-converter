@@ -37,7 +37,7 @@
 ### CLI Layer (`src/app/cli/`)
 
 User interface and command dispatch:
-- `commands.py` - Command registry
+- `commands.py` - Command handler classes (orchestration layer)
 - `parsers.py` - Argument parsing
 - `commands/unified/` - Format-agnostic commands (split modules):
   - `validate.py` - ValidateCommand
@@ -91,13 +91,17 @@ User interface and command dispatch:
 | Component | File | Purpose |
 |-----------|------|---------|
 | **SDK Adapter** | `platform/sdk_adapter.py` | **Bridges to fabric-ontology-sdk (recommended)** |
-| Fabric Client | `fabric_client.py` | REST API with retry logic (legacy) |
+| Fabric Client | `platform/fabric_client.py` | REST API with retry logic (legacy) |
 | Rate Limiter | `rate_limiter.py` | Token bucket throttling |
 | Circuit Breaker | `circuit_breaker.py` | Fault tolerance |
 | Streaming | `streaming.py` | Large file processing |
 | Pipeline | `services/pipeline.py` | Formalized streaming pipeline |
 | Memory | `memory.py` | Memory safety checks |
 | Schema Validator | `validators/fabric_schema.py` | Validate definitions before upload |
+| Resilience | `platform/resilience/` | Rate limiting and circuit breaker implementations |
+| Compliance | `compliance/` | Compliance and governance checks |
+| Cancellation | `cancellation.py` | Graceful cancellation handling |
+| Auth | `auth.py` | Authentication utilities |
 
 ### SDK Integration (v0.4.0+)
 
@@ -121,10 +125,12 @@ from src.core.platform.sdk_adapter import (
 
 ### Plugin System (`src/plugins/`)
 
-Extensible architecture for custom formats:
+Internal extensible architecture for format handlers:
 - `base.py` - `OntologyPlugin` abstract base
 - `manager.py` - Plugin discovery/registration
-- `builtin/` - RDF and DTDL plugins
+- `builtin/` - RDF, DTDL, and CDM plugins
+
+> **Note:** The plugin system is for internal extensibility. CLI commands for plugin management are planned for future releases.
 
 ## Data Flow
 

@@ -78,11 +78,15 @@ class CredentialFactory:
         # Interactive browser authentication
         if use_interactive_auth:
             logger.info("Adding interactive browser credential to auth chain")
+            # Only pass tenant_id/client_id if they have non-empty values
+            # Empty strings cause Azure Identity to fail validation
+            interactive_kwargs = {}
+            if tenant_id:
+                interactive_kwargs['tenant_id'] = tenant_id
+            if client_id:
+                interactive_kwargs['client_id'] = client_id
             credentials.append(
-                InteractiveBrowserCredential(
-                    tenant_id=tenant_id,
-                    client_id=client_id,
-                )
+                InteractiveBrowserCredential(**interactive_kwargs)
             )
         
         # Default Azure credential (for managed identities, etc.)

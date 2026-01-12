@@ -44,6 +44,8 @@ class ConvertCommand(BaseCommand):
             return self._convert_rdf(args)
         elif fmt == Format.DTDL:
             return self._convert_dtdl(args)
+        elif fmt == Format.CDM:
+            return self._convert_cdm(args)
         else:
             print(f"✗ Unsupported format: {fmt}")
             return 1
@@ -339,5 +341,78 @@ class ConvertCommand(BaseCommand):
             with open(mapping_path, 'w', encoding='utf-8') as f:
                 json.dump(payload["dtmi_mapping"], f, indent=2)
             print(f"  DTMI mapping: {mapping_path}")
+
+        return 0
+
+    def _convert_cdm(self, args: argparse.Namespace) -> int:
+        """Delegate to CDM conversion logic."""
+        try:
+            from src.formats.cdm import CDMParser, CDMValidator, CDMToFabricConverter
+            from src.formats.rdf.rdf_converter import convert_to_fabric_definition
+        except ImportError as exc:
+            print(f"✗ CDM modules not available: {exc}")
+            return 1
+
+        path = Path(args.path)
+
+        if not path.exists():
+            print(f"✗ Path does not exist: {path}")
+            return 2
+
+        print(f"Parsing CDM from: {path}")
+        parser = CDMParser()
+
+        try:
+            if path.is_file():
+                manifest = parser.parse_file(str(path))
+            elif path.is_dir():
+                # Look for manifest files in directory
+                manifest_files = list(path.glob("*.manifest.cdm.json")) + list(path.glob("model.json"))
+                if not manifest_files:
+                    print(f"✗ No CDM manifest files found in '{path}'")
+                    return 2
+                manifest = parser.parse_file(str(manifest_files[0]))
+                print(f"Using manifest: {manifest_files[0].name}")
+            else:
+                print(f"✗ Path does not exist: {path}")
+                return 2
+        except Exception as e:
+            print(f"✗ Parse error: {e}")
+            return 2
+
+        print(f"Parsed {len(manifest.entities)} entities")
+
+        # Validate using validate_manifest for pre-parsed objects
+        validator = CDMValidator()
+        validation_result = validator.validate_manifest(manifest)
+
+        if not validation_result.is_valid:
+            print(f"✗ Validation errors: {validation_result.error_count}")
+            from src.shared.utilities.validation import Severity
+            for err in validation_result.get_issues_by_severity(Severity.ERROR)[:5]:
+                print(f"  - {err.message}")
+            return 1
+
+        # Convert
+        namespace = getattr(args, 'namespace', 'usertypes')
+        converter = CDMToFabricConverter(namespace=namespace)
+
+        conversion_result = converter.convert_manifest(manifest)
+        ontology_name = args.ontology_name or manifest.name or path.stem
+
+        # Build Fabric definition using the shared function
+        definition = convert_to_fabric_definition(
+            conversion_result.entity_types,
+            conversion_result.relationship_types,
+            ontology_name,
+            skip_validation=True,  # Already validated via CDMValidator
+        )
+
+        output_path = Path(args.output or f"{ontology_name}_fabric.json")
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(definition, f, indent=2)
+
+        print_conversion_summary(conversion_result, heading="CONVERSION SUMMARY")
+        print(f"  Output: {output_path}")
 
         return 0

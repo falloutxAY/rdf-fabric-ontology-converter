@@ -2,6 +2,8 @@
 
 Create custom plugins to support new ontology formats.
 
+> **Note:** The plugin system is designed for **internal extensibility** only and is not exposed via CLI commands. Plugin CLI commands (`plugin list`, `plugin info`) are planned for a future release. Currently, plugins are used internally to provide a unified interface for different format handlers.
+
 ## Built-in Plugins
 
 | Plugin | Format | Extensions |
@@ -143,22 +145,21 @@ Add to `src/plugins/builtin/__init__.py`:
 ```python
 from .myformat_plugin import MyFormatPlugin
 
-BUILTIN_PLUGINS = [
-    # ... existing plugins
-    MyFormatPlugin,
-]
+__all__ = ["RDFPlugin", "DTDLPlugin", "CDMPlugin", "MyFormatPlugin"]
 ```
 
 ## Using Plugins
 
-```bash
-# List available plugins
-python -m src.main plugin list
+Plugins are automatically discovered and used by the CLI when you specify a format:
 
-# Use your plugin
-python -m src.main validate --format myformat file.myf
-python -m src.main upload --format myformat file.myf
+```bash
+# Built-in formats work automatically
+python -m src.main validate --format rdf ontology.ttl
+python -m src.main validate --format dtdl models/
+python -m src.main validate --format cdm model.manifest.cdm.json
 ```
+
+> **Note:** Custom format plugins currently require code changes to add the format to the `--format` CLI choices. Plugin CLI commands for listing and managing plugins are planned for future implementation.
 
 ## Type Mappings
 

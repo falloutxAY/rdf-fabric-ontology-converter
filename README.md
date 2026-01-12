@@ -79,7 +79,8 @@ src/
 │   ├── rdf/             # RDF converter, validator, exporter
 │   ├── dtdl/            # DTDL parser, validator, converter
 │   └── cdm/             # CDM parser, validator, converter
-├── core/                # Fabric client, rate limiter, circuit breaker
+├── core/                # Fabric client, SDK adapter, rate limiter
+│   └── platform/        # SDK adapter layer (FABRIC_USE_SDK=true to enable)
 ├── shared/models/       # EntityType, RelationshipType, ConversionResult
 └── plugins/             # Plugin system
 

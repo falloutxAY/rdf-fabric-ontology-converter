@@ -96,6 +96,26 @@ Environment variables override config file values:
 | `AZURE_TENANT_ID` | Tenant ID |
 | `AZURE_CLIENT_ID` | Client ID |
 | `AZURE_CLIENT_SECRET` | Alternative to `FABRIC_CLIENT_SECRET` |
+| `FABRIC_USE_SDK` | Set to `true` to use the SDK client instead of legacy |
+
+## SDK Client Mode
+
+This tool can use the [Unofficial-Fabric-Ontology-SDK](https://github.com/falloutxAY/Unofficial-Fabric-Ontology-SDK) for Fabric API operations:
+
+```powershell
+# Enable SDK mode (recommended)
+$env:FABRIC_USE_SDK = "true"
+
+# Run commands as usual
+python -m src.main list
+```
+
+**Benefits of SDK mode:**
+- Consistent behavior with other SDK consumers
+- Automatic version updates via Dependabot
+- Shared authentication and error handling
+
+> **Note:** The legacy client (`FabricOntologyClient`) is still available and used by default. Set the environment variable to switch to the SDK adapter.
 
 ## Configuration Options
 

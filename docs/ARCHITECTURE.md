@@ -90,12 +90,17 @@ User interface and command dispatch:
 
 | Component | File | Purpose |
 |-----------|------|---------|
-| Fabric Client | `fabric_client.py` | REST API with retry logic |
+| **SDK Adapter** | `platform/sdk_adapter.py` | **Bridges to fabric-ontology-sdk (recommended)** |
+| Fabric Client | `fabric_client.py` | REST API with retry logic (legacy) |
 | Rate Limiter | `rate_limiter.py` | Token bucket throttling |
 | Circuit Breaker | `circuit_breaker.py` | Fault tolerance |
 | Streaming | `streaming.py` | Large file processing |
 | Pipeline | `services/pipeline.py` | Formalized streaming pipeline |
-| Memory | `memory.py` | Memory safety checks || Schema Validator | `validators/fabric_schema.py` | Validate definitions before upload |
+| Memory | `memory.py` | Memory safety checks |
+| Schema Validator | `validators/fabric_schema.py` | Validate definitions before upload |
+
+> **Note:** Set `FABRIC_USE_SDK=true` to use the SDK adapter instead of the legacy client.
+> The SDK provides consistent behavior with the [Unofficial-Fabric-Ontology-SDK](https://github.com/falloutxAY/Unofficial-Fabric-Ontology-SDK).
 ### Plugin System (`src/plugins/`)
 
 Extensible architecture for custom formats:
@@ -141,6 +146,8 @@ src/
 │   ├── models/          # Data models
 │   └── utilities/       # Helpers
 ├── core/                # Infrastructure
+│   ├── platform/        # SDK adapter layer
+│   │   └── sdk_adapter.py  # Bridges to fabric-ontology-sdk
 │   └── validators/      # Input validation
 └── plugins/             # Plugin system
     └── builtin/         # Built-in plugins

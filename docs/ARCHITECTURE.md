@@ -99,8 +99,26 @@ User interface and command dispatch:
 | Memory | `memory.py` | Memory safety checks |
 | Schema Validator | `validators/fabric_schema.py` | Validate definitions before upload |
 
-> **Note:** Set `FABRIC_USE_SDK=true` to use the SDK adapter instead of the legacy client.
-> The SDK provides consistent behavior with the [Unofficial-Fabric-Ontology-SDK](https://github.com/falloutxAY/Unofficial-Fabric-Ontology-SDK).
+### SDK Integration (v0.4.0+)
+
+The converter uses the [Unofficial-Fabric-Ontology-SDK](https://github.com/falloutxAY/Unofficial-Fabric-Ontology-SDK) as the single source of truth for:
+
+| SDK Component | Converter Usage |
+|---------------|-----------------|
+| `NAME_PATTERN` | Validation in `sdk_adapter.py` (exported for consumers) |
+| `PropertyDataType` | Type validation in `sdk_adapter.py` (exported for consumers) |
+| `RateLimiter` | Token bucket rate limiting |
+| `CircuitBreaker` | Fault tolerance for API calls |
+| `fabric_ontology.testing` | Shared pytest fixtures for unit tests |
+
+**Key Exports from sdk_adapter.py:**
+```python
+from src.core.platform.sdk_adapter import (
+    NAME_PATTERN,           # r"^[a-zA-Z][a-zA-Z0-9_-]{0,25}$"
+    PropertyDataType,       # BIGINT, STRING, DOUBLE, FLOAT, BOOLEAN, DATETIME, OBJECT
+)
+```
+
 ### Plugin System (`src/plugins/`)
 
 Extensible architecture for custom formats:

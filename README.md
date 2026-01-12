@@ -80,7 +80,8 @@ src/
 │   ├── dtdl/            # DTDL parser, validator, converter
 │   └── cdm/             # CDM parser, validator, converter
 ├── core/                # Fabric client, SDK adapter, rate limiter
-│   └── platform/        # SDK adapter layer (FABRIC_USE_SDK=true to enable)
+│   └── platform/        # SDK adapter layer (v0.4.0+)
+│                        # Exports NAME_PATTERN, PropertyDataType from SDK
 ├── shared/models/       # EntityType, RelationshipType, ConversionResult
 └── plugins/             # Plugin system
 
@@ -101,4 +102,5 @@ MIT License - see [LICENSE](LICENSE)
 
 - [Microsoft Fabric Docs](https://learn.microsoft.com/fabric/)
 - [Fabric Ontology API](https://learn.microsoft.com/rest/api/fabric/ontology/items)
+- [Unofficial Fabric Ontology SDK](https://github.com/falloutxAY/Unofficial-Fabric-Ontology-SDK) (v0.4.0+)
 - [RDFLib](https://github.com/RDFLib/rdflib)

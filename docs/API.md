@@ -281,3 +281,27 @@ errors = limits.validate_all(entity_types, relationship_types)
 - [Architecture](ARCHITECTURE.md) - System design
 - [RDF Guide](RDF_GUIDE.md) - RDF conversion details
 - [DTDL Guide](DTDL_GUIDE.md) - DTDL conversion details
+- [Unofficial Fabric Ontology SDK](https://github.com/falloutxAY/Unofficial-Fabric-Ontology-SDK) - SDK documentation (v0.4.0+)
+
+## SDK Integration
+
+The converter exports key SDK constants through `sdk_adapter.py` for validation consistency:
+
+```python
+from src.core.platform.sdk_adapter import (
+    NAME_PATTERN,       # Regex for valid entity/property names
+    PropertyDataType,   # Valid data types enum
+)
+
+import re
+
+# Validate names
+if re.match(NAME_PATTERN, name):
+    print("Valid name")
+
+# Check data types
+from src.core.platform.sdk_adapter import PropertyDataType
+valid_types = [t.value for t in PropertyDataType]
+```
+
+**Available PropertyDataType values:** `BIGINT`, `STRING`, `DOUBLE`, `FLOAT`, `BOOLEAN`, `DATETIME`, `OBJECT`

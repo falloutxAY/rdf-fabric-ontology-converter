@@ -47,6 +47,8 @@ try:
         CircuitBreaker as SDKCircuitBreaker,
         CircuitBreakerOpenError as SDKCircuitBreakerOpenError,
     )
+    from fabric_ontology.validation import NAME_PATTERN as SDK_NAME_PATTERN
+    from fabric_ontology.models import PropertyDataType as SDKPropertyDataType
     SDK_AVAILABLE = True
 except ImportError:
     SDK_AVAILABLE = False
@@ -55,6 +57,8 @@ except ImportError:
     SDKRateLimiter = None  # type: ignore
     SDKCircuitBreaker = None  # type: ignore
     SDKCircuitBreakerOpenError = None  # type: ignore
+    SDK_NAME_PATTERN = None  # type: ignore
+    SDKPropertyDataType = None  # type: ignore
 
 # Local imports for legacy client compatibility
 from .fabric_client import FabricConfig, FabricOntologyClient, FabricAPIError

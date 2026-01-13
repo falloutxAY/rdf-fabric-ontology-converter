@@ -105,9 +105,9 @@ class FabricLimitsValidator:
             except ImportError:
                 # Fallback defaults
                 class FabricLimits:
-                    MAX_ENTITY_NAME_LENGTH = 256
-                    MAX_PROPERTY_NAME_LENGTH = 256
-                    MAX_RELATIONSHIP_NAME_LENGTH = 256
+                    MAX_ENTITY_NAME_LENGTH = 26
+                    MAX_PROPERTY_NAME_LENGTH = 26
+                    MAX_RELATIONSHIP_NAME_LENGTH = 26
                     MAX_DEFINITION_SIZE_KB = 1024
                     WARN_DEFINITION_SIZE_KB = 800
                     MAX_ENTITY_TYPES = 1000

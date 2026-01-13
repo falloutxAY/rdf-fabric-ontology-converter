@@ -99,7 +99,7 @@ class TestFabricLimitsValidator:
     
     def test_entity_name_length_error(self, fabric_validator):
         """Test validation catches entity name exceeding limit."""
-        long_name = "A" * 300  # Exceeds 256 default limit
+        long_name = "A" * 27  # Exceeds 26 default limit
         entity = EntityType(id="1", name=long_name, properties=[])
         
         errors = fabric_validator.validate_entity_types([entity])
@@ -108,7 +108,7 @@ class TestFabricLimitsValidator:
     
     def test_property_name_length_error(self, fabric_validator):
         """Test validation catches property name exceeding limit."""
-        long_prop_name = "prop_" + "x" * 300
+        long_prop_name = "p" + "x" * 26  # 27 chars, exceeds 26 limit
         entity = EntityType(
             id="1",
             name="TestEntity",

@@ -590,19 +590,19 @@ class TestStressConditions:
             display_name="Long Names",
         )
         
-        # Max name length in DTDL is 512
+        # Max name length is 26 (names exceeding this will be truncated with warning)
         interface.properties = [
-            DTDLProperty(name="a" * 512, schema="string"),  # Max length
+            DTDLProperty(name="a" * 26, schema="string"),  # Max length
             DTDLProperty(name="normalProp", schema="string"),
         ]
         
         result = validator.validate([interface])
         # First property at max length should be valid
-        name_length_errors = [e for e in result.errors if "length" in e.message.lower() and "a" * 512 in str(e)]
+        name_length_errors = [e for e in result.errors if "length" in e.message.lower() and "a" * 26 in str(e)]
         assert len(name_length_errors) == 0, "Property at max length should be valid"
     
     def test_property_name_exceeds_limit(self, validator):
-        """Test property name exceeding 512 character limit."""
+        """Test property name exceeding 26 character limit."""
         interface = DTDLInterface(
             dtmi="dtmi:com:example:TooLongNames;1",
             type="Interface",
@@ -610,13 +610,13 @@ class TestStressConditions:
         )
         
         interface.properties = [
-            DTDLProperty(name="a" * 513, schema="string"),  # Over limit
+            DTDLProperty(name="a" * 27, schema="string"),  # Over limit
         ]
         
         result = validator.validate([interface])
         # Should produce error for name length
         length_errors = [e for e in result.errors if "length" in e.message.lower() or "exceeds" in e.message.lower()]
-        assert len(length_errors) > 0, "Expected error for property name exceeding 512 characters"
+        assert len(length_errors) > 0, "Expected error for property name exceeding 26 characters"
 
 
 # =============================================================================

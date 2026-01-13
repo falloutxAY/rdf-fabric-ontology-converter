@@ -162,14 +162,15 @@ class FabricLimits:
         https://learn.microsoft.com/en-us/rest/api/fabric/ontology
     """
     
-    # Name length limits (characters)
-    MAX_ENTITY_NAME_LENGTH: Final[int] = 256
+    # Name length limits (characters) - standardized to 26 per validation-rules.yaml
+    # Note: Names exceeding limit will be truncated with warning during import
+    MAX_ENTITY_NAME_LENGTH: Final[int] = 26
     """Maximum length for entity type names."""
     
-    MAX_PROPERTY_NAME_LENGTH: Final[int] = 256
+    MAX_PROPERTY_NAME_LENGTH: Final[int] = 26
     """Maximum length for property names."""
     
-    MAX_RELATIONSHIP_NAME_LENGTH: Final[int] = 256
+    MAX_RELATIONSHIP_NAME_LENGTH: Final[int] = 26
     """Maximum length for relationship type names."""
     
     MAX_NAMESPACE_LENGTH: Final[int] = 128

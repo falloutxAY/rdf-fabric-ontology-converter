@@ -18,9 +18,9 @@
             "success_threshold": 2
         },
         "limits": {
-            "max_entity_name_length": 256,
-            "max_property_name_length": 256,
-            "max_relationship_name_length": 256,
+            "max_entity_name_length": 26,
+            "max_property_name_length": 26,
+            "max_relationship_name_length": 26,
             "max_definition_size_kb": 1024,
             "warn_definition_size_kb": 768,
             "max_entity_types": 500,

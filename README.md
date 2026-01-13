@@ -90,10 +90,6 @@ samples/                 # Sample ontologies (rdf/, dtdl/, cdm/)
 docs/                    # Documentation
 ```
 
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and contribution guidelines.
-
 ## License
 
 MIT License - see [LICENSE](LICENSE)

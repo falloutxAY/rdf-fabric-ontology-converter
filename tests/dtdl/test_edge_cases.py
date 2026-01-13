@@ -602,7 +602,12 @@ class TestStressConditions:
         assert len(name_length_errors) == 0, "Property at max length should be valid"
     
     def test_property_name_exceeds_limit(self, validator):
-        """Test property name exceeding 26 character limit."""
+        """Test property name exceeding 26 character Fabric limit.
+        
+        Note: DTDL validator allows longer names (DTDL spec permits up to 512).
+        Fabric limits (26 chars) are enforced during conversion with truncation.
+        This test verifies DTDL validation passes (names are valid DTDL).
+        """
         interface = DTDLInterface(
             dtmi="dtmi:com:example:TooLongNames;1",
             type="Interface",
@@ -610,13 +615,12 @@ class TestStressConditions:
         )
         
         interface.properties = [
-            DTDLProperty(name="a" * 27, schema="string"),  # Over limit
+            DTDLProperty(name="a" * 27, schema="string"),  # Over Fabric limit but valid DTDL
         ]
         
         result = validator.validate([interface])
-        # Should produce error for name length
-        length_errors = [e for e in result.errors if "length" in e.message.lower() or "exceeds" in e.message.lower()]
-        assert len(length_errors) > 0, "Expected error for property name exceeding 26 characters"
+        # DTDL validation should pass - Fabric limits applied at conversion time
+        assert result.is_valid, "DTDL validation should pass; Fabric limits enforced at conversion"
 
 
 # =============================================================================

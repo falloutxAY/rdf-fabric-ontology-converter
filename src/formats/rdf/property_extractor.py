@@ -220,22 +220,32 @@ class DataPropertyExtractor:
                     if union_notes:
                         logger.debug(f"Property {name}: {union_notes}")
             
+            # Check rdfs:comment for "(timeseries)" annotation
+            is_timeseries = False
+            comments = list(graph.objects(prop_uri, RDFS.comment))
+            if comments:
+                comment_text = str(comments[0]).lower()
+                if "(timeseries)" in comment_text:
+                    is_timeseries = True
+                    logger.debug(f"Property {name} marked as timeseries from rdfs:comment")
+            
             prop = EntityTypeProperty(
                 id=prop_id,
                 name=name,
                 valueType=value_type,
+                is_timeseries=is_timeseries,
             )
             
             # Add property to all domain classes
             for domain_uri in domains:
                 if domain_uri in entity_types:
-                    # Check if this is a timeseries property (DateTime is often used for timestamps)
-                    if value_type == "DateTime" and "timestamp" in name.lower():
+                    # Use is_timeseries flag from rdfs:comment annotation
+                    if is_timeseries:
                         entity_types[domain_uri].timeseriesProperties.append(prop)
                     else:
                         entity_types[domain_uri].properties.append(prop)
                     property_to_domain[str(prop_uri)] = domain_uri
-                    logger.debug(f"Added property {name} to entity type {entity_types[domain_uri].name}")
+                    logger.debug(f"Added {'timeseries ' if is_timeseries else ''}property {name} to entity type {entity_types[domain_uri].name}")
             
             uri_to_id[str(prop_uri)] = prop_id
         

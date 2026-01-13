@@ -22,6 +22,7 @@ class EntityTypeProperty:
         id: Unique identifier for the property (numeric string).
         name: Display name of the property.
         valueType: Fabric data type (String, Boolean, DateTime, BigInt, Double, etc.).
+        is_timeseries: Whether this is a timeseries property (from eventhouse).
         redefines: ID of parent property being redefined (for inheritance).
         baseTypeNamespaceType: Namespace type of the base property.
     
@@ -29,7 +30,8 @@ class EntityTypeProperty:
         >>> prop = EntityTypeProperty(
         ...     id="1000000001",
         ...     name="temperature",
-        ...     valueType="Double"
+        ...     valueType="Double",
+        ...     is_timeseries=True
         ... )
         >>> prop.to_dict()
         {'id': '1000000001', 'name': 'temperature', 'valueType': 'Double'}
@@ -37,6 +39,7 @@ class EntityTypeProperty:
     id: str
     name: str
     valueType: str
+    is_timeseries: bool = False
     redefines: Optional[str] = None
     baseTypeNamespaceType: Optional[str] = None
     
